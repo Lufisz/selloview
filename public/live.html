@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f7f4" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Private, read-only business overview." />
+    <title>MetricTV · Live overview</title>
+    <link rel="icon" type="image/svg+xml" href="/mark.svg" />
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/live.css" />
+    <script type="module" src="/live.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div id="app">
+      <main class="workspace" id="main">
+        <div class="board">
+          <h1>Connecting to your store.</h1>
+          <p>Waiting for the first read-only Shopify snapshot.</p>
+        </div>
+      </main>
+    </div>
+    <noscript>This private dashboard needs JavaScript to load its store data.</noscript>
+    <dialog id="info-dialog" aria-labelledby="dialog-title">
+      <div id="dialog-content"></div>
+      <button class="button secondary" id="close-dialog">Got it</button>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

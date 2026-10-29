@@ -1,0 +1,32 @@
+# Example systemd unit for a self-hosted MetricTV instance.
+#
+# Assumes: source in /opt/metrictv, a dedicated `metrictv` system user, state in /var/lib/metrictv
+# and configuration in /etc/metrictv/metrictv.env (mode 600, owned by root or metrictv).
+# Install: sudo cp deploy/metrictv.service /etc/systemd/system/ && sudo systemctl enable --now metrictv
+[Unit]
+Description=MetricTV Shopify TV dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=metrictv
+Group=metrictv
+WorkingDirectory=/opt/metrictv
+EnvironmentFile=/etc/metrictv/metrictv.env
+# Use the path printed by `command -v node` if Node.js is installed elsewhere.
+ExecStart=/usr/bin/node server/beta/beta-server.mjs
+Restart=on-failure
+RestartSec=5
+
+# The process only needs to read its source and write its own state directory.
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/metrictv
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,19 @@
+# Credentials and local deployment values
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Private data, QA artifacts and local state
+state/
+private/
+snapshots/
+artifacts/
+*.log
+__pycache__/
+*.pyc
+
+# Optional development dependencies
+node_modules/
+.venv/

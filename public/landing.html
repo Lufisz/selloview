@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f6f7f4" />
+    <meta
+      name="description"
+      content="Your Shopify store on a TV. See orders, order value and stock alerts on a clear, automatically updated board."
+    />
+    <title>MetricTV · Your Shopify store on a TV</title>
+    <link rel="icon" type="image/svg+xml" href="/mark.svg" />
+    <link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/landing.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <header class="site-header page-rail">
+      <a class="brand" href="/" aria-label="MetricTV home">
+        <img src="/mark.svg" alt="" width="26" height="26" />
+        <span>MetricTV</span>
+      </a>
+      <nav class="site-nav" aria-label="Main">
+        <a href="#how-it-works">How it works</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
+        <a class="login-link" href="/app">Log in</a>
+      </nav>
+    </header>
+
+    <main id="main" class="page-rail">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <h1 id="hero-title">Your Shopify store,<br />on the big screen.</h1>
+          <p class="lead">
+            See orders, order value and low stock on a TV your team can read at a glance.
+          </p>
+          <div class="actions">
+            <a class="button button-primary" href="/demo">View the working demo</a>
+            <a class="button button-secondary" href="/register">Check beta availability</a>
+          </div>
+          <p class="pilot-note">
+            <strong>Beta access is limited.</strong> Connecting stores beyond the current pilot is
+            not available yet.
+          </p>
+        </div>
+
+        <figure class="preview" aria-labelledby="preview-caption">
+          <div class="tv">
+            <div class="screen">
+              <div
+                class="board"
+                role="img"
+                aria-label="Synthetic Shopify board: order value, orders, average order value, fulfillment, latest orders and stock alerts. Invented figures, not a real store."
+              >
+                <p class="mobile-label">Board preview · reflowed for small screens</p>
+                <div class="board-top">
+                  <strong>Sample Store<span class="board-dot">.</span></strong>
+                  <span>Today · EUR</span>
+                </div>
+                <div class="board-metrics">
+                  <div class="board-metric">
+                    <span>Order value</span><strong>€1,240</strong
+                    ><small>+8% vs. last Thursday</small>
+                  </div>
+                  <div class="board-metric">
+                    <span>Orders</span><strong>17</strong><small>+3 vs. last Thursday</small>
+                  </div>
+                  <div class="board-metric">
+                    <span>Average order value</span><strong>€72.94</strong
+                    ><small>−11% vs. last Thursday</small>
+                  </div>
+                  <div class="board-metric">
+                    <span>Awaiting fulfillment</span><strong>6</strong
+                    ><small>Orders to get ready</small>
+                  </div>
+                </div>
+                <div class="board-detail">
+                  <div class="board-trend">
+                    <div class="panel-heading">
+                      <span>Order value</span>
+                      <span class="chart-key">Today <i></i> Last Thursday</span>
+                    </div>
+                    <svg
+                      class="trend-chart"
+                      viewBox="0 0 580 160"
+                      preserveAspectRatio="none"
+                      aria-hidden="true"
+                    >
+                      <path class="chart-grid" d="M0 25H580 M0 75H580 M0 125H580" />
+                      <polyline
+                        class="chart-before"
+                        points="0,146 53,142 106,133 159,126 212,119 265,109 318,101 371,84 424,78 477,62 530,48 580,42"
+                      />
+                      <polyline
+                        class="chart-now"
+                        points="0,146 53,146 106,135 159,139 212,116 265,121 318,88 371,93 424,58 477,65 530,27 580,15"
+                      />
+                    </svg>
+                    <div class="chart-times">
+                      <span>08:00</span><span>12:00</span><span>16:00</span>
+                    </div>
+                  </div>
+                  <div class="board-orders">
+                    <div class="panel-heading">Latest orders</div>
+                    <ul aria-label="Latest orders">
+                      <li>
+                        <span>#1042<small>2 min ago</small></span
+                        ><span class="order-state">Unfulfilled</span><strong>€86.00</strong>
+                      </li>
+                      <li>
+                        <span>#1041<small>19 min ago</small></span
+                        ><span class="order-state">Unfulfilled</span><strong>€31.50</strong>
+                      </li>
+                      <li>
+                        <span>#1040<small>1 h ago</small></span
+                        ><span class="order-state">Fulfilled</span><strong>€142.00</strong>
+                      </li>
+                      <li>
+                        <span>#1039<small>1 h ago</small></span
+                        ><span class="order-state">Fulfilled</span><strong>€68.00</strong>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="stock-note">
+                  <span class="alert-mark" aria-hidden="true"></span
+                  ><strong>3 products running low</strong
+                  ><span>Check stock before they sell out</span>
+                </div>
+              </div>
+            </div>
+            <div class="tv-stand" aria-hidden="true"></div>
+          </div>
+          <figcaption id="preview-caption">
+            <span>Synthetic preview · not real store data</span>
+            <span>Read-only connection. Customer details stay off the screen.</span>
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="section explain-section" aria-labelledby="explain-title">
+        <h2 id="explain-title">Three questions the board answers without anyone asking.</h2>
+        <div class="explain-list">
+          <article>
+            <h3>Is today ahead of normal?</h3>
+            <p>
+              Order value, orders and average order value sit next to the same day last week, so a
+              slow morning is easy to judge.
+            </p>
+            <p class="excerpt"><strong>€1,240</strong> +8% vs. last Thursday</p>
+          </article>
+          <article>
+            <h3>What just came in?</h3>
+            <p>
+              The latest orders appear with their number, time, amount and whether they still need
+              packing. No customer names.
+            </p>
+            <p class="excerpt"><strong>#1042</strong> 2 min ago · Unfulfilled · €86.00</p>
+          </article>
+          <article>
+            <h3>What needs attention?</h3>
+            <p>
+              Products running low are flagged on the board, so restocking is not something someone
+              has to remember.
+            </p>
+            <p class="excerpt"><strong>3 products</strong> running low</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section setup-section" id="how-it-works" aria-labelledby="how-title">
+        <h2 id="how-title">From store to screen in three steps.</h2>
+        <ol class="steps">
+          <li>
+            <span class="step-number">1</span>
+            <h3>Connect your store</h3>
+            <p>
+              Create an account and verify your email with a code when registration opens. Then
+              approve read-only access through Shopify.
+            </p>
+          </li>
+          <li>
+            <span class="step-number">2</span>
+            <h3>Configure the board</h3>
+            <p>Start with the standard board. Choose the period and a light or dark appearance.</p>
+          </li>
+          <li>
+            <span class="step-number">3</span>
+            <h3>Pair your TV</h3>
+            <p>Open the pairing page on the TV and enter its code on your laptop or phone.</p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section pricing-section" id="pricing" aria-labelledby="pricing-title">
+        <div class="beta-plan">
+          <div class="plan-summary">
+            <h2 id="pricing-title">Free beta</h2>
+            <p class="plan-price">€0</p>
+          </div>
+          <div class="plan-detail">
+            <p>Proposed scope: one store, one screen. No card required. No countdown trial.</p>
+            <p class="plan-limit">
+              Access is currently limited to the pilot; other stores cannot connect yet.
+            </p>
+          </div>
+          <a class="button button-secondary" href="/register">Check beta availability</a>
+        </div>
+        <div class="future-plans">
+          <p>
+            <strong>Hosted, later.</strong> Paid plans are not available yet. Beta users will be
+            told before pricing changes.
+          </p>
+          <p>
+            <strong>Prefer your own server?</strong> Open-source release planned. The self-hosted
+            version is not released yet.
+          </p>
+        </div>
+      </section>
+
+      <section class="section faq-section" id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Before you connect.</h2>
+        <div class="faq">
+          <details>
+            <summary>What about privacy?</summary>
+            <p>
+              The board shows store figures and order numbers. Customer names, emails and delivery
+              addresses are not requested or shown.
+            </p>
+          </details>
+          <details>
+            <summary>Is the connection really read-only?</summary>
+            <p>
+              Yes. MetricTV reads the order and stock data it displays. It cannot edit your orders,
+              products or store settings.
+            </p>
+          </details>
+          <details>
+            <summary>What do I need on the TV?</summary>
+            <p>
+              A TV or connected screen with a modern web browser. Open the pairing page on the TV
+              and approve its code from your phone or laptop.
+            </p>
+          </details>
+          <details>
+            <summary>How often does the board update?</summary>
+            <p>
+              The TV checks for updates every 10 seconds. Shopify figures refresh about every 2
+              minutes. If the connection drops, the last figures stay visible with a warning.
+            </p>
+          </details>
+          <details>
+            <summary>What does the beta include?</summary>
+            <p>
+              The proposed free scope is one store, one screen. Access is currently limited to the
+              pilot; other stores cannot connect yet. Period and light or dark appearance are
+              configurable.
+            </p>
+          </details>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer page-rail">
+      <a class="brand" href="/">MetricTV</a><span>Shopify TV dashboard</span
+      ><a href="/app">Log in</a>
+    </footer>
+  </body>
+</html>

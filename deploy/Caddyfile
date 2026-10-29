@@ -1,0 +1,10 @@
+# Example Caddy reverse proxy. Caddy obtains and renews the HTTPS certificate itself.
+# Replace the host name with the one in BETA_ORIGIN.
+metrictv.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:4330 {
+		# Caddy always overwrites this header, so it is safe to set
+		# BETA_TRUSTED_IP_HEADER=x-real-ip with this configuration.
+		header_up X-Real-IP {remote_host}
+	}
+}
