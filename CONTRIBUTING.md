@@ -46,6 +46,11 @@ To run the full app locally, follow [docs/self-hosting.md](docs/self-hosting.md)
 - Unavailable is not zero, stale is not live. Never fill gaps with invented figures.
 - The TV receives display data only: no owner details, store domain or admin links.
 
+## Licence of contributions
+
+MetricTV is licensed under AGPL-3.0. By opening a pull request you agree that your contribution is
+licensed under the same terms.
+
 ## Reporting bugs
 
 Include what you did, what you expected and what happened, your Node.js version and browser or TV

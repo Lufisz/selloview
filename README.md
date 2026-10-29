@@ -99,5 +99,8 @@ Never include store data or credentials in an issue.
 
 ## Licence
 
-Not chosen yet. Until a licence file is added, no permission to use, copy or modify this code is
-granted. The bundled Archivo font is under the SIL Open Font License; see `public/fonts/OFL.txt`.
+[GNU Affero General Public License v3.0](LICENSE). You can use, self-host and modify MetricTV
+freely. If you run a modified version as a service for other people, you must offer them its source
+code under the same licence.
+
+The bundled Archivo font is under the SIL Open Font License; see `public/fonts/OFL.txt`.
