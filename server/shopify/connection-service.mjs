@@ -1,59 +1,29 @@
-// Workspace-scoped Shopify connection.
+// Workspace-scoped Shopify connection: what a workspace may see of its store, and how it leaves.
 //
 // One shared official-SDK client; one encrypted grant file, grant manager and snapshot cache per
-// linked workspace. Everything that touches a store starts from a workspace the server derived
-// from a verified owner session or display session. A shop name in a request is never enough.
+// linked workspace (workspace-runtimes.mjs); one flow that connects a store (connect-flow.mjs).
+// Everything that touches a store starts from a workspace the server derived from a verified owner
+// session or display session. A shop name in a request is never enough.
 //
 // The configuration (METRICTV_SHOPIFY_*) restricts which owner and which exact store may be linked;
 // the data model stays workspace-bound so lifting that restriction later does not change any
 // isolation rule.
-import crypto from 'node:crypto';
+import { createConnectFlow } from './connect-flow.mjs';
 import { createShopifyFetch } from './http.mjs';
+import { createShopifySdk } from './sdk.mjs';
 import { REFRESH_MS } from './snapshot-cache.mjs';
 import { createWorkspaceRuntimes } from './workspace-runtimes.mjs';
-import {
-  PENDING_ATTEMPT_TTL_MS,
-  STATE_COOKIE_NAMES,
-  createShopifySdk,
-  forwardedHeaders,
-  hasExactCallbackFields,
-  parseAuthorizationUrl,
-  parseQuery,
-  runWithBoundedFetch,
-} from './sdk.mjs';
-import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
-import { createRateLimiter } from '../http/rate-limiter.mjs';
-import { constantTimeEqual, sha256Hex } from '../hashing.mjs';
-import { logEvent } from '../log.mjs';
 import { fetchShopLogo } from './shop-logo.mjs';
 import {
-  claimStore,
-  consumeAttempt,
-  createAttempt,
   discardAttemptsForWorkspace,
   readLink,
-  readLinkByShop,
-  readLiveSession,
   readWorkspaceOwnerEmail,
   removeLink,
-  restoreLink,
-  workspaceIsOwnedBy,
 } from './links.mjs';
-
-// The redirect URL registered in each operator's Shopify app. The path is part of that
-// registration, so it never changes.
-export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 
 const UPSTREAM_TIMEOUT_MS = 10_000;
 const MAX_TOKEN_RESPONSE_BYTES = 64 * 1024;
-const START_RATE_LIMIT = { limit: 6, windowMs: 60_000 };
 const STATES_THAT_MAY_CONNECT = new Set(['not_connected', 'connected', 'reconnect_required']);
-
-// Dedicated cookie names: the SDK's defaults would collide with other OAuth cookies when services
-// share a hostname (browsers key cookies by host, not by port). The names keep their original
-// prefix so an authorization that is in flight during an upgrade still completes.
-const OAUTH_STATE_COOKIE_SUFFIXES = Object.freeze(['metrictv_beta_oauth_state', '.sig']);
-const BINDING_COOKIE_BASE = 'metrictv_beta_oauth_bind';
 
 /**
  * @param {object} options
@@ -71,13 +41,6 @@ export function createShopifyService({
   fetchLogo = fetchShopLogo,
 }) {
   const isReady = config.status === 'ready';
-  const isSecure = new URL(origin).protocol === 'https:';
-  const cookiePrefix = isSecure ? '__Secure-' : '';
-  const stateCookieName = `${cookiePrefix}${OAUTH_STATE_COOKIE_SUFFIXES[0]}`;
-  const signatureCookieName = `${stateCookieName}${OAUTH_STATE_COOKIE_SUFFIXES[1]}`;
-  const bindingCookieName = `${cookiePrefix}${BINDING_COOKIE_BASE}`;
-  const callbackUrl = `${origin}${SHOPIFY_CALLBACK_PATH}`;
-  const startLimiter = createRateLimiter(START_RATE_LIMIT);
 
   let shopify = null;
   let boundedFetch = null;
@@ -95,6 +58,10 @@ export function createShopifyService({
     });
   }
 
+  function isAllowedOwner(email) {
+    return isReady && typeof email === 'string' && email.toLowerCase() === config.ownerEmail;
+  }
+
   const runtimes = createWorkspaceRuntimes({
     database,
     config,
@@ -105,12 +72,17 @@ export function createShopifyService({
     refreshIntervalMs,
     fetchLogo,
   });
-
-  function isAllowedOwner(email) {
-    return isReady && typeof email === 'string' && email.toLowerCase() === config.ownerEmail;
-  }
-
-  // ---- reading state --------------------------------------------------------------------------
+  const connectFlow = createConnectFlow({
+    database,
+    config,
+    origin,
+    isReady,
+    isAllowedOwner,
+    shopify,
+    boundedFetch,
+    runtimes,
+    now,
+  });
 
   /**
    * The single decision about what a workspace may see. Returns { state, runtime? }. A runtime is
@@ -145,76 +117,6 @@ export function createShopifyService({
       connection.sync = runtime.cache.sync();
     }
     return connection;
-  }
-
-  // ---- finishing the flow ---------------------------------------------------------------------
-
-  function ownerStillAllowed(attempt) {
-    const session = readLiveSession(database, attempt.session_id, now());
-    if (!session || session.userId !== attempt.user_id) return false;
-    if (!isAllowedOwner(session.email)) return false;
-    return workspaceIsOwnedBy(database, attempt.workspace_id, session.userId);
-  }
-
-  async function installGrant(runtime, attempt, session, startingEpoch) {
-    const previous = readLink(database, attempt.workspace_id);
-    const claim = claimStore(database, {
-      workspaceId: attempt.workspace_id,
-      shop: attempt.shop,
-      state: 'connected',
-      nowMs: now(),
-    });
-    if (claim !== 'ok') return false;
-    const installed = await runtime.manager.installSession(session, startingEpoch);
-    if (!installed) {
-      restoreLink(database, { workspaceId: attempt.workspace_id, previous, nowMs: now() });
-      return false;
-    }
-    if (!ownerStillAllowed(attempt)) {
-      // Signed out while the grant was being written: undo it completely.
-      removeLink(database, attempt.workspace_id);
-      // A grant file that could not be removed stays encrypted and unused until the next connect
-      // replaces it, but the operator should know about it.
-      await runtime.manager.disconnect().catch((error) => {
-        logEvent('grant_cleanup_failed', {
-          workspaceId: attempt.workspace_id,
-          error: error?.name ?? 'Error',
-        });
-      });
-      runtime.cache.clear();
-      return false;
-    }
-    return true;
-  }
-
-  function readSdkStateCookies(setCookieHeaders) {
-    const values = new Map();
-    for (const header of setCookieHeaders) {
-      const [pair] = header.split(';');
-      const separator = pair.indexOf('=');
-      if (separator > 0) values.set(pair.slice(0, separator), pair.slice(separator + 1));
-    }
-    const [stateName, signatureName] = STATE_COOKIE_NAMES;
-    const state = values.get(stateName);
-    const signature = values.get(signatureName);
-    if (!state || !signature) return null;
-    return { state, signature };
-  }
-
-  /** Restores the SDK's own cookie names; its signature covers "name=value". */
-  function buildSdkCookieHeader(request) {
-    const state = readCookie(request, stateCookieName, SIGNED_COOKIE_VALUE_PATTERN);
-    const signature = readCookie(request, signatureCookieName, SIGNED_COOKIE_VALUE_PATTERN);
-    if (!state || !signature) return null;
-    const [stateName, signatureName] = STATE_COOKIE_NAMES;
-    return `${stateName}=${state}; ${signatureName}=${signature}`;
-  }
-
-  function callbackCookie(name, value) {
-    const parts = [`${name}=${value}`, `Path=${SHOPIFY_CALLBACK_PATH}`, 'HttpOnly', 'SameSite=Lax'];
-    parts.push(value === '' ? 'Max-Age=0' : `Max-Age=${PENDING_ATTEMPT_TTL_MS / 1000}`);
-    if (isSecure) parts.push('Secure');
-    return parts.join('; ');
   }
 
   return {
@@ -252,119 +154,9 @@ export function createShopifyService({
       return runtime ? runtime.logo.image : null;
     },
 
-    /** Starts the SDK flow. Returns { status: 'ok', authorizationUrl, cookies } or a denial. */
-    async begin({ workspaceId, owner, sessionId, userAgent, store }) {
-      if (!isReady) return { status: 'setup_required' };
-      if (!isAllowedOwner(owner.email)) return { status: 'owner_not_allowed' };
-      if (store !== config.store) return { status: 'store_not_allowed' };
-      const holder = readLinkByShop(database, config.store);
-      if (holder && holder.workspace_id !== workspaceId) return { status: 'store_in_use' };
-      if (!startLimiter.consume(workspaceId).allowed) return { status: 'rate_limited' };
-
-      // The SDK reads only the user agent from this request; its URL is never served.
-      const sdkRequest = new Request(`${origin}/api/shopify/start`, {
-        method: 'POST',
-        headers: typeof userAgent === 'string' ? { 'user-agent': userAgent } : {},
-      });
-      let sdkResponse;
-      try {
-        sdkResponse = await runWithBoundedFetch(boundedFetch, () =>
-          shopify.auth.begin({
-            shop: config.store,
-            callbackPath: SHOPIFY_CALLBACK_PATH,
-            isOnline: false,
-            rawRequest: sdkRequest,
-          }),
-        );
-      } catch {
-        return { status: 'start_failed' };
-      }
-      if (sdkResponse.status === 410) return { status: 'unsupported_client' };
-      const authorization = parseAuthorizationUrl(sdkResponse.headers.get('location') ?? '', {
-        store: config.store,
-        clientId: config.clientId,
-        callbackUrl,
-      });
-      const sdkCookies = readSdkStateCookies(sdkResponse.headers.getSetCookie());
-      if (sdkResponse.status !== 302 || !authorization || !sdkCookies) {
-        return { status: 'start_failed' };
-      }
-
-      const bindingSecret = crypto.randomBytes(32).toString('base64url');
-      const recorded = createAttempt(database, {
-        state: authorization.state,
-        bindingSecret,
-        workspaceId,
-        userId: owner.id,
-        sessionId,
-        shop: config.store,
-        nowMs: now(),
-        lifetimeMs: PENDING_ATTEMPT_TTL_MS,
-      });
-      if (!recorded) return { status: 'busy' };
-      return {
-        status: 'ok',
-        authorizationUrl: authorization.href,
-        cookies: [
-          callbackCookie(stateCookieName, sdkCookies.state),
-          callbackCookie(signatureCookieName, sdkCookies.signature),
-          callbackCookie(bindingCookieName, bindingSecret),
-        ],
-      };
-    },
-
-    /** Cookies that end a flow (success or failure) so nothing lingers in the browser. */
-    clearingCookies() {
-      return [stateCookieName, signatureCookieName, bindingCookieName].map((name) =>
-        callbackCookie(name, ''),
-      );
-    },
-
-    /**
-     * Finishes the flow for a browser that arrives from Shopify. Returns true only when a grant
-     * was stored for the workspace that started this exact attempt. Every refusal is the same
-     * `false`; the caller shows one fixed failure page.
-     */
-    async complete(request) {
-      if (!isReady) return false;
-      const query = parseQuery(request.url ?? '');
-      if (!query || !hasExactCallbackFields(query)) return false;
-      const attempt = consumeAttempt(database, query.get('state'));
-      if (!attempt) return false;
-      if (attempt.expires_at <= now()) return false;
-      if (query.get('shop') !== attempt.shop || attempt.shop !== config.store) return false;
-
-      // The owner's SameSite=Strict cookie is not sent on this cross-site navigation, so the
-      // browser proves itself with the short-lived binding cookie instead.
-      const bindingSecret = readCookie(request, bindingCookieName);
-      if (!bindingSecret || !constantTimeEqual(sha256Hex(bindingSecret), attempt.binding_hash)) {
-        return false;
-      }
-      const sdkCookieHeader = buildSdkCookieHeader(request);
-      if (!sdkCookieHeader) return false;
-      if (!ownerStillAllowed(attempt)) return false;
-
-      const runtime = runtimes.forWorkspace(attempt.workspace_id);
-      const startingEpoch = runtime.manager.epoch;
-      const sdkRequest = new Request(`${origin}${request.url}`, {
-        headers: {
-          cookie: sdkCookieHeader,
-          ...forwardedHeaders(request, ['user-agent']),
-        },
-      });
-      let session;
-      try {
-        const result = await runWithBoundedFetch(boundedFetch, () =>
-          shopify.auth.callback({ expiring: true, rawRequest: sdkRequest }),
-        );
-        session = result.session;
-      } catch {
-        return false;
-      }
-      // The code exchange takes network time; sign-out or revocation meanwhile cancels the finish.
-      if (!ownerStillAllowed(attempt)) return false;
-      return installGrant(runtime, attempt, session, startingEpoch);
-    },
+    begin: connectFlow.begin,
+    complete: connectFlow.complete,
+    clearingCookies: connectFlow.clearingCookies,
 
     /** Local disconnect: link, pending attempts, cached figures and the grant file all go. */
     async disconnect({ workspaceId, ownerEmail }) {

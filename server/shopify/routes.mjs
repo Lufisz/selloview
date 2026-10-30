@@ -2,12 +2,12 @@
 // (and, when changing anything, exact Origin, JSON and the session-bound CSRF token). The OAuth
 // callback is different: it arrives from Shopify as a cross-site navigation, so the SameSite=Strict
 // session cookie is absent by design. It is authorized by the signed SDK state, the single-use
-// pending attempt and the path-scoped binding cookie instead (see connection-service.mjs).
+// pending attempt and the path-scoped binding cookie instead (see connect-flow.mjs).
 import { validateStore } from './shop-data.mjs';
 import { RequestRejection, assertSameOriginJson, readJsonObject } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { ensureWorkspace } from '../accounts/workspaces.mjs';
-import { SHOPIFY_CALLBACK_PATH } from './connection-service.mjs';
+import { SHOPIFY_CALLBACK_PATH } from './connect-flow.mjs';
 
 export const SHOPIFY_STATUS_PATH = '/api/shopify';
 export const SHOPIFY_START_PATH = '/api/shopify/start';

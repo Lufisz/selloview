@@ -2,7 +2,7 @@
 //
 // A workspace is linked to at most one store and a store to at most one workspace (UNIQUE on
 // both), which is what stops a second owner from ever reading the first owner's figures.
-// Credentials are NOT here: they live in encrypted per-workspace grant files (connection-service).
+// Credentials are NOT here: they live in encrypted per-workspace grant files (token-store.mjs).
 import crypto from 'node:crypto';
 import { sha256Hex } from '../hashing.mjs';
 

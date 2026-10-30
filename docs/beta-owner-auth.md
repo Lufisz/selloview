@@ -106,8 +106,10 @@ synthetic and lives only under `tests/`.
 ## Shopify store connection (pilot)
 
 Code, all in `server/shopify/`: `config.mjs` (settings), `links.mjs` (SQLite store links and
-pending attempts), `connection-service.mjs` (OAuth, grants, per-workspace cache) and `routes.mjs`
-(HTTP); `server/screens/display-board.mjs` is the TV projection. The OAuth protocol, grant renewal
+pending attempts), `connect-flow.mjs` (the OAuth start and callback), `workspace-runtimes.mjs`
+(per-workspace grant, cache and logo, and when they refresh), `connection-service.mjs` (what a
+workspace may see, and disconnect) and `routes.mjs` (HTTP); `server/screens/display-board.mjs` is
+the TV projection. The OAuth protocol, grant renewal
 and encrypted grant files are handled by the official-SDK modules `sdk.mjs`, `grant-manager.mjs`,
 `token-store.mjs`, `http.mjs` and `admin-runner.mjs`; the fixed 2026-07 queries and the 130-day
 collector are in `shop-data.mjs`, the metric code in `server/metrics.mjs`.

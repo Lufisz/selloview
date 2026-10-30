@@ -1,5 +1,5 @@
 // Pieces of the official Shopify SDK integration: the outbound bridge, grant validation and the
-// parsers for the OAuth redirect and callback. server/shopify/connection-service.mjs wires them together.
+// parsers for the OAuth redirect and callback. connect-flow.mjs and workspace-runtimes.mjs use them.
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { shopifyApi, ApiVersion, LogSeverity } from '@shopify/shopify-api';
 import '@shopify/shopify-api/adapters/web-api';

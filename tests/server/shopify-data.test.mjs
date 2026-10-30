@@ -405,6 +405,30 @@ test(
   },
 );
 
+test(
+  'a disconnect that cannot remove the grant file says so, and the link and figures are gone anyway',
+  http,
+  async (t) => {
+    const { scenario, alice } = await connectedAlice(t);
+
+    // Fault injection: the disk refuses to remove the encrypted grant file.
+    const realUnlink = fs.unlink;
+    t.mock.method(fs, 'unlink', async (target) => {
+      if (String(target).endsWith('.grant.json')) throw new Error('synthetic disk failure');
+      return realUnlink(target);
+    });
+
+    const disconnected = await alice.browser.disconnectShopify();
+    assert.equal(disconnected.status, 500);
+    assert.deepEqual(disconnected.json, { error: 'disconnect_failed' });
+    assert.equal(scenario.link(ALICE), null, 'the link is gone');
+    const status = await alice.browser.shopifyStatus();
+    assert.equal(status.json.connection.state, 'not_connected');
+    assert.equal(status.json.snapshot, null, 'the figures are gone');
+    assert.equal((await scenario.grantFiles()).length, 1, 'the encrypted file is left behind');
+  },
+);
+
 test('a grant file is bound to its workspace, app and store', async (t) => {
   const directory = await fs.mkdtemp(
     path.join(await fs.realpath(process.env.TMPDIR ?? '/tmp'), 'grant-bind-'),
