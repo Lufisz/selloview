@@ -119,7 +119,7 @@ These are stored on disk, registered outside this repository or held by open bro
 - Owner session cookie prefix `metrictv_beta` (`accounts/auth.mjs`), and the CSRF label `beta-csrf` (`accounts/owner-session.mjs`).
 - TV cookies `metrictv_tv_challenge` and `metrictv_tv_display` (`__Host-` prefixed on https).
 - The Shopify redirect path `/auth/beta/shopify/callback`, which each operator registers in their own Shopify app, and the cookies `metrictv_beta_oauth_state` (with `.sig`) and `metrictv_beta_oauth_bind`.
-- The database layout and `PRAGMA user_version`, the grant file names `<workspace-id>.grant.json` and the encryption binding data in `token-store.mjs`.
+- The database layout and `PRAGMA user_version`, the grant file names `<workspace-id>.grant.json` and the encryption binding data in `token-store.mjs`. `createWorkspaceTokenStore` is the only code that builds that path, for the server and for the operator's `remove` command alike.
 - `/api/auth`, `/api/display*`, `/api/tv/*`, which pages already open in browsers and on TVs call.
 
 ## TV code stays in the field

@@ -11,7 +11,7 @@ An instance connects **one configured store** for **one configured owner**. It i
 | Owner | Email-code sign-in and an HttpOnly, SameSite=Strict session cookie | Use the board of their own workspace, change its settings, connect or disconnect the store, pair and remove TVs |
 | TV display | A paired display session in its own cookie | Read the display-only projection of its own workspace's board, and nothing else |
 | Anyone else | Nothing | Open the public pages and the sample dashboard, ask for a sign-in code, and start TV pairing, which grants nothing until an owner approves the code |
-| Operator | Shell access to the server | Create the database, invite owners and sign them out everywhere with a local command that is not reachable over HTTP; holds every key |
+| Operator | Shell access to the server | Create the database, invite owners, sign them out everywhere and remove them, with local commands that are not reachable over HTTP; holds every key |
 
 The server listens on `127.0.0.1` only and expects an HTTPS reverse proxy in front of it. The configured public origin must be HTTPS, except for loopback trials. It trusts the operating-system account it runs as: anyone who can read that account's files or environment, root included, can read the database, the encrypted Shopify credentials and the keys that decrypt them. MetricTV does not isolate itself from other local users with that access.
 
@@ -59,7 +59,7 @@ Disconnect deletes MetricTV's stored credentials. It does not uninstall the Shop
 - Per-address limits see the address of the reverse proxy unless the operator trusts a client-address header. `.env.example` trusts `X-Real-IP`, which the shipped Caddyfile always overwrites. Without a trusted header every visitor shares one allowance, so anyone can use up the sign-in (3 code requests a minute), TV pairing and Shopify callback allowances for the real owner; signed-in sessions and paired screens keep working. The server logs `proxy_header_not_trusted` once when a proxy header shows up unread. Trust a header only when the proxy always overwrites it: a header clients can set themselves would let them dodge the limits. IPv6 visitors are counted by /64, so a client that holds a larger block can still rotate through its /64s. A local process can also reach the loopback port directly; that does not bypass sign-in.
 - A display credential is a bearer cookie valid for up to 30 days, renewed while in use. Whoever holds it sees that workspace's display data until the owner removes the screen. Approving a pairing code gives that screen access, so owners should only enter codes shown on screens they control.
 - A stolen owner session cookie works until it expires (seven days, extended while in use) or the operator revokes that owner's sessions. Owners cannot yet list or end their other sessions.
-- `npm run admin -- revoke` signs an owner out everywhere; it does not remove the owner. They can request a new code and sign in again, and their screens and store link stay. No command removes an owner yet.
+- `npm run admin -- revoke` signs an owner out everywhere; the address stays invited, so the owner can request a new code and sign in again. `npm run admin -- remove` deletes the owner with the workspace, paired screens and stored Shopify credentials, and the address is uninvited. It does not uninstall the Shopify app, and it should run with the service stopped: a running server could still write the credentials back, and keeps that workspace's figures in memory until it restarts.
 - A sign-in code request does not hide whether an address is invited: the mail provider is awaited only for an invited address, so its answer takes longer, and while the provider is failing an invited address gets an error where an uninvited one gets success.
 - There is no audit log of sign-ins or owner actions.
 - Shopify uninstall and privacy webhooks are not implemented. An uninstall is noticed on the next failed read.
@@ -71,7 +71,7 @@ Disconnect deletes MetricTV's stored credentials. It does not uninstall the Shop
 Needed, and independently reviewed, before MetricTV is offered to other merchants as a public service:
 
 1. More than one store and owner per instance. The data model is workspace-bound (a store belongs to at most one workspace and the reverse), but lifting the single-store restriction needs a fresh isolation review with a second account on every query, cache entry and display session.
-2. Account deletion, data export and a retention policy.
+2. Account deletion by the owner (an operator can remove one), data export and a retention policy.
 3. Shopify uninstall and privacy webhooks.
 4. Operational monitoring, alerting, safe updates and a restore that has been tested end to end.
 5. An independent security review.

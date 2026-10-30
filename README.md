@@ -68,7 +68,7 @@ npm test
 | `server/http/`, `server/metrics.mjs` | Request guards and static files; the pure snapshot maths |
 | `server/demo.mjs` | The sample dashboard server (`npm start`) |
 | `public/` | Pages by surface: `landing/`, `demo/`, `owner/`, `tv/`, `shared/` |
-| `scripts/admin.mjs` | Database setup, invitations and migrations (`npm run admin -- ...`) |
+| `scripts/admin.mjs` | Database setup, invitations, owner removal and migrations (`npm run admin -- ...`) |
 | `tests/` | Tests using synthetic data: `server/`, `browser/`, `helpers/`, `qa/` |
 | `docs/` | Architecture, testing, gotchas, sign-in and pairing, self-hosting |
 

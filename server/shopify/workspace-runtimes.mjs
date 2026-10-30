@@ -5,15 +5,13 @@
 // This is also the one place that decides when stores refresh. Nothing here runs on a timer: a
 // store is refreshed when someone reads it and its figures are due, so stores nobody is watching
 // cost nothing.
-import path from 'node:path';
 import { createAdminRunner } from './admin-runner.mjs';
 import { createGrantManager } from './grant-manager.mjs';
 import { setLinkState } from './links.mjs';
 import { createShopSnapshotCache, toSafeErrorCode } from './snapshot-cache.mjs';
-import { createTokenStore } from './token-store.mjs';
+import { createWorkspaceTokenStore } from './token-store.mjs';
 import { logEvent } from '../log.mjs';
 
-const WORKSPACE_ID_PATTERN = /^[0-9a-f-]{36}$/;
 // ceiling: 2 refreshes at once, which keeps about 60 stores fresh if each refresh takes 4 s,
 // upgrade: raise it when stores turn stale while the server is otherwise idle
 const MAX_CONCURRENT_REFRESHES = 2;
@@ -65,16 +63,9 @@ export function createWorkspaceRuntimes({
 
   /** The runtime of a workspace, created on first use. Only ids shaped like ours become file names. */
   function forWorkspace(workspaceId) {
-    if (!WORKSPACE_ID_PATTERN.test(workspaceId)) throw new Error('invalid workspace id');
     const existing = runtimes.get(workspaceId);
     if (existing) return existing;
-    const tokenStore = createTokenStore({
-      filePath: path.join(config.tokenDirectory, `${workspaceId}.grant.json`),
-      key: config.encryptionKey,
-      clientId: config.clientId,
-      store: config.store,
-      workspaceId,
-    });
+    const tokenStore = createWorkspaceTokenStore(config, workspaceId);
     const runtime = {
       workspaceId,
       lastTriggeredAt: null,

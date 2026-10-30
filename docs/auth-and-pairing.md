@@ -90,7 +90,8 @@ The sign-in code reaches the auth layer through an injected, server-only transpo
 
 - A code request for an uninvited address gets the same reply body and status as for an invited one, but not the same timing: the mail provider is awaited only for an invited address, so anyone can tell them apart by how long the request takes, and while the provider is failing an invited address gets an error where an uninvited one gets success. All this reveals is that an address is invited.
 - Behind a proxy without `METRICTV_TRUSTED_IP_HEADER`, all visitors share one rate-limit bucket, so anyone can use up the sign-in, pairing and callback allowances for the owner ([gotchas.md](gotchas.md#behind-a-proxy-every-visitor-looks-like-the-proxy)).
-- Not implemented: account deletion, removing an owner (`revoke` only signs an owner out, and they can request a new code), email change, Shopify uninstall and privacy webhooks, billing. One store and one owner may connect per instance.
+- Removing an owner is an operator command, `npm run admin -- remove <email>`: it deletes the account, workspace, screens and stored Shopify credentials (the grant file first, so a failure leaves the owner untouched and the command can be run again), but not the Shopify app in the store. `revoke` only signs an owner out and the address stays invited.
+- Not implemented: an owner deleting their own account, email change, Shopify uninstall and privacy webhooks, billing. One store and one owner may connect per instance.
 - Better Auth creates its own tables through its migration; `npm run admin -- migrate` applies it and the app's own tables.
 
 ## What has been verified

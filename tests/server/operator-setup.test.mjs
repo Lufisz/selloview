@@ -24,6 +24,7 @@ import {
   unconfiguredTransport,
 } from '../../server/accounts/mail-transport.mjs';
 import { normalizeInviteEmail } from '../../server/accounts/accounts.mjs';
+import { runCli } from '../helpers/admin-cli.mjs';
 import {
   curlAvailable,
   findFreePort,
@@ -312,17 +313,6 @@ test('the Resend adapter sends one bounded HTTPS request and hides provider deta
       error.code === 'delivery_unreachable' && !String(error.message).includes('secret-detail'),
   );
 });
-
-function runCli(args, env) {
-  return new Promise((resolve) => {
-    execFile(
-      process.execPath,
-      [path.join(PROJECT_ROOT, 'scripts', 'admin.mjs'), ...args],
-      { env: { PATH: process.env.PATH, ...env }, timeout: 30_000 },
-      (error, stdout, stderr) => resolve({ code: error ? (error.code ?? 1) : 0, stdout, stderr }),
-    );
-  });
-}
 
 test('operator CLI initializes once, invites exact emails, lists, revokes and prints no secrets', async (t) => {
   const directory = await makeTemporaryDirectory(t);

@@ -4,7 +4,7 @@ import { getMigrations } from 'better-auth/db/migration';
 import { createAuth, createAuthOptions } from './auth.mjs';
 import { applyWorkspaceSchema, ensureWorkspace } from './workspaces.mjs';
 import { SCREEN_SCHEMA } from '../screens/screens.mjs';
-import { SHOPIFY_SCHEMA } from '../shopify/links.mjs';
+import { SHOPIFY_SCHEMA, readLink } from '../shopify/links.mjs';
 import { createPrivateDatabaseFile, openPrivateDatabase } from './private-database.mjs';
 import { unconfiguredTransport } from './mail-transport.mjs';
 import { CodedError } from '../errors.mjs';
@@ -116,6 +116,37 @@ export async function revokeOwnerSessions({ database, secret, origin, email: raw
   if (!found) throw new AccountError('unknown_email');
   await internalAdapter.deleteUserSessions(found.user.id);
   return { email };
+}
+
+/**
+ * Deletes an owner and everything that hangs off the account: sign-ins, workspace, settings, paired
+ * screens, store link and pending Shopify attempts. The address is uninvited again.
+ *
+ * `removeGrant(workspaceId)` deletes the stored Shopify credentials. It runs first, so when it
+ * fails the owner is untouched and the command can be run again. It is null when the Shopify
+ * settings are not set, which is only acceptable for a workspace that never linked a store.
+ */
+export async function removeOwner({ database, secret, origin, email: rawEmail, removeGrant }) {
+  const email = normalizeInviteEmail(rawEmail);
+  const auth = createAuth({ database, secret, origin, mailTransport: unconfiguredTransport });
+  const { internalAdapter } = await auth.$context;
+  const found = await internalAdapter.findUserByEmail(email);
+  if (!found) throw new AccountError('unknown_email');
+  const workspace = database
+    .prepare('SELECT id FROM workspace WHERE owner_user_id = ?')
+    .get(found.user.id);
+  const workspaceId = workspace?.id ?? null;
+  const link = workspaceId === null ? null : readLink(database, workspaceId);
+  if (link && !removeGrant) throw new AccountError('shopify_settings_missing');
+  if (workspaceId !== null && removeGrant) {
+    try {
+      await removeGrant(workspaceId);
+    } catch {
+      throw new AccountError('grant_not_removed');
+    }
+  }
+  await internalAdapter.deleteUser(found.user.id);
+  return { email, workspaceId, shop: link?.shop ?? null };
 }
 
 /** Owner emails with workspace ids; no sessions, codes or tokens. */

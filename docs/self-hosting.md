@@ -98,8 +98,8 @@ sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs in
 ```
 
 Invite the same address as `METRICTV_SHOPIFY_OWNER_EMAIL`. Inviting sends nothing; you request a code on
-the sign-in page. Other commands: `owners`, `revoke <email>` (signs that person out everywhere) and
-`migrate` (after an upgrade).
+the sign-in page. Other commands: `owners`, `revoke <email>` (signs that person out everywhere; the
+address stays invited), `remove <email>` ([below](#removing-an-owner)) and `migrate` (after an upgrade).
 
 ## 5. Run it
 
@@ -201,6 +201,26 @@ The owner API moved from `/api/beta/…` to `/api/…`, and nothing answers unde
 browser tab that was open during the upgrade shows an error until it is reloaded, and a reverse
 proxy rule that matched `/api/beta/` needs the new prefix. Your database, the encrypted Shopify
 credentials, the Shopify redirect URL and paired TVs are not otherwise affected.
+
+## Removing an owner
+
+`revoke` only signs an owner out; the address stays invited and can sign in again. `remove` deletes the
+owner with the workspace, its paired screens and the stored Shopify credentials, so the address is
+uninvited and a later `invite` starts from nothing:
+
+```sh
+sudo systemctl stop metrictv
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs remove you@example.com
+sudo systemctl start metrictv
+```
+
+Stop the service first: a running server could still write the credentials back. Use the same
+environment file as the server so the command can find the credentials; without the Shopify settings it
+refuses to remove an owner who linked a store (`shopify_settings_missing`). `grant_not_removed` means the
+credentials could not be deleted, usually because the command did not run as the service user (the
+credentials must belong to whoever runs it, root included) or `METRICTV_SHOPIFY_TOKEN_DIR` holds something
+that is not MetricTV's. Nothing was removed then, so run it again once that is fixed. The Shopify app stays installed in the store until you uninstall it in the
+Shopify admin.
 
 ## Removing MetricTV
 

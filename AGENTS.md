@@ -10,7 +10,7 @@ Needs Node 22.16 or later. The database is the built-in `node:sqlite`.
 | --- | --- |
 | try the sample board (fictional data, no accounts) | `npm start`, then open http://127.0.0.1:4317 |
 | run the real app | `npm run start:server` (settings: `.env.example`) |
-| create the database, invite or revoke an owner | `npm run admin -- init \| migrate \| invite <email> \| revoke <email> \| owners` |
+| create the database, invite, sign out or remove an owner | `npm run admin -- init \| migrate \| invite <email> \| revoke <email> \| remove <email> \| owners` |
 | format, then check syntax and formatting | `npm run format`, `npm run check` |
 | run every test | `npm test` |
 | run one test file | `node --test tests/server/metrics.test.mjs` |

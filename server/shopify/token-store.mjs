@@ -38,6 +38,7 @@ const MAX_REFRESH_LIFETIME_MS = 400 * 24 * 60 * 60 * 1000;
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
 const TOKEN_PATTERN = /^[\x21-\x7e]+$/;
+const WORKSPACE_ID_PATTERN = /^[0-9a-f-]{36}$/;
 
 /** True only for exactly the approved read-only scope set, in any order. */
 export function hasExactRequiredScopes(scopes) {
@@ -319,4 +320,20 @@ export function createTokenStore({ filePath, key, clientId, store, workspaceId }
       });
     },
   };
+}
+
+/**
+ * The store of one workspace, from a ready Shopify config. This is the one place that decides where
+ * a workspace's grant lives, so the server and the operator command cannot disagree about it. Only
+ * ids shaped like ours become file names.
+ */
+export function createWorkspaceTokenStore(shopifyConfig, workspaceId) {
+  if (!WORKSPACE_ID_PATTERN.test(workspaceId)) throw new Error('invalid workspace id');
+  return createTokenStore({
+    filePath: path.join(shopifyConfig.tokenDirectory, `${workspaceId}.grant.json`),
+    key: shopifyConfig.encryptionKey,
+    clientId: shopifyConfig.clientId,
+    store: shopifyConfig.store,
+    workspaceId,
+  });
 }
