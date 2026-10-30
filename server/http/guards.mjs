@@ -1,6 +1,6 @@
 // Request guards shared by the beta routes: exact-origin checks, bounded JSON bodies, JSON
 // responses. Duplicate or comma-joined security headers are rejected, never merged.
-import { createSecurityHeaders, rawHeaderValues, singleHeaderValue } from '../static-files.mjs';
+import { createSecurityHeaders, rawHeaderValues, singleHeaderValue } from './static-files.mjs';
 
 export const MAX_JSON_BODY_BYTES = 2048;
 const JSON_CONTENT_TYPE_PATTERN = /^application\/json(?:\s*;\s*charset=utf-8)?$/i;

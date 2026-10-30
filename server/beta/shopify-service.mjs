@@ -23,8 +23,8 @@ import {
   parseQuery,
   runWithBoundedFetch,
 } from '../shopify-sdk.mjs';
-import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from './http-guards.mjs';
-import { createRateLimiter } from './rate-limiter.mjs';
+import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
+import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { fetchShopLogo } from './shop-logo.mjs';
 import {
   claimStore,

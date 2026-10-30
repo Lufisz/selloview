@@ -36,12 +36,12 @@ import {
   createResponseHeaders,
   readJsonObject,
   sendJson,
-} from './http-guards.mjs';
+} from '../http/guards.mjs';
 import { ensureWorkspace, updateWorkspaceSettings } from './workspaces.mjs';
 import { loadBetaShopifyConfig } from './shopify-config.mjs';
 import { createBetaShopifyService } from './shopify-service.mjs';
 import { createShopifyRoutes } from './shopify-routes.mjs';
-import { BETA_PUBLIC_FILES } from './public-files.mjs';
+import { BETA_PUBLIC_FILES } from '../http/public-files.mjs';
 import { createAppVersion } from './app-version.mjs';
 import { createScreenRoutes } from './screen-routes.mjs';
 import {
@@ -51,7 +51,7 @@ import {
   isReadMethod,
   parseRequestPath,
   singleHeaderValue,
-} from '../static-files.mjs';
+} from '../http/static-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),

@@ -10,8 +10,8 @@ import {
   isReadMethod,
   parseRequestPath,
   SERVER_OPTIONS,
-} from './server/static-files.mjs';
-import { BETA_ONLY_PATHS } from './server/beta/public-files.mjs';
+} from './server/http/static-files.mjs';
+import { BETA_ONLY_PATHS } from './server/http/public-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), 'public');
 

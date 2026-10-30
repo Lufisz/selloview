@@ -10,7 +10,7 @@ import {
   migrateDatabase,
   openInitializedDatabase,
 } from '../server/beta/accounts.mjs';
-import { createRateLimiter } from '../server/beta/rate-limiter.mjs';
+import { createRateLimiter } from '../server/http/rate-limiter.mjs';
 import {
   MAX_OPEN_CHALLENGES,
   MAX_SCREENS_PER_WORKSPACE,

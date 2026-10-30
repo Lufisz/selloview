@@ -4,8 +4,8 @@
 // session cookie is absent by design. It is authorized by the signed SDK state, the single-use
 // pending attempt and the path-scoped binding cookie instead (see shopify-service.mjs).
 import { validateStore } from '../shopify.mjs';
-import { RequestRejection, assertSameOriginJson, readJsonObject } from './http-guards.mjs';
-import { createRateLimiter } from './rate-limiter.mjs';
+import { RequestRejection, assertSameOriginJson, readJsonObject } from '../http/guards.mjs';
+import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { ensureWorkspace } from './workspaces.mjs';
 import { SHOPIFY_CALLBACK_PATH } from './shopify-service.mjs';
 

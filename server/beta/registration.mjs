@@ -4,7 +4,7 @@
 // BETA_REGISTRATION_MAX_ACCOUNTS. It adds no sign-up endpoint of its own: Better Auth's existing
 // email-code sign-in creates the account, and only after the emailed code was verified. This file
 // decides whether that creation is allowed and bounds how much public traffic can ask for it.
-import { createRateLimiter } from './rate-limiter.mjs';
+import { createRateLimiter } from '../http/rate-limiter.mjs';
 
 const ENABLED_VALUE = 'enabled';
 const MAX_CONFIGURABLE_ACCOUNTS = 10_000;

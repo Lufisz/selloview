@@ -5,7 +5,7 @@ import {
   parseRequestPath,
   rawHeaderValues,
   singleHeaderValue,
-} from '../../server/static-files.mjs';
+} from '../../server/http/static-files.mjs';
 import { ATTACK_PATHS, makePublicDirectory } from '../helpers/public-directory.mjs';
 
 test('request path parsing rejects hostile encodings', () => {

@@ -11,8 +11,8 @@ import {
   buildCookie,
   readCookie,
   readJsonObject,
-} from './http-guards.mjs';
-import { createRateLimiter } from './rate-limiter.mjs';
+} from '../http/guards.mjs';
+import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { ensureWorkspace, readWorkspaceById } from './workspaces.mjs';
 import { projectBoardForDisplay } from './display-board.mjs';
 import {

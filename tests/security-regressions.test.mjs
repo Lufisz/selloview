@@ -4,7 +4,7 @@ import { mkdtemp, mkdir, writeFile, symlink, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
-import { createSecurityHeaders, findPublicFile } from '../server/static-files.mjs';
+import { createSecurityHeaders, findPublicFile } from '../server/http/static-files.mjs';
 import { isUsableSnapshot } from '../public/snapshot-validation.js';
 import { formatPeriodLabel } from '../public/live-board-model.js';
 import { safeShopifyAdminUrl } from '../public/ui.js';
