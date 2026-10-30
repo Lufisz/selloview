@@ -204,6 +204,57 @@ test('chart survives empty, zero and non-finite data without NaN or Infinity', (
   assert.match(renderChart(chartModel({ current: [] })), /Nothing here\./);
 });
 
+test('a chart whose geometry cannot be trusted shows its empty text, never NaN in a picture', () => {
+  const untrustworthy = [
+    { axisStep: 0 },
+    { axisStep: -100 },
+    { axisStep: NaN },
+    { axisStep: undefined },
+    { plotStart: NaN },
+    { plotStart: -1 },
+    { plotStart: 708 },
+    { plotStart: 900 },
+    { dotRadius: NaN },
+    { dotRadius: -1 },
+    { dotRadius: undefined },
+  ];
+  for (const overrides of untrustworthy) {
+    const html = renderChart(chartModel(overrides));
+    assert.match(html, /Nothing here\./, JSON.stringify(overrides));
+    assert.doesNotMatch(html, /<svg|NaN|Infinity|undefined/, JSON.stringify(overrides));
+  }
+});
+
+// The [x, y] pairs of the chart element with this class (chart-area, chart-previous, chart-current).
+function pointsOf(svg, cssClass) {
+  const match = svg.match(new RegExp(`points="([^"]*)" class="${cssClass}"`));
+  return match[1]
+    .split(' ')
+    .filter(Boolean)
+    .map((pair) => pair.split(',').map(Number));
+}
+
+test('two series of different lengths share one horizontal scale, and the area ends with its series', () => {
+  const day = (label, value) => ({ label, value });
+  const svg = renderChart(
+    chartModel({
+      current: [day('A', 1), day('B', 2)],
+      previous: [day('A', 1), day('B', 2), day('C', 3), day('D', 4)],
+      plotStart: 100,
+    }),
+  );
+  const rightEdge = 708;
+  const step = (rightEdge - 100) / 3;
+  const previousXs = pointsOf(svg, 'chart-previous').map(([x]) => x);
+  const currentXs = pointsOf(svg, 'chart-current').map(([x]) => x);
+
+  assert.equal(previousXs.length, 4);
+  assert.ok(Math.abs(previousXs[3] - rightEdge) < 1e-6, 'the longer series reaches the right edge');
+  assert.ok(Math.abs(currentXs[1] - (100 + step)) < 1e-6, 'the shorter one stops where it ends');
+  const areaXs = pointsOf(svg, 'chart-area').map(([x]) => x);
+  assert.ok(Math.abs(areaXs.at(-1) - currentXs[1]) < 1e-6, 'the shaded area closes under its line');
+});
+
 test('chart axis labels are never duplicated by rounding', () => {
   const svg = renderChart(
     chartModel({ current: [{ label: 'A', value: 0 }], previous: [], axisStep: 100 }),

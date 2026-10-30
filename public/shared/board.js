@@ -94,6 +94,15 @@ function finiteOrZero(value) {
   return Number.isFinite(value) ? value : 0;
 }
 
+// The geometry comes from the caller's view model, so it is checked here: a bad number must not
+// reach the picture as "NaN".
+function hasUsableGeometry({ axisStep, plotStart, dotRadius }) {
+  const hasAxis = Number.isFinite(axisStep) && axisStep > 0;
+  const hasStart = Number.isFinite(plotStart) && plotStart >= 0 && plotStart < CHART.rightEdge;
+  const hasDots = Number.isFinite(dotRadius) && dotRadius >= 0;
+  return hasAxis && hasStart && hasDots;
+}
+
 /** Axis labels drop decimals only for whole currency units, so ticks never collapse into duplicates. */
 function formatAxisMoney(cents, currency) {
   return money(cents, cents % 100 === 0, currency);
@@ -115,7 +124,9 @@ export function renderChange({ current, previous, srText = '' }, style = 'arrows
  * @param {ChartModel} chart
  */
 export function renderChart(chart, { preview = false } = {}) {
-  if (!chart.current.length) return `<p class="live-empty">${escapeHtml(chart.emptyText)}</p>`;
+  if (!chart.current.length || !hasUsableGeometry(chart)) {
+    return `<p class="live-empty">${escapeHtml(chart.emptyText)}</p>`;
+  }
   const valueOf = (point) => finiteOrZero(point.value);
   const highest = Math.max(
     chart.axisStep,
@@ -124,8 +135,9 @@ export function renderChart(chart, { preview = false } = {}) {
   );
   const ceiling = Math.ceil(highest / chart.axisStep) * chart.axisStep;
   const plotWidth = CHART.rightEdge - chart.plotStart;
-  const xAt = (index) =>
-    chart.plotStart + index * (plotWidth / Math.max(1, chart.current.length - 1));
+  // Both series share one scale, so a shorter one stops early instead of stretching.
+  const pointCount = Math.max(chart.current.length, chart.previous.length);
+  const xAt = (index) => chart.plotStart + index * (plotWidth / Math.max(1, pointCount - 1));
   const yAt = (cents) => CHART.baseline - (cents / ceiling) * CHART.plotHeight;
   const polylinePoints = (points) =>
     points.map((point, index) => `${xAt(index)},${yAt(valueOf(point))}`).join(' ');
@@ -157,7 +169,7 @@ export function renderChart(chart, { preview = false } = {}) {
 
   return `<svg class="revenue-chart" viewBox="0 0 ${CHART.width} ${CHART.height}" role="img" aria-label="${escapeHtml(chart.ariaLabel)}">
     ${gridMarkup}
-    <polygon points="${chart.plotStart},${CHART.baseline} ${currentPoints} ${CHART.rightEdge},${CHART.baseline}" class="chart-area"/>
+    <polygon points="${chart.plotStart},${CHART.baseline} ${currentPoints} ${xAt(chart.current.length - 1)},${CHART.baseline}" class="chart-area"/>
     <polyline points="${polylinePoints(chart.previous)}" class="chart-previous"/>
     <polyline points="${currentPoints}" class="chart-current"/>
     ${dotMarkup}
