@@ -29,7 +29,7 @@ const SURFACE_FILE_NAMES = [
   'owner/owner.js',
   'tv/tv.html',
   'shared/styles.css',
-  'shared/model.js',
+  'shared/format.js',
 ];
 
 // Request targets that must never return file content from the fixture directory.

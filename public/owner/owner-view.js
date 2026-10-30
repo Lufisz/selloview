@@ -1,5 +1,5 @@
 // Pure HTML for the owner page. Every dynamic value is escaped here, whoever supplied it.
-import { escapeHtml } from '../shared/model.js';
+import { escapeHtml } from '../shared/format.js';
 import { BRAND_NAME, actionButton, brandLink, siteHeader } from '../shared/ui.js';
 import { PERIOD_CHOICES, THEME_CHOICES, messageForError } from './owner-client.js';
 import { PERIOD_LABELS, THEME_LABELS } from '../shared/labels.js';

@@ -1,5 +1,5 @@
 // Pure HTML for the owner's store connection on the owner page. Every dynamic value is escaped here.
-import { escapeHtml, formatDateTime } from '../shared/model.js';
+import { escapeHtml, formatDateTime } from '../shared/format.js';
 import { actionButton, statusDot } from '../shared/ui.js';
 import { renderBoard } from '../shared/board.js';
 import { buildStoreBoardModel, normalizePeriod } from '../shared/board-model.js';

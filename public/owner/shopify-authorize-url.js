@@ -1,6 +1,6 @@
 // The only Shopify address a page may navigate to when connecting a store. Used by the owner
 // page; pure, no fetching.
-import { normaliseStore } from '../shared/model.js';
+import { normaliseStore } from '../shared/format.js';
 
 export const AUTHORIZE_PATH = '/admin/oauth/authorize';
 export const READ_ONLY_SCOPES = Object.freeze([

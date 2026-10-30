@@ -24,7 +24,7 @@ export const DEMO_PUBLIC_FILES = new Set([
   '/demo/demo-data.js',
   '/demo/demo-view.js',
   '/shared/styles.css',
-  '/shared/model.js',
+  '/shared/format.js',
   '/shared/ui.js',
   '/shared/board.js',
   '/fonts/archivo-latin.woff2',

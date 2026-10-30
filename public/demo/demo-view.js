@@ -1,6 +1,6 @@
 // Demo-only views. Everything here is sample content: the entry point (app.js)
 // passes fixtures in as arguments, so this module imports no data itself.
-import { escapeHtml, money, getPeriod, goalProgress } from '../shared/model.js';
+import { escapeHtml, money, getPeriod, goalProgress } from '../shared/format.js';
 import { renderBoard } from '../shared/board.js';
 import {
   BRAND_NAME,

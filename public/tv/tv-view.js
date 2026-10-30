@@ -1,5 +1,5 @@
 // Pure HTML for the TV page. Every dynamic value is escaped here, whoever supplied it.
-import { escapeHtml } from '../shared/model.js';
+import { escapeHtml } from '../shared/format.js';
 import { BRAND_NAME, brandLink, statusDot, tvShell } from '../shared/ui.js';
 import { PERIOD_LABELS } from '../shared/labels.js';
 import { renderBoard } from '../shared/board.js';

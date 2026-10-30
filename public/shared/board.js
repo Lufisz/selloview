@@ -4,7 +4,7 @@
 // returns an HTML string. This module never imports fixtures, never fetches and
 // never reads global state. All text and numbers from the view model are escaped
 // here, so callers do not need to pre-escape.
-import { escapeHtml, hasOwn, money, percentChange } from './model.js';
+import { escapeHtml, hasOwn, money, percentChange } from './format.js';
 import { icon, statusDot, actionButton, safeShopifyAdminUrl } from './ui.js';
 
 /**

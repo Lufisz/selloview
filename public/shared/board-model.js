@@ -1,7 +1,7 @@
 // Pure board view model for a Shopify snapshot, shared by the owner dashboard and the paired TV.
 // No fetching and no globals: the TV loads this module on old browsers, so it must stay free of
 // newer built-ins such as Object.hasOwn, String.prototype.replaceAll and AbortSignal.timeout.
-import { normaliseStore, money, formatTime, formatDateTime } from './model.js';
+import { normaliseStore, money, formatTime, formatDateTime } from './format.js';
 import { safeShopifyAdminUrl } from './ui.js';
 
 const STALE_AFTER_MS = 5 * 60 * 1000;

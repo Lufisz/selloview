@@ -1,7 +1,7 @@
 // Browser API for the owner's Shopify connection on the owner page. Same-origin requests only.
 // Authorization is entirely server-side: the page never sees a token, a secret or a grant; the only
 // secret it holds is the short-lived CSRF token from the session endpoint, in memory.
-import { normaliseStore } from '../shared/model.js';
+import { normaliseStore } from '../shared/format.js';
 import { sendRequest } from './owner-client.js';
 import { validateAuthorizeUrl } from './shopify-authorize-url.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';

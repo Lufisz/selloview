@@ -9,7 +9,7 @@ import {
   actionButton,
 } from '../../public/shared/ui.js';
 import { renderBoard, renderChart, renderChange, renderMetric } from '../../public/shared/board.js';
-import { money } from '../../public/shared/model.js';
+import { money } from '../../public/shared/format.js';
 
 // All data below is synthetic.
 const ATTACK = '<img src=x onerror=alert(1)>"\'';
@@ -297,7 +297,7 @@ test('shared primitives escape their inputs', () => {
 });
 
 test('shared modules do not import fixtures or fetch data', async () => {
-  for (const file of ['ui.js', 'board.js', 'model.js']) {
+  for (const file of ['ui.js', 'board.js', 'format.js']) {
     const source = await readFile(new URL(`../../public/shared/${file}`, import.meta.url), 'utf8');
     assert.equal(
       /from\s+['"][^'"]*demo-data\.js['"]/.test(source),

@@ -43,7 +43,7 @@ test('the demo server confines static files and does not serve the owner or TV p
     '/demo/demo.html',
     '/demo/demo.js',
     '/shared/styles.css',
-    '/shared/model.js',
+    '/shared/format.js',
     '/mark.svg?x=1',
   ]) {
     assert.equal((await callHandler(handler, { url })).status, 200, url);

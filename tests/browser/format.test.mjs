@@ -9,7 +9,7 @@ import {
   normaliseStore,
   percentChange,
   money,
-} from '../../public/shared/model.js';
+} from '../../public/shared/format.js';
 
 test('weekly metrics use the correct non-overlapping seven-day windows', () => {
   const result = getPeriod(SAMPLE_DAYS, 'week');

@@ -1,6 +1,6 @@
 // Validation of a server snapshot before any renderer may use it. Pure functions, no fetching,
 // no built-ins newer than ES2019: the paired TV imports this module.
-import { normaliseStore } from './model.js';
+import { normaliseStore } from './format.js';
 
 function hasText(value) {
   return typeof value === 'string' && value.length > 0;
