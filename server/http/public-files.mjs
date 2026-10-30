@@ -50,7 +50,7 @@ export const APP_PUBLIC_FILES = new Set([
   '/tv/tv-client.js',
   '/tv/tv-view.js',
   '/shared/api-client.js',
-  '/shared/labels.js',
+  '/shared/periods.js',
   '/shared/board-model.js',
   '/shared/snapshot-validation.js',
 ]);

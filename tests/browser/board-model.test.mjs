@@ -5,8 +5,6 @@ import {
   buildSyncWarning,
   formatPeriodLabel,
   humanizeStatus,
-  BOARD_PERIOD_OPTIONS,
-  normalizePeriod,
 } from '../../public/shared/board-model.js';
 
 // Synthetic snapshot, never real store data.
@@ -159,14 +157,5 @@ test('label helpers', () => {
   assert.equal(formatPeriodLabel('weird'), 'weird');
   for (const label of ['2026-99-99', '2026-02-30', '2026-10-14 to 2026-99-99']) {
     assert.equal(formatPeriodLabel(label), label, 'an impossible date is shown unchanged');
-  }
-});
-
-test('an unknown period falls back to the 7-day view', () => {
-  for (const option of BOARD_PERIOD_OPTIONS) {
-    assert.equal(normalizePeriod(option.value), option.value);
-  }
-  for (const unknown of ['', 'year', undefined, null, 7, '__proto__']) {
-    assert.equal(normalizePeriod(unknown), 'week', String(unknown));
   }
 });

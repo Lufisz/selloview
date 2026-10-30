@@ -9,6 +9,7 @@ import {
   brandLink,
   statusDot,
   actionButton,
+  optionsHtml,
   siteHeader,
   navLinks,
   tvShell,
@@ -295,10 +296,13 @@ export function renderConnections({ settings }) {
   );
 }
 
+const DEMO_THEME_OPTIONS = [
+  { value: 'light', label: 'Light · paper and ink' },
+  { value: 'dark', label: 'Dark · after hours' },
+];
+
 /** @param {{settings: DemoSettings}} state */
 export function renderSettings({ settings }) {
-  const themeOption = (value, label) =>
-    `<option value="${value}" ${settings.theme === value ? 'selected' : ''}>${label}</option>`;
   return pageFrame(
     'settings',
     `<main id="main" class="settings-layout" tabindex="-1">
@@ -330,10 +334,7 @@ export function renderSettings({ settings }) {
         <div><h2>The screen</h2><p>A comfortable view from across the room.</p></div>
         <div class="settings-fields">
           <label for="theme">TV appearance</label>
-          <select id="theme" name="theme">
-            ${themeOption('light', 'Light · paper and ink')}
-            ${themeOption('dark', 'Dark · after hours')}
-          </select>
+          <select id="theme" name="theme">${optionsHtml(DEMO_THEME_OPTIONS, settings.theme)}</select>
           <p class="field-hint">Applies in TV mode. The website stays light.</p>
         </div>
       </section>

@@ -2,7 +2,8 @@
 import { escapeHtml, formatDateTime } from '../shared/format.js';
 import { actionButton, statusDot } from '../shared/ui.js';
 import { renderBoard } from '../shared/board.js';
-import { buildStoreBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { buildStoreBoardModel } from '../shared/board-model.js';
+import { normalizePeriod } from '../shared/periods.js';
 import { messageForError } from './owner-client.js';
 
 const RETURN_MESSAGES = Object.freeze({

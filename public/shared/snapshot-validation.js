@@ -1,6 +1,7 @@
 // Validation of a server snapshot before any renderer may use it. Pure functions, no fetching,
 // no built-ins newer than ES2019: the paired TV imports this module.
 import { normaliseStore } from './format.js';
+import { PERIODS } from './periods.js';
 
 function hasText(value) {
   return typeof value === 'string' && value.length > 0;
@@ -57,14 +58,11 @@ function hasChartSeries(points, maxPoints) {
   );
 }
 
-// The most points a period's chart may carry: the 24 hours of today, otherwise one per local day.
-const CHART_POINT_LIMITS = { today: 24, week: 7, month: 30, days60: 60 };
-
 function hasCharts(charts) {
   if (!charts) return false;
-  return Object.keys(CHART_POINT_LIMITS).every((period) => {
+  return Object.keys(PERIODS).every((period) => {
     const series = charts[period];
-    const maxPoints = CHART_POINT_LIMITS[period];
+    const maxPoints = PERIODS[period].maxChartPoints;
     return (
       Boolean(series) &&
       hasChartSeries(series.current, maxPoints) &&

@@ -585,7 +585,7 @@ test(
       '/owner/shopify-authorize-url.js',
       '/owner/store-view.js',
       '/owner/shopify-client.js',
-      '/shared/labels.js',
+      '/shared/periods.js',
     ]) {
       const response = await anonymous.request(allowed);
       assert.equal(response.status, 200, allowed);

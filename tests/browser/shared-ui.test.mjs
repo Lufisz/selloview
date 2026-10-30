@@ -7,6 +7,7 @@ import {
   safeShopifyAdminUrl,
   brandLink,
   actionButton,
+  optionsHtml,
 } from '../../public/shared/ui.js';
 import { renderBoard, renderChart, renderChange, renderMetric } from '../../public/shared/board.js';
 import { money } from '../../public/shared/format.js';
@@ -294,6 +295,19 @@ test('shared primitives escape their inputs', () => {
     false,
   );
   assert.match(actionButton({ action: 'a', label: 'b' }), /type="button"/);
+});
+
+test('select options are escaped and only the chosen one is marked', () => {
+  const html = optionsHtml(
+    [
+      { value: 'a', label: 'First' },
+      { value: ATTACK, label: ATTACK },
+    ],
+    'a',
+  );
+  assert.match(html, /<option value="a" selected>First<\/option>/);
+  assert.equal(html.includes('<img'), false);
+  assert.equal(html.split('selected').length - 1, 1);
 });
 
 test('shared modules do not import fixtures or fetch data', async () => {

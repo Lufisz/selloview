@@ -1,9 +1,9 @@
 // Pure HTML for the TV page. Every dynamic value is escaped here, whoever supplied it.
 import { escapeHtml } from '../shared/format.js';
 import { BRAND_NAME, brandLink, statusDot, tvShell } from '../shared/ui.js';
-import { PERIOD_LABELS } from '../shared/labels.js';
+import { PERIODS, normalizePeriod } from '../shared/periods.js';
 import { renderBoard } from '../shared/board.js';
-import { buildStoreBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { buildStoreBoardModel } from '../shared/board-model.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
 const TV_MESSAGES = Object.freeze({
@@ -81,7 +81,7 @@ function noticeHtml(notice) {
 }
 
 function renderUnavailableMessage(display, notice) {
-  const periodLabel = PERIOD_LABELS[display.settings.period] ?? '';
+  const periodLabel = PERIODS[normalizePeriod(display.settings.period)].settingsLabel;
   const stateKey = storeStateKey(display.storeConnection);
   return tvPage(
     `<section class="board tv-card" aria-labelledby="tv-title">

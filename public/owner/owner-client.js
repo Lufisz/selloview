@@ -11,8 +11,6 @@ export const SIGN_OUT_URL = '/api/auth/sign-out';
 export const SCREENS_URL = '/api/screens';
 export const PAIR_SCREEN_URL = '/api/screens/pair';
 export const REVOKE_SCREEN_URL = '/api/screens/revoke';
-export const PERIOD_CHOICES = Object.freeze(['today', 'week', 'month', 'days60']);
-export const THEME_CHOICES = Object.freeze(['light', 'dark']);
 
 const CODE_PATTERN = /^\d{6}$/;
 const EMAIL_PATTERN = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;

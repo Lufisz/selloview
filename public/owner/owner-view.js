@@ -1,11 +1,14 @@
 // Pure HTML for the owner page. Every dynamic value is escaped here, whoever supplied it.
 import { escapeHtml } from '../shared/format.js';
-import { BRAND_NAME, actionButton, brandLink, siteHeader } from '../shared/ui.js';
-import { PERIOD_CHOICES, THEME_CHOICES, messageForError } from './owner-client.js';
-import { PERIOD_LABELS, THEME_LABELS } from '../shared/labels.js';
+import { BRAND_NAME, actionButton, brandLink, optionsHtml, siteHeader } from '../shared/ui.js';
+import { SETTINGS_PERIOD_OPTIONS } from '../shared/periods.js';
+import { messageForError } from './owner-client.js';
 import { detailsOpenAttribute, renderOwnerBoard, renderStorePanel } from './store-view.js';
 
-export { PERIOD_LABELS, THEME_LABELS };
+const THEME_OPTIONS = [
+  { value: 'light', label: 'Light' },
+  { value: 'dark', label: 'Dark' },
+];
 
 function pageShell(headerTrailingHtml, contentHtml, mainClass = 'workspace session-main') {
   const header = siteHeader({
@@ -81,15 +84,6 @@ export function renderSignIn(state) {
   );
 }
 
-function choiceOptionsHtml(choices, labels, selected) {
-  return choices
-    .map((choice) => {
-      const isSelected = choice === selected ? ' selected' : '';
-      return `<option value="${escapeHtml(choice)}"${isSelected}>${escapeHtml(labels[choice])}</option>`;
-    })
-    .join('');
-}
-
 function settingsFormHtml(workspace, message, tone, draft = {}) {
   const period = draft.period ?? workspace.settings.period;
   const theme = draft.theme ?? workspace.settings.theme;
@@ -97,11 +91,11 @@ function settingsFormHtml(workspace, message, tone, draft = {}) {
     <div class="owner-fields">
       <div class="owner-field">
         <label for="owner-period">Reporting period</label>
-        <select id="owner-period" name="period">${choiceOptionsHtml(PERIOD_CHOICES, PERIOD_LABELS, period)}</select>
+        <select id="owner-period" name="period">${optionsHtml(SETTINGS_PERIOD_OPTIONS, period)}</select>
       </div>
       <div class="owner-field">
         <label for="owner-theme">Appearance</label>
-        <select id="owner-theme" name="theme">${choiceOptionsHtml(THEME_CHOICES, THEME_LABELS, theme)}</select>
+        <select id="owner-theme" name="theme">${optionsHtml(THEME_OPTIONS, theme)}</select>
       </div>
     </div>
     ${messageHtml(message, tone)}

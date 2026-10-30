@@ -3,20 +3,9 @@
 // newer built-ins such as Object.hasOwn, String.prototype.replaceAll and AbortSignal.timeout.
 import { normaliseStore, money, formatTime, formatDateTime } from './format.js';
 import { safeShopifyAdminUrl } from './ui.js';
+import { BOARD_PERIOD_OPTIONS, PERIODS } from './periods.js';
 
 const STALE_AFTER_MS = 5 * 60 * 1000;
-
-export const BOARD_PERIOD_OPTIONS = Object.freeze([
-  { value: 'days60', label: 'Last 60 full days' },
-  { value: 'month', label: 'Last 30 full days' },
-  { value: 'week', label: 'Last 7 full days' },
-  { value: 'today', label: 'Today' },
-]);
-
-/** Returns a known period key, defaulting to the 7-day view. */
-export function normalizePeriod(value) {
-  return BOARD_PERIOD_OPTIONS.some((option) => option.value === value) ? value : 'week';
-}
 
 /** "FULFILLED" or "PARTIALLY_PAID" to "Fulfilled" or "Partially paid". */
 export function humanizeStatus(value) {
@@ -149,39 +138,9 @@ function buildAttention(snapshot) {
   };
 }
 
-const CHART_CONFIGS = Object.freeze({
-  today: {
-    title: 'Hourly order value',
-    legend: ['Today', 'Yesterday'],
-    ariaLabel: 'Hourly order value. Solid green: today. Dashed grey: yesterday.',
-    dotRadius: 3,
-  },
-  week: {
-    title: 'Daily order value',
-    legend: ['Last 7 full days', 'Previous 7'],
-    ariaLabel:
-      'Daily order value. Solid green: last seven complete days. Dashed grey: preceding seven complete days.',
-    dotRadius: 4,
-  },
-  month: {
-    title: 'Daily order value (30 days)',
-    legend: ['Last 30 full days', 'Previous 30'],
-    ariaLabel:
-      'Daily order value. Solid green: last 30 complete days. Dashed grey: preceding 30 complete days.',
-    dotRadius: 0,
-  },
-  days60: {
-    title: 'Daily order value (60 days)',
-    legend: ['Last 60 full days', 'Previous 60'],
-    ariaLabel:
-      'Daily order value. Solid green: last 60 complete days. Dashed grey: preceding 60 complete days.',
-    dotRadius: 0,
-  },
-});
-
 function buildChartModel(snapshot, period, currency) {
   const selectedSeries = snapshot.charts[period];
-  const config = CHART_CONFIGS[period] || CHART_CONFIGS.week;
+  const config = PERIODS[period].chart;
   const toPoint = (point) => ({ label: point.label, value: point.valueCents });
   return {
     title: config.title,

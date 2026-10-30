@@ -5,7 +5,7 @@
 // never reads global state. All text and numbers from the view model are escaped
 // here, so callers do not need to pre-escape.
 import { escapeHtml, hasOwn, money, percentChange } from './format.js';
-import { icon, statusDot, actionButton, safeShopifyAdminUrl } from './ui.js';
+import { icon, statusDot, actionButton, optionsHtml, safeShopifyAdminUrl } from './ui.js';
 
 /**
  * @typedef {Object} ChartPoint
@@ -291,18 +291,12 @@ function renderControls(model, { preview, tv, tvLink }) {
   if (preview) {
     return `<span class="snapshot-label">${statusDot('amber')} ${escapeHtml(model.previewLabel ?? '')}</span>`;
   }
-  const optionsHtml = model.periodOptions
-    .map(
-      (option) =>
-        `<option value="${escapeHtml(option.value)}"${option.value === model.selectedPeriod ? ' selected' : ''}>${escapeHtml(option.label)}</option>`,
-    )
-    .join('');
   const tvLinkHtml =
     tv || !tvLink
       ? ''
       : `<a class="button small secondary" href="#/tv">${icon('screen')} TV mode</a>`;
   return `<label class="sr-only" for="period">Reporting period</label>
-        <select id="period" aria-label="Reporting period">${optionsHtml}</select>
+        <select id="period" aria-label="Reporting period">${optionsHtml(model.periodOptions, model.selectedPeriod)}</select>
         ${tvLinkHtml}`;
 }
 

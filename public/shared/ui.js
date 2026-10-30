@@ -52,6 +52,16 @@ export function statusDot(tone = '') {
   return `<span class="status-dot ${safeTone}"></span>`;
 }
 
+/** The <option> elements of a <select>; `options` is a list of {value, label}. */
+export function optionsHtml(options, selectedValue) {
+  return options
+    .map((option) => {
+      const selected = option.value === selectedValue ? ' selected' : '';
+      return `<option value="${escapeHtml(option.value)}"${selected}>${escapeHtml(option.label)}</option>`;
+    })
+    .join('');
+}
+
 /** Button that the page's click handler recognises through data-action. */
 export function actionButton({
   action,
