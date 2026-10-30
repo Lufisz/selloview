@@ -4,7 +4,7 @@ MetricTV is a small, dependency-light business wallboard: a read-only Shopify da
 
 ## Quick map
 
-Needs Node 22.13 or later. The database is the built-in `node:sqlite`.
+Needs Node 22.16 or later. The database is the built-in `node:sqlite`.
 
 | To… | Run |
 | --- | --- |

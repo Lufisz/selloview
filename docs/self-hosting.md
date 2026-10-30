@@ -23,7 +23,7 @@ MetricTV only reads data. It requests `read_orders`, `read_all_orders`, `read_pr
 | Requirement | Why |
 | --- | --- |
 | A Linux server (1 vCPU, 512 MB RAM is enough) | Runs one Node.js process and a SQLite file. [architecture.md](architecture.md#capacity-and-growth) says what one server carries. |
-| Node.js 22.13 or later | Uses the built-in `node:sqlite`. No other runtime. |
+| Node.js 22.16 or later | Uses the built-in `node:sqlite`. No other runtime. Older versions are refused at start. |
 | A domain name pointing at the server | Shopify and secure cookies need HTTPS. |
 | A reverse proxy with HTTPS, e.g. [Caddy](https://caddyserver.com) | MetricTV only listens on `127.0.0.1`. |
 | A [Resend](https://resend.com) account with a verified sending domain | Delivers sign-in codes. It is currently the only supported mail provider. |

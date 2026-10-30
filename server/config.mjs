@@ -1,7 +1,9 @@
 // Operator configuration for the app server and the admin CLI, read from environment variables.
 // Everything unsafe or missing throws; nothing falls back to a default location or secret.
+import { DatabaseSync } from 'node:sqlite';
 import { parseDatabasePath } from './accounts/private-database.mjs';
 
+const MINIMUM_NODE_VERSION = '22.16';
 const LOOPBACK_HOST = '127.0.0.1';
 const DEFAULT_PORT = 4330;
 const MIN_SECRET_LENGTH = 32;
@@ -43,8 +45,22 @@ function assertNoRenamedSettings(env) {
   }
 }
 
+// Better Auth's SQLite adapter calls statement.columns(), which node:sqlite has from Node 22.16.
+// An older Node starts and then fails on the first sign-in from inside the library, so refuse here.
+export function assertSupportedRuntime(Database = DatabaseSync) {
+  const probe = new Database(':memory:');
+  const hasColumns = typeof probe.prepare('SELECT 1').columns === 'function';
+  probe.close();
+  if (!hasColumns) {
+    throw new Error(
+      `Node.js ${process.versions.node} is too old: use Node.js ${MINIMUM_NODE_VERSION} or later`,
+    );
+  }
+}
+
 /** Reads operator configuration from environment variables; throws on anything unsafe. */
-export function loadServerConfig(env = process.env) {
+export function loadServerConfig(env = process.env, Database = DatabaseSync) {
+  assertSupportedRuntime(Database);
   assertNoRenamedSettings(env);
   const databasePath = parseDatabasePath(env.METRICTV_DB_PATH);
 

@@ -44,4 +44,4 @@ Without `METRICTV_TRUSTED_IP_HEADER`, the rate limits key on the socket address,
 
 ## `node:sqlite` is experimental
 
-Node prints a warning about it at start. That is expected. The app uses only `DatabaseSync`, and the minimum Node version (22.13) is the first where that works without a flag.
+Node prints a warning about it at start. That is expected. The app uses only `DatabaseSync`. The minimum Node version is 22.16, the first where Better Auth's SQLite adapter works: it calls `statement.columns()`. On an older Node, `loadServerConfig` stops the server and the admin CLI with a message, instead of letting the first sign-in fail inside the library.

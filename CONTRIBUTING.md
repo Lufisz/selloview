@@ -14,7 +14,7 @@ this in one read?" more than "is this clever?".
 
 ## Set up
 
-Requires Node.js 22.13 or later.
+Requires Node.js 22.16 or later.
 
 ```sh
 npm ci --ignore-scripts

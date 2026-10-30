@@ -8,7 +8,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadServerConfig } from '../../server/config.mjs';
+import { assertSupportedRuntime, loadServerConfig } from '../../server/config.mjs';
 import { loadRegistrationConfig } from '../../server/accounts/registration.mjs';
 import { loadShopifyConfig } from '../../server/shopify/config.mjs';
 import {
@@ -73,6 +73,22 @@ test('configuration rejects unsafe or missing values instead of defaulting', () 
     loadServerConfig({ ...GOOD_ENV, METRICTV_ORIGIN: 'http://127.0.0.1:4330' }).origin,
     'http://127.0.0.1:4330',
   );
+});
+
+// On Node 22.13 to 22.15 the server starts and then fails on the first sign-in with
+// "stmt.columns is not a function", from inside Better Auth's SQLite adapter.
+test('a Node.js whose SQLite statements lack columns() is refused at start, naming the version to use', () => {
+  class OldNodeDatabase {
+    prepare() {
+      return {};
+    }
+    close() {}
+  }
+  const refusal = (error) =>
+    error.message.includes(process.versions.node) && error.message.includes('22.16');
+  assert.throws(() => assertSupportedRuntime(OldNodeDatabase), refusal);
+  assert.throws(() => loadServerConfig(GOOD_ENV, OldNodeDatabase), refusal);
+  assert.doesNotThrow(() => assertSupportedRuntime());
 });
 
 // The settings were called BETA_* before the project went public. A stale environment file has to
