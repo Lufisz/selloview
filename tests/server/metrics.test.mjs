@@ -88,6 +88,21 @@ test('invalid inputs are rejected, not zeroed', () => {
   });
 });
 
+test('an unknown time zone is rejected every time, never remembered as a formatter', () => {
+  const unknownZone = rawShopData([], [], { shop: { ...SHOP, ianaTimezone: 'Mars/Olympus_Mons' } });
+  assert.throws(() => buildSnapshot(unknownZone, NOW), { code: 'bad_timezone' });
+  assert.throws(() => buildSnapshot(unknownZone, NOW), { code: 'bad_timezone' });
+});
+
+test('incomplete order and inventory lists are reported, not hidden', () => {
+  const incomplete = rawShopData([], [], { ordersComplete: false, inventoryComplete: false });
+  const snapshot = buildSnapshot(incomplete, NOW);
+  assert.ok(snapshot.coverage.notes.some((note) => /order list is incomplete/i.test(note)));
+  assert.ok(snapshot.coverage.notes.some((note) => /inventory list is incomplete/i.test(note)));
+  const attentionIds = snapshot.attention.map((item) => item.id);
+  assert.deepEqual(attentionIds, ['orders-incomplete', 'inventory-incomplete']);
+});
+
 test('30 and 60 full days compare with preceding equal-length periods at exact local-midnight boundaries', () => {
   // NOW is 2026-10-21 14:00 Stockholm.
   // 30 days: Current Sep 21..Oct 20, Previous Aug 22..Sep 20.
@@ -153,6 +168,28 @@ test('week, today comparison, exclusions, chart and recent orders', () => {
     'paymentStatus',
     'url',
   ]);
+});
+
+test('date formatters are built once, not once per order', () => {
+  // Building one per order stalled the event loop for over a second on a 10,000-order refresh.
+  const RealDateTimeFormat = Intl.DateTimeFormat;
+  let formattersBuilt = 0;
+  Intl.DateTimeFormat = class extends RealDateTimeFormat {
+    constructor(...args) {
+      super(...args);
+      formattersBuilt++;
+    }
+  };
+  try {
+    const timestamps = [];
+    for (let hoursAgo = 1; hoursAgo <= 300; hoursAgo++) {
+      timestamps.push(new Date(NOW.getTime() - hoursAgo * 3_600_000).toISOString());
+    }
+    snapshotWithOrdersAt(NOW, timestamps);
+  } finally {
+    Intl.DateTimeFormat = RealDateTimeFormat;
+  }
+  assert.ok(formattersBuilt <= 2, `built ${formattersBuilt} formatters for 300 orders`);
 });
 
 test('timezone and DST handling', () => {
