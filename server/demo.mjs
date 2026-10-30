@@ -11,7 +11,7 @@ import {
   parseRequestPath,
   SERVER_OPTIONS,
 } from './http/static-files.mjs';
-import { APP_ONLY_PATHS } from './http/public-files.mjs';
+import { DEMO_PAGES, DEMO_PUBLIC_FILES, publicPathFor } from './http/public-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -31,10 +31,8 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
     if (parsed.rejection === 'bad_request') return sendText(response, 400, 'Bad request');
     if (parsed.rejection) return sendText(response, 404, 'Not found');
 
-    const file = await findPublicFile(publicDir, parsed.pathname, {
-      indexFile: 'demo/demo.html',
-      blockedPaths: APP_ONLY_PATHS,
-    });
+    const requestedPath = publicPathFor(DEMO_PAGES, parsed.pathname);
+    const file = await findPublicFile(publicDir, requestedPath, DEMO_PUBLIC_FILES);
     if (!file) return sendText(response, 404, 'Not found');
     try {
       const body = await readFile(file.filePath);

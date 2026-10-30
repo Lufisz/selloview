@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import { createDemoHandler, DEMO_HEADERS } from '../../server/demo.mjs';
 import { ATTACK_PATHS, makePublicDirectory } from '../helpers/public-directory.mjs';
 
@@ -42,11 +44,23 @@ test('the demo server confines static files and does not serve the owner or TV p
     '/demo/demo.js',
     '/shared/styles.css',
     '/shared/model.js',
-    '/alias.js',
     '/mark.svg?x=1',
   ]) {
     assert.equal((await callHandler(handler, { url })).status, 200, url);
   }
+  // An alias is a new public name, so it has to be listed too, and so does the file it points at.
+  assert.equal((await callHandler(handler, { url: '/alias.js' })).status, 404);
+});
+
+test('the demo server serves only listed files, even ones that sit in the public directory', async (context) => {
+  const publicDir = makePublicDirectory(context);
+  fs.writeFileSync(path.join(publicDir, 'demo', 'unlisted.js'), '// not on the list');
+  fs.writeFileSync(path.join(publicDir, 'shared', 'unlisted.js'), '// not on the list');
+  const handler = createDemoHandler({ publicDir });
+  for (const url of ['/demo/unlisted.js', '/shared/unlisted.js']) {
+    assert.equal((await callHandler(handler, { url })).status, 404, url);
+  }
+  assert.equal((await callHandler(handler, { url: '/demo/demo.js' })).status, 200);
 });
 
 test('the demo server answers HEAD without a body and refuses other methods, with a strict CSP', async (context) => {

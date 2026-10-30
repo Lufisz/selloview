@@ -76,13 +76,12 @@ function isInside(directory, candidate) {
   return candidate.startsWith(directory + path.sep);
 }
 
-// Finds a servable file for a decoded pathname, or null. Applies, in order: entry-file
-// blocklist, no empty/dot segments, no dotfiles, extension allowlist, lexical containment,
-// and containment of the symlink-resolved path inside the resolved public root.
-// options: { indexFile, blockedPaths: Set<string> }
-export async function findPublicFile(publicDir, pathname, { indexFile, blockedPaths = new Set() }) {
-  const requestedPath = pathname === '/' ? `/${indexFile}` : pathname;
-  if (blockedPaths.has(requestedPath)) return null;
+// Finds the file a public path shows, or null. `allowedPaths` (a Set of public paths such as
+// '/tv/tv.js') must list the path, both as requested and after symlinks are resolved. Then, in
+// order: no empty/dot segments, no dotfiles, extension allowlist, lexical containment, and
+// containment of the symlink-resolved path inside the resolved public root.
+export async function findPublicFile(publicDir, requestedPath, allowedPaths) {
+  if (!allowedPaths.has(requestedPath)) return null;
   const segments = requestedPath.split('/').slice(1);
   for (const segment of segments) {
     if (segment === '' || segment.startsWith('.')) return null;
@@ -98,7 +97,7 @@ export async function findPublicFile(publicDir, pathname, { indexFile, blockedPa
     if (!isInside(realRoot, realFile)) return null;
     const resolvedSegments = path.relative(realRoot, realFile).split(path.sep);
     if (resolvedSegments.some((segment) => segment.startsWith('.'))) return null;
-    if (blockedPaths.has(`/${resolvedSegments.join('/')}`)) return null;
+    if (!allowedPaths.has(`/${resolvedSegments.join('/')}`)) return null;
     const resolvedExtension = path.extname(realFile).toLowerCase();
     if (!Object.hasOwn(CONTENT_TYPES, resolvedExtension)) return null;
     const stats = await fs.stat(realFile);

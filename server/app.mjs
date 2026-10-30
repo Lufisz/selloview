@@ -32,7 +32,7 @@ import { constantTimeEqual } from './hashing.mjs';
 import { logEvent } from './log.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 import { createShopifyRoutes } from './shopify/routes.mjs';
-import { APP_PUBLIC_FILES } from './http/public-files.mjs';
+import { APP_PAGES, APP_PUBLIC_FILES, publicPathFor } from './http/public-files.mjs';
 import { createAppVersion } from './screens/app-version.mjs';
 import { createScreenRoutes } from './screens/screen-routes.mjs';
 import {
@@ -54,7 +54,6 @@ const SETTINGS_PATH = '/api/settings';
 const REGISTRATION_PATH = '/api/registration';
 const HEALTH_PATH = '/healthz';
 const CODE_PATTERN = /^\d{6}$/;
-const TV_PAGE_PATH = '/tv';
 const MAX_EMAIL_LENGTH = 254;
 
 /**
@@ -306,18 +305,9 @@ export function createAppHandler({
     clientAddress: (request) => clientAddress(request, trustedIpHeader),
   });
 
-  const PAGE_FILES = {
-    '/': '/landing/landing.html',
-    '/app': '/owner/owner.html',
-    '/register': '/owner/owner.html',
-    '/demo': '/demo/demo.html',
-    [TV_PAGE_PATH]: '/tv/tv.html',
-  };
-
   async function serveStatic(request, response, pathname) {
-    const requestedPath = Object.hasOwn(PAGE_FILES, pathname) ? PAGE_FILES[pathname] : pathname;
-    if (!APP_PUBLIC_FILES.has(requestedPath)) return reply(response, 404, { error: 'not_found' });
-    const file = await findPublicFile(publicDir, requestedPath, { indexFile: 'owner/owner.html' });
+    const requestedPath = publicPathFor(APP_PAGES, pathname);
+    const file = await findPublicFile(publicDir, requestedPath, APP_PUBLIC_FILES);
     if (!file) return reply(response, 404, { error: 'not_found' });
     const data = await fs.readFile(file.filePath);
     response.writeHead(200, {

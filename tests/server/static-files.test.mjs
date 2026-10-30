@@ -31,11 +31,15 @@ test('a header counts only when it was sent exactly once and is not comma-joined
   assert.equal(singleHeaderValue(['A', ' 1 '], 'a'), '1');
 });
 
+// Stands for a list that names every file, so the tests below show the file system rules hold on
+// their own (containment, hidden files, types, size, symlinks), not because a list masked them.
+const EVERY_PATH = { has: () => true };
+
 // The file a request target resolves to inside `publicDir`, or null.
-async function lookup(publicDir, requestUrl, options = { indexFile: 'index.html' }) {
+async function lookup(publicDir, requestUrl, allowedPaths = EVERY_PATH) {
   const parsed = parseRequestPath(requestUrl);
   if (!parsed.pathname) return null;
-  return findPublicFile(publicDir, parsed.pathname, options);
+  return findPublicFile(publicDir, parsed.pathname, allowedPaths);
 }
 
 test('files outside the public directory, hidden, unlisted or oversized are never found', async (context) => {
@@ -50,7 +54,7 @@ test('files outside the public directory, hidden, unlisted or oversized are neve
 test('ordinary files are found with their content type, including a symlink that stays inside', async (context) => {
   const publicDir = makePublicDirectory(context);
   for (const [requestUrl, contentType] of [
-    ['/', 'text/html; charset=utf-8'],
+    ['/index.html', 'text/html; charset=utf-8'],
     ['/app.js', 'text/javascript; charset=utf-8'],
     ['/styles.css', 'text/css; charset=utf-8'],
     ['/mark.svg?x=1', 'image/svg+xml'],
@@ -62,32 +66,35 @@ test('ordinary files are found with their content type, including a symlink that
   }
 });
 
-test('the index file and the blocked paths are chosen by the caller', async (context) => {
+test('only listed files are found, and a symlink cannot reach a file that is not listed', async (context) => {
   const publicDir = makePublicDirectory(context);
-  const ownerIndex = await lookup(publicDir, '/', { indexFile: 'owner.html' });
-  assert.ok(ownerIndex.filePath.endsWith('owner.html'));
-
-  const blockedPaths = new Set(['/app.js', '/index.html']);
-  assert.equal(await lookup(publicDir, '/app.js', { indexFile: 'index.html', blockedPaths }), null);
-  // The index file is blocked by name too, so "/" cannot be used to reach it.
-  assert.equal(await lookup(publicDir, '/', { indexFile: 'index.html', blockedPaths }), null);
-  // A symlink cannot be used to reach a blocked file under another name.
-  const blockModel = new Set(['/model.js']);
-  assert.equal(
-    await lookup(publicDir, '/alias.js', { indexFile: 'index.html', blockedPaths: blockModel }),
-    null,
-  );
+  const listed = new Set(['/app.js', '/alias.js']);
+  assert.ok(await lookup(publicDir, '/app.js', listed));
+  assert.equal(await lookup(publicDir, '/data.js', listed), null, 'exists, but is not listed');
+  // The alias is listed, but the file it points at (/model.js) is not.
+  assert.equal(await lookup(publicDir, '/alias.js', listed), null);
+  assert.ok(await lookup(publicDir, '/alias.js', new Set(['/alias.js', '/model.js'])));
 });
 
-test('symlinks cannot disguise hidden files, forbidden types or blocked entry points', async (context) => {
-  const directory = await mkdtemp(join(tmpdir(), 'stillboard-alias-test-'));
+test('symlinks cannot disguise hidden files, forbidden types or unlisted entry points', async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), 'metrictv-alias-test-'));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const publicDirectory = join(directory, 'public');
   await mkdir(publicDirectory);
   for (const name of ['.hidden-source.js', 'private.txt', 'blocked.html', 'styles.css']) {
     await writeFile(join(publicDirectory, name), 'Synthetic test fixture only.');
   }
-  const options = { indexFile: 'index.html', blockedPaths: new Set(['/blocked.html']) };
+  // Everything is listed except /blocked.html, so the hidden file and the forbidden type are
+  // refused by the file system rules and the entry point by the list.
+  const listed = new Set([
+    '/hidden-alias.js',
+    '/.hidden-source.js',
+    '/type-alias.js',
+    '/private.txt',
+    '/entry-alias.js',
+    '/styles.css',
+    '/styles-alias.css',
+  ]);
   const hiddenTargets = [
     ['hidden-alias.js', '.hidden-source.js'],
     ['type-alias.js', 'private.txt'],
@@ -95,10 +102,10 @@ test('symlinks cannot disguise hidden files, forbidden types or blocked entry po
   ];
   for (const [alias, target] of hiddenTargets) {
     await symlink(target, join(publicDirectory, alias));
-    assert.equal(await findPublicFile(publicDirectory, '/' + alias, options), null);
+    assert.equal(await findPublicFile(publicDirectory, '/' + alias, listed), null);
   }
   await symlink('styles.css', join(publicDirectory, 'styles-alias.css'));
-  const safeFile = await findPublicFile(publicDirectory, '/styles-alias.css', options);
+  const safeFile = await findPublicFile(publicDirectory, '/styles-alias.css', listed);
   assert.equal(safeFile.contentType, 'text/css; charset=utf-8');
 });
 

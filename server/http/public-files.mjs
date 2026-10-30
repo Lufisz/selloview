@@ -1,39 +1,54 @@
-// Files only the app server should serve (landing, owner and TV pages); the sample server blocks
-// them.
-export const APP_ONLY_PATHS = new Set([
-  '/landing/landing.html',
-  '/landing/landing.css',
-  '/owner/owner.html',
-  '/owner/owner.js',
-  '/owner/owner-client.js',
-  '/shared/labels.js',
-  '/owner/shopify-client.js',
-  '/owner/store-view.js',
-  '/owner/owner-view.js',
-  '/owner/owner.css',
-  '/tv/tv.html',
-  '/tv/tv.js',
-  '/tv/tv-client.js',
-  '/tv/tv-view.js',
-]);
+// Which files each server may serve from public/. Anything not listed is a 404, so a file added to
+// public/ stays private until it is listed here. tests/server/public-files.test.mjs checks the
+// lists against what the pages really load.
 
-// The app server presents its own files plus the shared presentation modules, and nothing
-// else from the public directory.
-export const APP_PUBLIC_FILES = new Set([
-  ...APP_ONLY_PATHS,
-  '/fonts/archivo-latin.woff2',
-  // Explicitly fictional demo; these modules never call a live store API.
+// URL path -> the page file it shows.
+export const DEMO_PAGES = Object.freeze({ '/': '/demo/demo.html' });
+export const APP_PAGES = Object.freeze({
+  '/': '/landing/landing.html',
+  '/app': '/owner/owner.html',
+  '/register': '/owner/owner.html',
+  '/demo': '/demo/demo.html',
+  '/tv': '/tv/tv.html',
+});
+
+/** The public path a URL path shows: a page's own file, or the path itself. */
+export function publicPathFor(pages, pathname) {
+  return Object.hasOwn(pages, pathname) ? pages[pathname] : pathname;
+}
+
+// The sample dashboard: its page and the presentation files it shares with the app.
+export const DEMO_PUBLIC_FILES = new Set([
   '/demo/demo.html',
   '/demo/demo.js',
   '/demo/demo-data.js',
   '/demo/demo-view.js',
   '/shared/styles.css',
-  '/mark.svg',
   '/shared/model.js',
   '/shared/ui.js',
-  // Board presentation shared by the owner page and the TV page.
   '/shared/board.js',
+  '/fonts/archivo-latin.woff2',
+  '/mark.svg',
+]);
+
+// The app: the sample dashboard plus the landing, owner and TV pages and what they load.
+export const APP_PUBLIC_FILES = new Set([
+  ...DEMO_PUBLIC_FILES,
+  '/landing/landing.html',
+  '/landing/landing.css',
+  '/owner/owner.html',
+  '/owner/owner.js',
+  '/owner/owner-client.js',
+  '/owner/owner-view.js',
+  '/owner/store-view.js',
+  '/owner/shopify-client.js',
+  '/owner/shopify-authorize-url.js',
+  '/owner/owner.css',
+  '/tv/tv.html',
+  '/tv/tv.js',
+  '/tv/tv-client.js',
+  '/tv/tv-view.js',
+  '/shared/labels.js',
   '/shared/board-model.js',
   '/shared/snapshot-validation.js',
-  '/owner/shopify-authorize-url.js',
 ]);
