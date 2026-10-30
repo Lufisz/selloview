@@ -43,6 +43,8 @@ const DEFAULT_PUBLIC_DIR = path.resolve(
 );
 const HEALTH_PATH = '/healthz';
 
+// ceiling: a limit counts one full address, so a client that controls a whole IPv6 range can rotate
+// addresses past it, upgrade: count IPv6 addresses by their /64 once someone does
 function clientAddress(request, trustedIpHeader) {
   if (trustedIpHeader !== '') {
     const forwarded = singleHeaderValue(request.rawHeaders, trustedIpHeader);

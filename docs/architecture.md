@@ -106,6 +106,7 @@ Browser: `escapeHtml`, `hasOwn`, `money`, `percentChange`, `normaliseStore` (`sh
 | The hourly purge (`housekeeping.mjs`) | one synchronous pass: about 15 ms to scan 500,000 live rows, 0.4 s to delete 500,000 expired ones | the pause shows up: delete in batches |
 | One SQLite file, one process (`private-database.mjs`) | one instance | a second instance is needed: Postgres |
 | Rate limiter counters (`rate-limiter.mjs`) | in process | a second instance is needed: a shared counter store |
+| What a limit counts (`clientAddress`, `app.mjs`) | one full address | a client rotates IPv6 addresses past a limit: count IPv6 by /64 |
 
 **Order of moves when it grows.** Measure first (`/healthz`, the journal, whether stores turn stale). Then the cheap knobs: the concurrency and pace constants above, a bigger server. Then incremental sync for very large stores. A second instance is the one real step: it needs Postgres and shared limiters, and each instance would keep its own figures in memory, which doubles Shopify reads until that cache is shared. Everything before it fits in one process.
 
