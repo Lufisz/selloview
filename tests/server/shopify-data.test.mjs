@@ -7,10 +7,10 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { curlAvailable } from './beta-helpers.mjs';
-import { createTokenStore } from '../server/shopify/token-store.mjs';
-import { isUsableSnapshot } from '../public/shared/snapshot-validation.js';
-import { renderPaired } from '../public/tv/tv-view.js';
+import { curlAvailable } from '../helpers/app-server.mjs';
+import { createTokenStore } from '../../server/shopify/token-store.mjs';
+import { isUsableSnapshot } from '../../public/shared/snapshot-validation.js';
+import { renderPaired } from '../../public/tv/tv-view.js';
 import {
   ALICE,
   BOB,
@@ -20,9 +20,9 @@ import {
   pairTv,
   waitFor,
   waitForSnapshot,
-} from './beta-shopify-helpers.mjs';
-import { SYNTHETIC_CLIENT_ID } from './synthetic-shopify.mjs';
-import { createBrowser } from './beta-helpers.mjs';
+} from '../helpers/shopify-scenario.mjs';
+import { SYNTHETIC_CLIENT_ID } from '../helpers/synthetic-shopify.mjs';
+import { createBrowser } from '../helpers/app-server.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 const THREE_MINUTES_MS = 3 * 60 * 1000;

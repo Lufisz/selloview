@@ -8,14 +8,14 @@ import fs from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import { createAuth } from '../server/accounts/auth.mjs';
+import { createAuth } from '../../server/accounts/auth.mjs';
 import {
   initializeDatabase,
   inviteOwner,
   openInitializedDatabase,
-} from '../server/accounts/accounts.mjs';
-import { createBetaServer } from '../server/main.mjs';
-import { createBetaShopifyService } from '../server/shopify/connection-service.mjs';
+} from '../../server/accounts/accounts.mjs';
+import { createBetaServer } from '../../server/main.mjs';
+import { createBetaShopifyService } from '../../server/shopify/connection-service.mjs';
 
 /** SYNTHETIC delivery: records codes in memory so tests can complete the real sign-in flow. */
 export function createMemoryMailTransport() {

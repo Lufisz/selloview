@@ -4,7 +4,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { buildSnapshot } from '../server/metrics.mjs';
+import { buildSnapshot } from '../../server/metrics.mjs';
 
 const STORE = 'synthetic-boot.myshopify.com';
 const REQUEST_TIMEOUT_MS = 12000;
@@ -52,7 +52,7 @@ function syntheticSnapshot() {
 }
 
 function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 200 }) {
-  const controllerUrl = new URL('../public/owner/owner.js', import.meta.url).href;
+  const controllerUrl = new URL('../../public/owner/owner.js', import.meta.url).href;
   const session = {
     owner: { email: 'owner@example.test' },
     sessionExpiresAt: '2099-01-01T00:00:00.000Z',

@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
-import { createTokenStore } from '../server/shopify/token-store.mjs';
+import { createTokenStore } from '../../server/shopify/token-store.mjs';
 
 const STORE = 'synthetic-test-store.myshopify.com';
 const CLIENT_ID = 'synthetic_client_id_0001';

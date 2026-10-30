@@ -5,10 +5,10 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSnapshot } from '../server/metrics.mjs';
-import { projectBoardForDisplay } from '../server/screens/display-board.mjs';
+import { buildSnapshot } from '../../server/metrics.mjs';
+import { projectBoardForDisplay } from '../../server/screens/display-board.mjs';
 
-const PUBLIC_DIRECTORY = new URL('../public/', import.meta.url).pathname;
+const PUBLIC_DIRECTORY = new URL('../../public/', import.meta.url).pathname;
 
 // A display answer built from SYNTHETIC orders through the real snapshot and projection code.
 function syntheticDisplayWithBoard() {
@@ -54,7 +54,7 @@ function syntheticDisplayWithBoard() {
 }
 
 function runTvStartup({ offline = false, display = null } = {}) {
-  const controllerUrl = new URL('../public/tv/tv.js', import.meta.url).href;
+  const controllerUrl = new URL('../../public/tv/tv.js', import.meta.url).href;
   const script = `
     const app = { innerHTML: '' };
     const failures = [];

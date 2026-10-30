@@ -4,13 +4,13 @@
 // up a clearly labelled fixture (capacity limits).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoHandler } from '../server/demo.mjs';
+import { createDemoHandler } from '../../server/demo.mjs';
 import {
   AccountError,
   migrateDatabase,
   openInitializedDatabase,
-} from '../server/accounts/accounts.mjs';
-import { createRateLimiter } from '../server/http/rate-limiter.mjs';
+} from '../../server/accounts/accounts.mjs';
+import { createRateLimiter } from '../../server/http/rate-limiter.mjs';
 import {
   MAX_OPEN_CHALLENGES,
   MAX_SCREENS_PER_WORKSPACE,
@@ -18,7 +18,7 @@ import {
   formatCode,
   normalizeCode,
   parseScreenName,
-} from '../server/screens/screens.mjs';
+} from '../../server/screens/screens.mjs';
 import {
   createBetaEnvironment,
   createBrowser,
@@ -26,7 +26,7 @@ import {
   httpRequest,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from '../helpers/app-server.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 

@@ -53,7 +53,7 @@ On https origins the cookies are `__Host-` prefixed and `Secure`. Rate limits ar
 restart clears them): 6 new codes/min per address, 240 TV requests/min per address, 40 pairing polls
 and 30 display polls/min per credential, 10 approvals/min and 5 failed codes per 5 minutes per owner
 (the owner is then locked out of approving until the window ends, even with a correct code). The
-address is the socket address unless `BETA_TRUSTED_IP_HEADER` is set. Tests: `tests/beta-screens*.test.mjs`.
+address is the socket address unless `BETA_TRUSTED_IP_HEADER` is set. Tests: `tests/server/screens.test.mjs`.
 Real TV browsers were not tested, and no browser rendering of `/tv` or Screens was exercised.
 
 ## Setup (all local; nothing is sent or exposed)
@@ -170,6 +170,6 @@ accounts, sessions, screens and settings. A version 2 database is refused at sta
 ### Verified, and not
 
 Automated: real HTTP (curl) against the real server, Better Auth and SQLite, with a synthetic Shopify
-transport (`tests/beta-shopify-*.test.mjs`); no real Shopify approval, store data or browser has
+transport (`tests/server/shopify-*.test.mjs`); no real Shopify approval, store data or browser has
 exercised this code. Activation acceptance needs the pilot owner to approve the app in Shopify, an
 actual first read, a restart and a disconnect/reconnect against the deployed origin.

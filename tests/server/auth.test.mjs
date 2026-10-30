@@ -1,10 +1,10 @@
 // Invite-only owner authentication against the real Better Auth library and real SQLite files.
-// Mail delivery is the expressly synthetic in-memory transport from beta-helpers.mjs.
+// Mail delivery is the expressly synthetic in-memory transport from tests/helpers/app-server.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuth } from '../server/accounts/auth.mjs';
-import { openInitializedDatabase } from '../server/accounts/accounts.mjs';
-import { unconfiguredTransport } from '../server/accounts/mail-transport.mjs';
+import { createAuth } from '../../server/accounts/auth.mjs';
+import { openInitializedDatabase } from '../../server/accounts/accounts.mjs';
+import { unconfiguredTransport } from '../../server/accounts/mail-transport.mjs';
 import {
   createBetaEnvironment,
   createBrowser,
@@ -13,9 +13,9 @@ import {
   curlAvailable,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from '../helpers/app-server.mjs';
 
-// Real HTTP needs a client outside this process (see tests/beta-helpers.mjs).
+// Real HTTP needs a client outside this process (see tests/helpers/app-server.mjs).
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 
 const ALICE = 'alice@example.test';

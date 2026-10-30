@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, writeFile, symlink, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
+  createSecurityHeaders,
   findPublicFile,
   parseRequestPath,
   rawHeaderValues,
@@ -73,4 +77,39 @@ test('the index file and the blocked paths are chosen by the caller', async (con
     await lookup(publicDir, '/alias.js', { indexFile: 'index.html', blockedPaths: blockModel }),
     null,
   );
+});
+
+test('symlinks cannot disguise hidden files, forbidden types or blocked entry points', async (context) => {
+  const directory = await mkdtemp(join(tmpdir(), 'stillboard-alias-test-'));
+  context.after(() => rm(directory, { recursive: true, force: true }));
+  const publicDirectory = join(directory, 'public');
+  await mkdir(publicDirectory);
+  for (const name of ['.hidden-source.js', 'private.txt', 'blocked.html', 'styles.css']) {
+    await writeFile(join(publicDirectory, name), 'Synthetic test fixture only.');
+  }
+  const options = { indexFile: 'index.html', blockedPaths: new Set(['/blocked.html']) };
+  const hiddenTargets = [
+    ['hidden-alias.js', '.hidden-source.js'],
+    ['type-alias.js', 'private.txt'],
+    ['entry-alias.js', 'blocked.html'],
+  ];
+  for (const [alias, target] of hiddenTargets) {
+    await symlink(target, join(publicDirectory, alias));
+    assert.equal(await findPublicFile(publicDirectory, '/' + alias, options), null);
+  }
+  await symlink('styles.css', join(publicDirectory, 'styles-alias.css'));
+  const safeFile = await findPublicFile(publicDirectory, '/styles-alias.css', options);
+  assert.equal(safeFile.contentType, 'text/css; charset=utf-8');
+});
+
+test('the demo and the app reuse security headers while retaining distinct network permissions', () => {
+  const demo = createSecurityHeaders();
+  const app = createSecurityHeaders({ allowApiRequests: true });
+  assert.match(demo['Content-Security-Policy'], /connect-src 'none'/);
+  assert.match(app['Content-Security-Policy'], /connect-src 'self'/);
+  for (const headers of [demo, app]) {
+    assert.match(headers['Content-Security-Policy'], /form-action 'none'/);
+    assert.equal(headers['Referrer-Policy'], 'no-referrer');
+    assert.equal(headers['Cache-Control'], 'no-store');
+  }
 });

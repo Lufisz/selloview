@@ -7,15 +7,15 @@ import {
   pairScreen,
   parsePairingCode,
   revokeScreen,
-} from '../public/owner/owner-client.js';
+} from '../../public/owner/owner-client.js';
 import {
   createChallenge,
   exchangePairing,
   loadDisplay,
   loadPairing,
-} from '../public/tv/tv-client.js';
-import { renderOwner } from '../public/owner/owner-view.js';
-import { renderPaired, renderWaiting } from '../public/tv/tv-view.js';
+} from '../../public/tv/tv-client.js';
+import { renderOwner } from '../../public/owner/owner-view.js';
+import { renderPaired, renderWaiting } from '../../public/tv/tv-view.js';
 
 function fakeFetchReturning(status, body) {
   const calls = [];

@@ -11,7 +11,7 @@ import {
   curlAvailable,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from '../helpers/app-server.mjs';
 import {
   ALICE,
   CALLBACK_PATH,
@@ -20,8 +20,8 @@ import {
   connectOwner,
   createScenario,
   pairTv,
-} from './beta-shopify-helpers.mjs';
-import { SYNTHETIC_CLIENT_ID } from './synthetic-shopify.mjs';
+} from '../helpers/shopify-scenario.mjs';
+import { SYNTHETIC_CLIENT_ID } from '../helpers/synthetic-shopify.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 

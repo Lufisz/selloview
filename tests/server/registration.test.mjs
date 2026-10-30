@@ -1,15 +1,15 @@
 // Opt-in self-service registration over real HTTP, real Better Auth and real SQLite.
-// Mail delivery is the synthetic in-memory transport from beta-helpers.mjs.
+// Mail delivery is the synthetic in-memory transport from tests/helpers/app-server.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuth } from '../server/accounts/auth.mjs';
-import { openInitializedDatabase } from '../server/accounts/accounts.mjs';
-import { createBetaServer } from '../server/main.mjs';
+import { createAuth } from '../../server/accounts/auth.mjs';
+import { openInitializedDatabase } from '../../server/accounts/accounts.mjs';
+import { createBetaServer } from '../../server/main.mjs';
 import {
   createRegistrationPolicy,
   loadRegistrationConfig,
-} from '../server/accounts/registration.mjs';
-import { createBetaShopifyService } from '../server/shopify/connection-service.mjs';
+} from '../../server/accounts/registration.mjs';
+import { createBetaShopifyService } from '../../server/shopify/connection-service.mjs';
 import {
   createBetaEnvironment,
   createBrowser,
@@ -17,7 +17,7 @@ import {
   curlAvailable,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from '../helpers/app-server.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 const ALICE = 'alice@example.test';

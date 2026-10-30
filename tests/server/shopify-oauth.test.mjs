@@ -13,8 +13,8 @@ import {
   httpRequest,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
-import { isUsableSnapshot } from '../public/shared/snapshot-validation.js';
+} from '../helpers/app-server.mjs';
+import { isUsableSnapshot } from '../../public/shared/snapshot-validation.js';
 import {
   ALICE,
   BOB,
@@ -27,7 +27,7 @@ import {
   signedCallbackQuery,
   waitFor,
   waitForSnapshot,
-} from './beta-shopify-helpers.mjs';
+} from '../helpers/shopify-scenario.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 const FAILED = '/?shopify=failed';

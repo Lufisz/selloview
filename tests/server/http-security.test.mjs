@@ -2,7 +2,7 @@
 // persistence and separation from the demo server. Real HTTP via curl.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoHandler } from '../server/demo.mjs';
+import { createDemoHandler } from '../../server/demo.mjs';
 import {
   createBetaEnvironment,
   createBrowser,
@@ -10,9 +10,9 @@ import {
   httpRequest,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from '../helpers/app-server.mjs';
 
-// Real HTTP needs a client outside this process (see tests/beta-helpers.mjs).
+// Real HTTP needs a client outside this process (see tests/helpers/app-server.mjs).
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 
 const ALICE = 'alice@example.test';
@@ -262,7 +262,7 @@ test(
     await handle.close();
 
     const { inviteOwner, openInitializedDatabase } =
-      await import('../server/accounts/accounts.mjs');
+      await import('../../server/accounts/accounts.mjs');
     const database = openInitializedDatabase(environment.databasePath);
     const repeated = await inviteOwner({
       database,
@@ -291,7 +291,7 @@ test('revoked sessions stop working immediately', http, async (t) => {
   const { browser } = await signInOwner(handle, ALICE);
   assert.equal((await browser.loadSession()).status, 200);
 
-  const { revokeOwnerSessions } = await import('../server/accounts/accounts.mjs');
+  const { revokeOwnerSessions } = await import('../../server/accounts/accounts.mjs');
   await revokeOwnerSessions({
     database: handle.database,
     secret: environment.secret,

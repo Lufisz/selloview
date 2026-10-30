@@ -1,9 +1,9 @@
 // All upstream responses in these tests are explicitly synthetic transport fixtures.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createShopifyFetch } from '../server/shopify/http.mjs';
-import { createAdminRunner } from '../server/shopify/admin-runner.mjs';
-import { API_VERSION, QUERIES } from '../server/shopify/shop-data.mjs';
+import { createShopifyFetch } from '../../server/shopify/http.mjs';
+import { createAdminRunner } from '../../server/shopify/admin-runner.mjs';
+import { API_VERSION, QUERIES } from '../../server/shopify/shop-data.mjs';
 
 const STORE = 'synthetic-store.myshopify.com';
 const TOKEN_URL = `https://${STORE}/admin/oauth/access_token`;

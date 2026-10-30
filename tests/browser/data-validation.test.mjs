@@ -1,14 +1,12 @@
+// What the browser trusts and links to: server snapshots must pass validation before they are
+// drawn, and only the configured merchant's HTTPS admin pages become links.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, writeFile, symlink, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { buildSnapshot } from '../server/metrics.mjs';
-import { createSecurityHeaders, findPublicFile } from '../server/http/static-files.mjs';
-import { isUsableSnapshot } from '../public/shared/snapshot-validation.js';
-import { formatPeriodLabel } from '../public/shared/board-model.js';
-import { safeShopifyAdminUrl } from '../public/shared/ui.js';
-import { renderAttentionPanel, renderOrdersPanel } from '../public/shared/board.js';
+import { buildSnapshot } from '../../server/metrics.mjs';
+import { isUsableSnapshot } from '../../public/shared/snapshot-validation.js';
+import { formatPeriodLabel } from '../../public/shared/board-model.js';
+import { safeShopifyAdminUrl } from '../../public/shared/ui.js';
+import { renderAttentionPanel, renderOrdersPanel } from '../../public/shared/board.js';
 
 test('shared renderers independently restrict links to the configured Shopify merchant', () => {
   const options = { storeDomain: 'validation.myshopify.com' };
@@ -179,40 +177,5 @@ test('Shopify links must belong to the configured merchant on the standard HTTPS
 test('invalid calendar labels stay escaped display text rather than throwing during formatting', () => {
   for (const label of ['2026-99-99', '2026-02-30', '2026-10-14 to 2026-99-99']) {
     assert.equal(formatPeriodLabel(label), label);
-  }
-});
-
-test('symlinks cannot disguise hidden files, forbidden types or blocked entry points', async (context) => {
-  const directory = await mkdtemp(join(tmpdir(), 'stillboard-alias-test-'));
-  context.after(() => rm(directory, { recursive: true, force: true }));
-  const publicDirectory = join(directory, 'public');
-  await mkdir(publicDirectory);
-  for (const name of ['.hidden-source.js', 'private.txt', 'blocked.html', 'styles.css']) {
-    await writeFile(join(publicDirectory, name), 'Synthetic test fixture only.');
-  }
-  const options = { indexFile: 'index.html', blockedPaths: new Set(['/blocked.html']) };
-  const hiddenTargets = [
-    ['hidden-alias.js', '.hidden-source.js'],
-    ['type-alias.js', 'private.txt'],
-    ['entry-alias.js', 'blocked.html'],
-  ];
-  for (const [alias, target] of hiddenTargets) {
-    await symlink(target, join(publicDirectory, alias));
-    assert.equal(await findPublicFile(publicDirectory, '/' + alias, options), null);
-  }
-  await symlink('styles.css', join(publicDirectory, 'styles-alias.css'));
-  const safeFile = await findPublicFile(publicDirectory, '/styles-alias.css', options);
-  assert.equal(safeFile.contentType, 'text/css; charset=utf-8');
-});
-
-test('the demo and the app reuse security headers while retaining distinct network permissions', () => {
-  const demo = createSecurityHeaders();
-  const app = createSecurityHeaders({ allowApiRequests: true });
-  assert.match(demo['Content-Security-Policy'], /connect-src 'none'/);
-  assert.match(app['Content-Security-Policy'], /connect-src 'self'/);
-  for (const headers of [demo, app]) {
-    assert.match(headers['Content-Security-Policy'], /form-action 'none'/);
-    assert.equal(headers['Referrer-Policy'], 'no-referrer');
-    assert.equal(headers['Cache-Control'], 'no-store');
   }
 });

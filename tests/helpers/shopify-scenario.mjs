@@ -4,13 +4,13 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { loadBetaShopifyConfig } from '../server/shopify/config.mjs';
+import { loadBetaShopifyConfig } from '../../server/shopify/config.mjs';
 import {
   createBetaEnvironment,
   createBrowser,
   signInOwner,
   startBetaServer,
-} from './beta-helpers.mjs';
+} from './app-server.mjs';
 import {
   SYNTHETIC_CLIENT_ID,
   SYNTHETIC_CLIENT_SECRET,
