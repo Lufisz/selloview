@@ -29,7 +29,7 @@ exposing it needs a separately approved tunnel or proxy, a domain and an email p
 ## TV pairing and display sessions
 
 Schema version 3 (`PRAGMA user_version`; run `npm run beta:migrate` on an older database, the
-server refuses to start on any other version). Code: `server/beta/screens.mjs` (storage),
+server refuses to start on any other version). Code: `server/screens/screens.mjs` (storage),
 `screen-routes.mjs` (HTTP), `rate-limiter.mjs`; pages `public/tv.html`, `tv.js`.
 
 1. `/tv` calls `POST /api/tv/challenge`. The server stores a hashed random challenge secret and a

@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
-import { projectBoardForDisplay } from '../server/beta/display-board.mjs';
+import { projectBoardForDisplay } from '../server/screens/display-board.mjs';
 
 const PUBLIC_DIRECTORY = new URL('../public/', import.meta.url).pathname;
 

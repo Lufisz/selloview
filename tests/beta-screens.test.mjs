@@ -18,7 +18,7 @@ import {
   formatCode,
   normalizeCode,
   parseScreenName,
-} from '../server/beta/screens.mjs';
+} from '../server/screens/screens.mjs';
 import {
   createBetaEnvironment,
   createBrowser,

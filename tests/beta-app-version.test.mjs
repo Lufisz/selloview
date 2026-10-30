@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { createAppVersion } from '../server/beta/app-version.mjs';
+import { createAppVersion } from '../server/screens/app-version.mjs';
 import { isNewAppVersion } from '../public/tv-client.js';
 
 const THIRTY_ONE_SECONDS_MS = 31 * 1000;

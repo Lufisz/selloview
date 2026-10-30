@@ -21,7 +21,7 @@ import {
   migrateDatabase,
   openInitializedDatabase,
 } from '../server/accounts/accounts.mjs';
-import { projectBoardForDisplay } from '../server/beta/display-board.mjs';
+import { projectBoardForDisplay } from '../server/screens/display-board.mjs';
 import {
   consumeShopifyReturn,
   disconnectShopify,

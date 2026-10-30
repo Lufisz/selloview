@@ -46,8 +46,8 @@ import { loadBetaShopifyConfig } from './shopify-config.mjs';
 import { createBetaShopifyService } from './shopify-service.mjs';
 import { createShopifyRoutes } from './shopify-routes.mjs';
 import { BETA_PUBLIC_FILES } from '../http/public-files.mjs';
-import { createAppVersion } from './app-version.mjs';
-import { createScreenRoutes } from './screen-routes.mjs';
+import { createAppVersion } from '../screens/app-version.mjs';
+import { createScreenRoutes } from '../screens/screen-routes.mjs';
 import {
   SERVER_OPTIONS,
   applyServerLimits,
