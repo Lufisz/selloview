@@ -235,7 +235,7 @@ Shopify admin.
 | Service exits at start | `journalctl -u metrictv`. The message names the setting that is missing or malformed. |
 | Every page answers `400 bad_host` | The proxy must pass the original `Host` header, and it must equal the host in `METRICTV_ORIGIN`. |
 | "Email delivery is not set up" | Both `METRICTV_RESEND_API_KEY` and `METRICTV_MAIL_FROM` must be set. |
-| "The code email could not be sent" | The Resend key, and that `METRICTV_MAIL_FROM` uses a domain verified in Resend. |
+| An owner's sign-in code never arrives | The page cannot say why, on purpose. The journal has a `code_delivery_failed` line when sending failed: `delivery_rejected` means Resend refused the request (check the Resend key, and that `METRICTV_MAIL_FROM` uses a domain verified in Resend), `delivery_unreachable` means Resend could not be reached from the server. With no such line, check the spam folder and that the invited address is exactly the one typed. |
 | Shopify shows a redirect error | The redirect URL in the app version must equal `METRICTV_ORIGIN` + `/auth/beta/shopify/callback` exactly. |
 | "...can connect only one specific store" or "Store connection is not available for this account" | The store must equal `METRICTV_SHOPIFY_ALLOWED_STORE` and you must be signed in as `METRICTV_SHOPIFY_OWNER_EMAIL`. |
 | Board says data is out of date | Shopify could not be reached or the app was uninstalled. The last good figures stay visible with a warning; nothing is replaced by zeros. |

@@ -2,6 +2,7 @@
 // what a browser may send and what it gets back; Better Auth only does the work behind it. Its
 // bodies (tokens, user records, error text) are never passed through, only its cookies and its
 // rate-limit delay.
+import { setTimeout as pause } from 'node:timers/promises';
 import { fromNodeHeaders } from 'better-auth/node';
 import { RequestRejection, assertSameOriginJson, readJsonObject } from '../http/guards.mjs';
 import {
@@ -10,11 +11,17 @@ import {
   SEND_CODE_PATH,
   SIGN_IN_PATH,
   SIGN_OUT_PATH,
-  trackCodeDelivery,
 } from './auth.mjs';
 
 const CODE_PATTERN = /^\d{6}$/;
 const MAX_EMAIL_LENGTH = 254;
+// Every answer from these endpoints takes at least this long, far more than the work behind it
+// (about a millisecond), so how long an answer takes says nothing about whether the address has an
+// account. The timer starts before the work, so the work's own length does not move when the
+// answer goes out.
+// ceiling: work above this shows through,
+// upgrade: raise it if the work ever takes tens of milliseconds
+export const MIN_ANSWER_MS = 100;
 
 function isEmailText(value) {
   return typeof value === 'string' && value.length <= MAX_EMAIL_LENGTH && value.includes('@');
@@ -69,15 +76,12 @@ export function createAuthGateway({
     });
   }
 
-  function respondToAuthResult(response, authPath, authResponse, deliveryFailed) {
+  function respondToAuthResult(response, authPath, authResponse) {
     const extraHeaders = { 'Set-Cookie': authResponse.headers.getSetCookie() };
     if (authResponse.status === 429) {
       const retryAfter = authResponse.headers.get('retry-after');
       if (retryAfter && /^\d{1,6}$/.test(retryAfter)) extraHeaders['Retry-After'] = retryAfter;
       return reply(response, 429, { error: 'rate_limited' }, extraHeaders);
-    }
-    if (authPath === SEND_CODE_PATH && deliveryFailed) {
-      return reply(response, 502, { error: 'delivery_failed' });
     }
     if (authResponse.ok) return reply(response, 200, { ok: true }, extraHeaders);
     if (authPath === SEND_CODE_PATH && authResponse.status >= 500) {
@@ -123,12 +127,14 @@ export function createAuthGateway({
       if (refusal) return respondToRegistrationRefusal(response, refusal);
     }
     const authRequest = forwardedAuthRequest(request, authPath, JSON.stringify(body));
-    const forwardToAuth = () => trackCodeDelivery(() => auth.handler(authRequest));
+    const minimumAnswerTime = pause(MIN_ANSWER_MS);
+    const forwardToAuth = () => auth.handler(authRequest);
     // Verification can create an account, so it queues behind other verifications.
-    const { result, deliveryFailed } =
+    const authResponse =
       authPath === SIGN_IN_PATH
         ? await registration.runExclusive(forwardToAuth)
         : await forwardToAuth();
-    return respondToAuthResult(response, authPath, result, deliveryFailed);
+    await minimumAnswerTime;
+    return respondToAuthResult(response, authPath, authResponse);
   };
 }

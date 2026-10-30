@@ -46,7 +46,7 @@ function emailStepHtml({ email, message, tone, registering = false }) {
 
 function codeStepHtml({ email, message, tone }) {
   return `<form class="stacked-form" data-form="verify-code" novalidate>
-    <p class="field-hint">Enter the 6-digit code sent to ${escapeHtml(email)}. It works once and expires in 5 minutes.</p>
+    <p class="field-hint">If ${escapeHtml(email)} can sign in here, a code is on its way. Enter the 6-digit code from the email. It works once and expires in 5 minutes. Nothing after a few minutes? Check your spam folder, then request a new code.</p>
     <label for="owner-code">Sign-in code</label>
     <input id="owner-code" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9 ]*" maxlength="8" required>
     ${messageHtml(message, tone)}

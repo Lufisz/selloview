@@ -262,7 +262,7 @@ async function handleRequestCode(form) {
     state.step = 'code';
     setMessage('', 'info');
   } else {
-    // Delivery failure is shown as such; the page never pretends a code was sent.
+    // A server without email delivery says so. Otherwise the reply is the same for every address.
     setMessage(messageForError(result.error));
   }
   render();

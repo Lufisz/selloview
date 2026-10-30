@@ -4,10 +4,10 @@
 // Better Auth owns users, sessions, one-time codes and rate limits. This file only narrows it:
 // no public sign-up, no password/social/linking/email-change features, and a short allowlist of
 // the endpoints a browser may reach.
-import { AsyncLocalStorage } from 'node:async_hooks';
 import { betterAuth } from 'better-auth';
 import { createAuthMiddleware } from 'better-auth/api';
 import { emailOTP } from 'better-auth/plugins';
+import { logEvent } from '../log.mjs';
 import { closedRegistration } from './registration.mjs';
 
 export const AUTH_BASE_PATH = '/api/auth';
@@ -58,16 +58,22 @@ const DISABLED_PATHS = Object.freeze([
   '/forget-password/email-otp',
 ]);
 
-// Better Auth logs and swallows errors thrown while sending a code, which would let a failed
-// delivery look like success. The failure is recorded per request here so the HTTP layer can
-// report it honestly.
-const deliveryTracking = new AsyncLocalStorage();
-
-/** Runs `operation` and reports whether a code delivery inside it failed. */
-export async function trackCodeDelivery(operation) {
-  const tracking = { failed: false };
-  const result = await deliveryTracking.run(tracking, operation);
-  return { result, deliveryFailed: tracking.failed };
+// A code is emailed after the reply is sent. Waiting for the provider would make a request for an
+// invited address slower than one for any other address, and answer it with an error while the
+// provider fails, which tells a stranger who is invited. A failed send is logged instead, with its
+// error code and never the address or the code.
+// ceiling: sends are not queued; the rate limit (3 requests a minute per visitor) and the
+// transport's 8 s timeout bound how many are in flight,
+// upgrade: queue them if an outage piles them up
+async function deliverCode(mailTransport, recipient, code) {
+  try {
+    await mailTransport.sendSignInCode({ recipient, code });
+  } catch (error) {
+    logEvent('code_delivery_failed', {
+      code: error?.code ?? 'unknown',
+      error: error?.name ?? 'Error',
+    });
+  }
 }
 
 const CODE_LENGTH = 6;
@@ -164,14 +170,8 @@ export function createAuthOptions({
         storeOTP: 'hashed',
         async sendVerificationOTP({ email, otp, type }) {
           if (type !== 'sign-in') return;
-          // Awaited on purpose: a failed delivery must surface as a failed request.
-          try {
-            await mailTransport.sendSignInCode({ recipient: email, code: otp });
-          } catch (error) {
-            const tracking = deliveryTracking.getStore();
-            if (tracking) tracking.failed = true;
-            throw error;
-          }
+          // Not awaited on purpose, see deliverCode.
+          deliverCode(mailTransport, email, otp);
         },
       }),
     ],

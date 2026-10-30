@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAuth } from '../../server/accounts/auth.mjs';
 import { openInitializedDatabase } from '../../server/accounts/accounts.mjs';
-import { unconfiguredTransport } from '../../server/accounts/mail-transport.mjs';
+import { DeliveryError, unconfiguredTransport } from '../../server/accounts/mail-transport.mjs';
 import {
   createAppEnvironment,
   createBrowser,
@@ -301,23 +301,89 @@ test('code requests from one IPv6 /64 share one allowance', http, async (t) => {
   assert.equal((await requestCodeFrom('2001:db8:abcd:13::1')).status, 200, 'the next /64');
 });
 
-test('delivery failures are reported honestly and never as success', http, async (t) => {
+test('without a mail provider every address is told so, and no code is stored', http, async (t) => {
   const environment = await createAppEnvironment(t, { invites: [ALICE] });
-
   const unconfigured = await startAppServer(t, environment, {
     mailTransport: unconfiguredTransport,
   });
-  const noMail = await createBrowser(unconfigured.origin).requestCode(ALICE);
-  assert.equal(noMail.status, 503);
-  assert.equal(noMail.json.error, 'delivery_not_configured');
-  assert.equal(countRows(unconfigured.database, 'verification'), 0);
-  await unconfigured.close();
 
-  const failing = await startAppServer(t, environment, {
-    mailTransport: createFailingMailTransport(),
-  });
-  const outage = await createBrowser(failing.origin).requestCode(ALICE);
-  assert.equal(outage.status, 502);
-  assert.equal(outage.json.error, 'delivery_failed');
-  assert.equal(outage.text.includes('synthetic'), false, 'provider details stay server-side');
+  for (const email of [ALICE, STRANGER]) {
+    const noMail = await createBrowser(unconfigured.origin).requestCode(email);
+    assert.equal(noMail.status, 503);
+    assert.equal(noMail.json.error, 'delivery_not_configured');
+  }
+  assert.equal(countRows(unconfigured.database, 'verification'), 0);
 });
+
+/** Asks for a code for an invited and an uninvited address while sending always fails. */
+async function requestCodesWithBrokenProvider(t, sendSignInCode) {
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const mailTransport = { configured: true, sendSignInCode };
+  const handle = await startAppServer(t, environment, { mailTransport });
+  const logged = [];
+  t.mock.method(console, 'error', (line) => logged.push(line));
+
+  const invited = await createBrowser(handle.origin).requestCode(ALICE);
+  const stranger = await createBrowser(handle.origin).requestCode(STRANGER);
+  return { invited, stranger, logged };
+}
+
+test(
+  'a failing mail provider is logged without details and looks like success to the visitor',
+  http,
+  async (t) => {
+    const { invited, stranger, logged } = await requestCodesWithBrokenProvider(t, async () => {
+      throw new DeliveryError('delivery_rejected', `synthetic provider detail for ${ALICE}`);
+    });
+
+    assert.equal(invited.status, 200);
+    assert.deepEqual(invited.json, stranger.json, 'the reply does not depend on the address');
+    assert.equal(logged.length, 1, 'only the invited address had a code to send');
+    const entry = JSON.parse(logged[0]);
+    assert.equal(entry.event, 'code_delivery_failed');
+    assert.equal(entry.code, 'delivery_rejected');
+    assert.equal(entry.error, 'DeliveryError');
+    assert.equal(logged[0].includes('synthetic'), false, 'no provider detail');
+    assert.equal(logged[0].includes(ALICE), false, 'no address');
+  },
+);
+
+test('an unexpected error while sending is logged by name only', http, async (t) => {
+  const { sendSignInCode } = createFailingMailTransport();
+  const { invited, logged } = await requestCodesWithBrokenProvider(t, sendSignInCode);
+
+  assert.equal(invited.status, 200);
+  assert.equal(logged.length, 1);
+  const entry = JSON.parse(logged[0]);
+  assert.equal(entry.event, 'code_delivery_failed');
+  assert.equal(entry.code, 'unknown');
+  assert.equal(entry.error, 'Error');
+  assert.equal(logged[0].includes('synthetic'), false, 'no error message');
+});
+
+test(
+  'a code request does not wait for the mail provider',
+  { ...http, timeout: 20_000 },
+  async (t) => {
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const pendingSends = [];
+    const stalled = {
+      configured: true,
+      sendSignInCode: ({ recipient }) =>
+        new Promise((resolve) => pendingSends.push({ recipient, finish: resolve })),
+    };
+    const handle = await startAppServer(t, environment, { mailTransport: stalled });
+
+    const invited = await createBrowser(handle.origin).requestCode(ALICE);
+    const stranger = await createBrowser(handle.origin).requestCode(STRANGER);
+
+    assert.equal(invited.status, 200);
+    assert.deepEqual(invited.json, stranger.json);
+    assert.deepEqual(
+      pendingSends.map((send) => send.recipient),
+      [ALICE],
+      'the provider was still working on the invited address when the reply came',
+    );
+    for (const send of pendingSends) send.finish();
+  },
+);

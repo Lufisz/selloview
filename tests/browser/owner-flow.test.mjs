@@ -60,7 +60,8 @@ test('an invited owner asks for a code, enters it and lands on the workspace', (
     [{ email: 'owner@example.test', type: 'sign-in' }],
   );
   assert.match(codeAsked.html, /data-form="verify-code"/);
-  assert.match(codeAsked.html, /sent to owner@example\.test/);
+  assert.match(codeAsked.html, /If owner@example\.test can sign in here, a code is on its way/);
+  assert.match(codeAsked.html, /Nothing after a few minutes\?/);
   assert.deepEqual(urlsOf(signedIn), [SIGN_IN, '/api/session', '/api/screens', '/api/shopify']);
   assert.deepEqual(signedIn.requests[0].body, { email: 'owner@example.test', otp: '123456' });
   assert.match(signedIn.html, /data-action="sign-out"/);
