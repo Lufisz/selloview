@@ -22,6 +22,7 @@ export const DEMO_PUBLIC_FILES = new Set([
   '/demo/demo.html',
   '/demo/demo.js',
   '/demo/demo-board.js',
+  '/demo/demo-controls.js',
   '/demo/demo-data.js',
   '/demo/demo-view.js',
   '/demo/demo.css',

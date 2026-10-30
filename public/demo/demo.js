@@ -2,7 +2,8 @@
 // and board.js, fixtures in data.js. Nothing here talks to the network.
 import { SAMPLE_DAYS, SAMPLE_ORDERS, ATTENTION_ITEMS, DEFAULT_SETTINGS } from './demo-data.js';
 import { hasOwn, normaliseStore } from '../shared/format.js';
-import { BRAND_NAME, createDialog, createToast, toggleFullscreen } from '../shared/ui.js';
+import { BRAND_NAME } from '../shared/ui.js';
+import { createDialog, createToast, toggleFullscreen } from './demo-controls.js';
 import {
   renderHome,
   renderSetup,
