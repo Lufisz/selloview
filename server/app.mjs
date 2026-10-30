@@ -51,6 +51,7 @@ const DEFAULT_PUBLIC_DIR = path.resolve(
 const SESSION_PATH = '/api/session';
 const SETTINGS_PATH = '/api/settings';
 const REGISTRATION_PATH = '/api/registration';
+const HEALTH_PATH = '/healthz';
 const CODE_PATTERN = /^\d{6}$/;
 const TV_PAGE_PATH = '/tv';
 const MAX_EMAIL_LENGTH = 254;
@@ -170,6 +171,17 @@ export function createAppHandler({
   // Safe to show anyone: whether sign-up exists and has room, never counts or emails.
   function serveRegistrationStatus(response) {
     return reply(response, 200, registration.status(), { 'Cache-Control': 'no-store' });
+  }
+
+  // For uptime monitors and container probes: up or down, nothing else. Reading the schema
+  // version proves the database file is still readable.
+  function serveHealth(response) {
+    try {
+      database.prepare('PRAGMA user_version').get();
+    } catch {
+      return reply(response, 503, { status: 'unavailable' });
+    }
+    return reply(response, 200, { status: 'ok' });
   }
 
   async function serveSession(request, response) {
@@ -331,6 +343,7 @@ export function createAppHandler({
     if (pathname === REGISTRATION_PATH && request.method === 'GET') {
       return serveRegistrationStatus(response);
     }
+    if (pathname === HEALTH_PATH && isReadMethod(request.method)) return serveHealth(response);
     if (pathname === SESSION_PATH && request.method === 'GET')
       return serveSession(request, response);
     if (pathname === SETTINGS_PATH && request.method === 'POST')
