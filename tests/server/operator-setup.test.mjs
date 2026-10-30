@@ -453,6 +453,27 @@ function runServerOnce(env) {
   });
 }
 
+test('a server whose port is taken says so in one line and exits', async (t) => {
+  const directory = await makeTemporaryDirectory(t);
+  const port = await findFreePort();
+  const env = {
+    PATH: process.env.PATH,
+    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
+    METRICTV_AUTH_SECRET: VALID_SECRET,
+    METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
+    METRICTV_PORT: String(port),
+  };
+  assert.equal((await runCli(['init'], env)).code, 0);
+  const occupant = net.createServer();
+  await new Promise((resolve) => occupant.listen(port, '127.0.0.1', resolve));
+  t.after(() => occupant.close());
+
+  const result = await runServerOnce(env);
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /MetricTV cannot start: .*EADDRINUSE/);
+  assert.equal(/^\s+at /m.test(result.stderr), false, 'no stack trace');
+});
+
 test('server start without an initialized database fails and creates nothing', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const databasePath = path.join(directory, 'private', 'metrictv.sqlite');

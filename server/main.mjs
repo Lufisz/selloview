@@ -14,6 +14,11 @@ import { startHousekeeping } from './housekeeping.mjs';
 import { loadShopifyConfig } from './shopify/config.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 
+function exitCannotStart(error) {
+  console.error(`MetricTV cannot start: ${error.message}`);
+  process.exit(1);
+}
+
 function startFromEnvironment() {
   const config = loadServerConfig();
   const mailConfig = loadMailConfig();
@@ -36,6 +41,8 @@ function startFromEnvironment() {
   });
   const server = createAppServer({ auth, database, config, mailTransport, registration, shopify });
   startHousekeeping(database);
+  // A taken port is reported after listen() returns, as an event the try/catch below cannot see.
+  server.once('error', exitCannotStart);
   server.listen(config.port, config.host, () => {
     const delivery = mailTransport.configured
       ? 'configured'
@@ -54,6 +61,5 @@ function startFromEnvironment() {
 try {
   startFromEnvironment();
 } catch (error) {
-  console.error(`MetricTV cannot start: ${error.message}`);
-  process.exit(1);
+  exitCannotStart(error);
 }
