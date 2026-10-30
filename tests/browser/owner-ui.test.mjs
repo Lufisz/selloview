@@ -229,9 +229,9 @@ function runControllerScenario(steps) {
     globalThis.setTimeout = () => 1;
     globalThis.clearTimeout = () => {};
     const answers = {
-      '/api/beta/session': { status: 200, body: ${JSON.stringify(session)} },
-      '/api/beta/screens': { status: 200, body: { screens: [] } },
-      '/api/beta/shopify': { status: 200, body: ${JSON.stringify({ connection: connection('connected', { state: 'ok' }), snapshot: null })} },
+      '/api/session': { status: 200, body: ${JSON.stringify(session)} },
+      '/api/screens': { status: 200, body: { screens: [] } },
+      '/api/shopify': { status: 200, body: ${JSON.stringify({ connection: connection('connected', { state: 'ok' }), snapshot: null })} },
     };
     globalThis.fetch = async (url) => {
       const answer = answers[url];

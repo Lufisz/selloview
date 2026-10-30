@@ -56,7 +56,7 @@ test('pairing codes accept case, spaces and hyphens only', () => {
 test('screen requests are same-origin JSON with the CSRF header and no URL secrets', async () => {
   const paired = fakeFetchReturning(200, { status: 'approved' });
   await pairScreen({ csrfToken: 'tok', code: 'ABCDEFGH', name: 'Hall' }, paired.fetchImpl);
-  assert.equal(paired.calls[0].url, '/api/beta/screens/pair');
+  assert.equal(paired.calls[0].url, '/api/screens/pair');
   assert.equal(paired.calls[0].options.method, 'POST');
   assert.equal(paired.calls[0].options.credentials, 'same-origin');
   assert.equal(paired.calls[0].options.headers['X-CSRF-Token'], 'tok');
@@ -64,7 +64,7 @@ test('screen requests are same-origin JSON with the CSRF header and no URL secre
 
   const revoked = fakeFetchReturning(200, { status: 'revoked' });
   await revokeScreen({ csrfToken: 'tok', id: 'abc' }, revoked.fetchImpl);
-  assert.equal(revoked.calls[0].url, '/api/beta/screens/revoke');
+  assert.equal(revoked.calls[0].url, '/api/screens/revoke');
   assert.deepEqual(JSON.parse(revoked.calls[0].options.body), { id: 'abc' });
 
   const listed = fakeFetchReturning(200, { screens: [{ id: 'a', name: 'Hall' }] });

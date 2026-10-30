@@ -490,7 +490,7 @@ test(
     assert.equal(otherStore.status, 403);
     assert.deepEqual(otherStore.json, { error: 'store_not_allowed' });
 
-    const extraKeys = await browser.request('/api/beta/shopify/start', {
+    const extraKeys = await browser.request('/api/shopify/start', {
       method: 'POST',
       body: { store: SYNTHETIC_STORE, workspace: scenario.workspaceId(BOB) },
       headers: { 'X-CSRF-Token': browser.csrfToken },
@@ -563,7 +563,7 @@ test(
     // path, and the private SDK cookie names are never used here.
     assert.equal(browser.cookieHeader({ pathname: '/auth/shopify/callback', crossSite: true }), '');
     assert.equal(
-      browser.cookieHeader({ pathname: '/api/beta/shopify', crossSite: false }).includes('oauth'),
+      browser.cookieHeader({ pathname: '/api/shopify', crossSite: false }).includes('oauth'),
       false,
     );
     for (const name of browser.cookies.keys()) assert.notEqual(name, 'shopify_app_state');

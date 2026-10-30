@@ -7,7 +7,7 @@ Implemented locally, not publicly enabled. Production services remain stopped.
 - `/`: product landing page, beta restrictions, pricing status and fictional preview.
 - `/demo`: existing isolated sample dashboard. Its figures and simulated setup are not real store connections.
 - `/app`: owner sign-in and workspace.
-- `/register`: registration UI. It checks `/api/beta/registration` before showing the email form.
+- `/register`: registration UI. It checks `/api/registration` before showing the email form.
 - `/tv`: pairing and display-only board, unchanged.
 
 ## Enablement

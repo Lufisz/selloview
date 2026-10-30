@@ -47,9 +47,9 @@ const DEFAULT_PUBLIC_DIR = path.resolve(
   '..',
   'public',
 );
-const SESSION_PATH = '/api/beta/session';
-const SETTINGS_PATH = '/api/beta/settings';
-const REGISTRATION_PATH = '/api/beta/registration';
+const SESSION_PATH = '/api/session';
+const SETTINGS_PATH = '/api/settings';
+const REGISTRATION_PATH = '/api/registration';
 const CODE_PATTERN = /^\d{6}$/;
 const TV_PAGE_PATH = '/tv';
 const MAX_EMAIL_LENGTH = 254;

@@ -86,7 +86,7 @@ test('by default registration is closed and strangers cannot create accounts', h
   const handle = await startBetaServer(t, environment);
   const browser = createBrowser(handle.origin);
 
-  const status = await browser.request('/api/beta/registration');
+  const status = await browser.request('/api/registration');
   assert.equal(status.status, 200);
   assert.deepEqual(status.json, { enabled: false, available: false });
 
@@ -108,7 +108,7 @@ test('a new address becomes an account only after the correct code', http, async
   const email = 'newcomer@example.test';
   const browser = createBrowser(handle.origin);
 
-  const status = await browser.request('/api/beta/registration');
+  const status = await browser.request('/api/registration');
   assert.deepEqual(status.json, { enabled: true, available: true });
   assert.equal(JSON.stringify(status.json).includes('5'), false, 'the cap is not published');
 
@@ -141,7 +141,7 @@ test('the account cap holds; existing owners still sign in at the cap', http, as
   assert.equal((await first.verifyCode('one@example.test', firstCode)).status, 200);
   assert.equal(countUsers(handle.database), 2);
 
-  const status = await first.request('/api/beta/registration');
+  const status = await first.request('/api/registration');
   assert.deepEqual(status.json, { enabled: true, available: false });
 
   // A third address gets no mail and no account.

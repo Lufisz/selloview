@@ -1,15 +1,15 @@
 // Browser API for the invite-only beta page. Talks only to same-origin beta routes.
 // The CSRF token returned by the session endpoint stays in memory; nothing is put in storage.
 
-export const SESSION_URL = '/api/beta/session';
-export const REGISTRATION_URL = '/api/beta/registration';
-export const SETTINGS_URL = '/api/beta/settings';
+export const SESSION_URL = '/api/session';
+export const REGISTRATION_URL = '/api/registration';
+export const SETTINGS_URL = '/api/settings';
 export const SEND_CODE_URL = '/api/auth/email-otp/send-verification-otp';
 export const SIGN_IN_URL = '/api/auth/sign-in/email-otp';
 export const SIGN_OUT_URL = '/api/auth/sign-out';
-export const SCREENS_URL = '/api/beta/screens';
-export const PAIR_SCREEN_URL = '/api/beta/screens/pair';
-export const REVOKE_SCREEN_URL = '/api/beta/screens/revoke';
+export const SCREENS_URL = '/api/screens';
+export const PAIR_SCREEN_URL = '/api/screens/pair';
+export const REVOKE_SCREEN_URL = '/api/screens/revoke';
 export const PERIOD_CHOICES = Object.freeze(['today', 'week', 'month', 'days60']);
 export const THEME_CHOICES = Object.freeze(['light', 'dark']);
 

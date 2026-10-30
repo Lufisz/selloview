@@ -21,8 +21,12 @@ error lists each old name with its replacement (never a value).
 | `npm run beta:invite -- <email>`, `beta:revoke -- <email>` | `npm run admin -- invite <email>`, `revoke <email>` |
 | `ExecStart=… server/beta/beta-server.mjs` | `ExecStart=… server/main.mjs` |
 
+The owner API moved from `/api/beta/…` to `/api/…`, and nothing answers under the old prefix. A
+browser tab that was open during the upgrade shows an error until it is reloaded, and a reverse
+proxy rule that matched `/api/beta/` needs the new prefix. Paired TVs reload themselves.
+
 Your database, the encrypted Shopify credentials, the Shopify redirect URL and paired TVs are not
-affected.
+otherwise affected.
 
 ## What you get
 

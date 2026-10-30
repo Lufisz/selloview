@@ -56,7 +56,7 @@ test('a caller cannot choose or reach another workspace', http, async (t) => {
   const { alice, bob } = await twoSignedInOwners(t);
 
   for (const extraKey of ['workspaceId', 'ownerId', 'userId', 'email']) {
-    const attempt = await alice.browser.request('/api/beta/settings', {
+    const attempt = await alice.browser.request('/api/settings', {
       method: 'POST',
       headers: { 'X-CSRF-Token': alice.browser.csrfToken },
       body: { settings: { theme: 'dark' }, revision: 0, [extraKey]: bob.session.owner.email },
@@ -96,7 +96,7 @@ test('settings reject invalid values and shapes', http, async (t) => {
     { settings: 'dark', revision: 0 },
   ];
   for (const payload of invalidPayloads) {
-    const result = await alice.browser.request('/api/beta/settings', {
+    const result = await alice.browser.request('/api/settings', {
       method: 'POST',
       headers: { 'X-CSRF-Token': alice.browser.csrfToken },
       body: payload,
@@ -128,7 +128,7 @@ test(
 
     const noOrigin = await httpRequest({
       origin: handle.origin,
-      pathname: '/api/beta/settings',
+      pathname: '/api/settings',
       method: 'POST',
       headerLines: [
         'Content-Type: application/json',
@@ -141,7 +141,7 @@ test(
 
     const duplicateOrigin = await httpRequest({
       origin: handle.origin,
-      pathname: '/api/beta/settings',
+      pathname: '/api/settings',
       method: 'POST',
       headerLines: [
         'Content-Type: application/json',
@@ -159,7 +159,7 @@ test(
     });
     assert.equal(crossSiteFetch.status, 403);
 
-    const formContentType = await browser.request('/api/beta/settings', {
+    const formContentType = await browser.request('/api/settings', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -169,7 +169,7 @@ test(
     });
     assert.equal(formContentType.status, 415);
 
-    const missingToken = await browser.request('/api/beta/settings', {
+    const missingToken = await browser.request('/api/settings', {
       method: 'POST',
       body: settingsBody,
     });
@@ -181,7 +181,7 @@ test(
     });
     assert.equal(forgedToken.status, 403);
 
-    const unauthenticated = await createBrowser(handle.origin).request('/api/beta/settings', {
+    const unauthenticated = await createBrowser(handle.origin).request('/api/settings', {
       method: 'POST',
       body: settingsBody,
       headers: { 'X-CSRF-Token': browser.csrfToken },
@@ -354,7 +354,7 @@ test(
       '/api/snapshot',
       '/api/settings',
       '/api/connection/status',
-      '/api/beta/unknown',
+      '/api/unknown',
       '/package.json',
       '/../package.json',
       '/.env',
@@ -370,6 +370,41 @@ test(
     assert.match((await browser.request('/demo')).text, /src="\/demo\/demo.js"/);
   },
 );
+
+// The owner routes used to live under /api/beta/. Nothing may answer there any more: an open
+// browser tab from before the upgrade must fail visibly, not talk to a half-removed handler.
+test('nothing answers under the old /api/beta/ prefix, signed in or not', http, async (t) => {
+  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
+  const handle = await startBetaServer(t, environment);
+  const { browser } = await signInOwner(handle, ALICE);
+  const anonymous = createBrowser(handle.origin);
+  const oldRoutes = [
+    ['GET', '/api/beta/session'],
+    ['GET', '/api/beta/registration'],
+    ['POST', '/api/beta/settings'],
+    ['GET', '/api/beta/screens'],
+    ['POST', '/api/beta/screens/pair'],
+    ['POST', '/api/beta/screens/revoke'],
+    ['GET', '/api/beta/shopify'],
+    ['POST', '/api/beta/shopify/start'],
+    ['POST', '/api/beta/shopify/disconnect'],
+  ];
+  for (const [method, pathname] of oldRoutes) {
+    for (const [who, client] of [
+      ['signed in', browser],
+      ['anonymous', anonymous],
+    ]) {
+      const result = await client.request(pathname, {
+        method,
+        body: method === 'POST' ? {} : undefined,
+        headers: method === 'POST' ? { 'X-CSRF-Token': client.csrfToken } : {},
+      });
+      const label = `${who} ${method} ${pathname} -> ${result.status}`;
+      assert.ok([404, 405].includes(result.status), label);
+      assert.ok(['not_found', 'method_not_allowed'].includes(result.json?.error), label);
+    }
+  }
+});
 
 test('the demo server does not present the beta files', async () => {
   const handler = createDemoHandler();

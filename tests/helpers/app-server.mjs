@@ -294,12 +294,12 @@ export function createBrowser(origin) {
       return request('/api/auth/sign-in/email-otp', { method: 'POST', body: { email, otp } });
     },
     async loadSession() {
-      const result = await request('/api/beta/session');
+      const result = await request('/api/session');
       csrfToken = result.json?.csrfToken ?? '';
       return result;
     },
     saveSettings(settings, revision, extra = {}) {
-      return request('/api/beta/settings', {
+      return request('/api/settings', {
         method: 'POST',
         body: { settings, revision },
         headers: { 'X-CSRF-Token': csrfToken, ...extra },
@@ -330,17 +330,17 @@ export function createBrowser(origin) {
     },
     // Shopify connection (owner side).
     shopifyStatus() {
-      return request('/api/beta/shopify');
+      return request('/api/shopify');
     },
     startShopify(store, extra = {}) {
-      return request('/api/beta/shopify/start', {
+      return request('/api/shopify/start', {
         method: 'POST',
         body: { store },
         headers: { 'X-CSRF-Token': csrfToken, 'User-Agent': BROWSER_AGENT, ...extra },
       });
     },
     disconnectShopify(extra = {}) {
-      return request('/api/beta/shopify/disconnect', {
+      return request('/api/shopify/disconnect', {
         method: 'POST',
         body: {},
         headers: { 'X-CSRF-Token': csrfToken, ...extra },
@@ -355,17 +355,17 @@ export function createBrowser(origin) {
     },
     // Owner side.
     listScreens() {
-      return request('/api/beta/screens');
+      return request('/api/screens');
     },
     pairScreen(code, name, extra = {}) {
-      return request('/api/beta/screens/pair', {
+      return request('/api/screens/pair', {
         method: 'POST',
         body: { code, name },
         headers: { 'X-CSRF-Token': csrfToken, ...extra },
       });
     },
     revokeScreen(id, extra = {}) {
-      return request('/api/beta/screens/revoke', {
+      return request('/api/screens/revoke', {
         method: 'POST',
         body: { id },
         headers: { 'X-CSRF-Token': csrfToken, ...extra },

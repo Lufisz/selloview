@@ -6,9 +6,9 @@ import { sendRequest } from './owner-client.js';
 import { validateAuthorizeUrl } from './shopify-authorize-url.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
-export const SHOPIFY_STATUS_URL = '/api/beta/shopify';
-export const SHOPIFY_START_URL = '/api/beta/shopify/start';
-export const SHOPIFY_DISCONNECT_URL = '/api/beta/shopify/disconnect';
+export const SHOPIFY_STATUS_URL = '/api/shopify';
+export const SHOPIFY_START_URL = '/api/shopify/start';
+export const SHOPIFY_DISCONNECT_URL = '/api/shopify/disconnect';
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 
 const CONNECTION_STATES = Object.freeze([

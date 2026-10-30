@@ -119,7 +119,7 @@ test('starting a connection sends only the canonical store and follows only a Sh
     ok.fetchImpl,
   );
   assert.deepEqual(started, { ok: true, authorizationUrl: authorize });
-  assert.equal(ok.calls[0].url, '/api/beta/shopify/start');
+  assert.equal(ok.calls[0].url, '/api/shopify/start');
   assert.deepEqual(JSON.parse(ok.calls[0].options.body), { store: SYNTHETIC_STORE });
   assert.equal(ok.calls[0].options.headers['X-CSRF-Token'], 'tok');
   assert.equal(ok.calls[0].options.credentials, 'same-origin');

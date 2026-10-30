@@ -84,9 +84,9 @@ function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 2
     globalThis.setTimeout = (fn, delay) => { timers.push(delay); return timers.length; };
     globalThis.clearTimeout = () => {};
     const answers = {
-      '/api/beta/session': { status: 200, body: ${JSON.stringify(session)} },
-      '/api/beta/screens': { status: 200, body: { screens: [] } },
-      '/api/beta/shopify': { status: ${statusCode}, body: ${JSON.stringify({ connection: { store: STORE, canConnect: true, ...connection }, snapshot })} },
+      '/api/session': { status: 200, body: ${JSON.stringify(session)} },
+      '/api/screens': { status: 200, body: { screens: [] } },
+      '/api/shopify': { status: ${statusCode}, body: ${JSON.stringify({ connection: { store: STORE, canConnect: true, ...connection }, snapshot })} },
     };
     globalThis.fetch = async (url) => {
       requests.push(url);
@@ -116,11 +116,7 @@ test('a connected owner sees the board, the return notice, and the page keeps po
     snapshot: syntheticSnapshot(),
   });
   assert.deepEqual(result.failures, []);
-  assert.deepEqual(result.requests, [
-    '/api/beta/session',
-    '/api/beta/screens',
-    '/api/beta/shopify',
-  ]);
+  assert.deepEqual(result.requests, ['/api/session', '/api/screens', '/api/shopify']);
   assert.deepEqual(result.replaced, ['/'], 'the result is removed from the address bar');
   assert.match(result.html, /Synthetic Boot Shop/);
   assert.match(result.html, /Order value/);

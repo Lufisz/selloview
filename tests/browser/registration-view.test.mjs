@@ -67,7 +67,7 @@ test('registration status is a same-origin read', async () => {
   };
   const result = await loadRegistrationStatus(fetchImpl);
   assert.equal(result.ok, true);
-  assert.equal(calls[0].url, '/api/beta/registration');
+  assert.equal(calls[0].url, '/api/registration');
   assert.equal(calls[0].options.method, 'GET');
   assert.equal(calls[0].options.credentials, 'same-origin');
 });

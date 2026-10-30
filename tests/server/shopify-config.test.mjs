@@ -154,7 +154,7 @@ test(
     }
     const anonymous = await httpRequest({
       origin: base.METRICTV_ORIGIN,
-      pathname: '/api/beta/shopify',
+      pathname: '/api/shopify',
     });
     assert.equal(anonymous.status, 401, 'owner session required');
     const callback = await httpRequest({

@@ -36,7 +36,7 @@ server refuses to start on any other version). Code: `server/screens/screens.mjs
    hashed 8-symbol code (40 bits, no look-alike characters) for 5 minutes, sets the secret in an
    HttpOnly `SameSite=Strict` cookie and returns only the visible code. A page asking again replaces
    its own earlier challenge; at most 200 challenges are open at once.
-2. A signed-in owner submits code and screen name to `POST /api/beta/screens/pair` (exact Origin,
+2. A signed-in owner submits code and screen name to `POST /api/screens/pair` (exact Origin,
    JSON, session CSRF token). This only marks the challenge approved for that owner's workspace;
    wrong, expired and used codes give one identical answer, so a code never reveals an owner.
 3. The TV polls `GET /api/tv/pairing` and, once approved, `POST /api/tv/pairing/exchange`. Only the
@@ -45,8 +45,8 @@ server refuses to start on any other version). Code: `server/screens/screens.mjs
    never extended).
 4. `GET /api/display` returns the screen name, the workspace's period/theme/revision, the server's
    clock (`serverTime`, so a TV with a wrong clock still judges staleness correctly), an honest
-   `storeConnection` state and, only for a connected pilot workspace, a display-only `board`. Owners list their screens (`GET /api/beta/screens`) and remove
-   one (`POST /api/beta/screens/revoke`); removal takes effect on the next request. A workspace holds
+   `storeConnection` state and, only for a connected pilot workspace, a display-only `board`. Owners list their screens (`GET /api/screens`) and remove
+   one (`POST /api/screens/revoke`); removal takes effect on the next request. A workspace holds
    at most 10 screens. Display cookies are not accepted by any owner endpoint and vice versa.
 
 On https origins the cookies are `__Host-` prefixed and `Secure`. Rate limits are in memory (a
@@ -134,8 +134,8 @@ response is refused).
   session. A shop name in a request authorizes nothing. SQLite enforces one store per workspace and one
   workspace per store (`workspace_store`, UNIQUE on both). Other owners get `pilot_unavailable` and never
   data; the pilot restriction (owner and store) is configuration, not part of the data model.
-- Owner routes: `GET /api/beta/shopify` (state + validated snapshot), `POST /api/beta/shopify/start`
-  (`{store}`), `POST /api/beta/shopify/disconnect` (`{}`). The POSTs need the Better Auth session, the
+- Owner routes: `GET /api/shopify` (state + validated snapshot), `POST /api/shopify/start`
+  (`{store}`), `POST /api/shopify/disconnect` (`{}`). The POSTs need the Better Auth session, the
   exact Origin, JSON and the session-bound CSRF token. The store must be the canonical host.
 - The callback `GET /auth/beta/shopify/callback` arrives from Shopify as a cross-site navigation, so the
   SameSite=Strict session cookie is not sent and is not loosened. It is authorized by (1) the SDK's HMAC

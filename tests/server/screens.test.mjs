@@ -589,19 +589,19 @@ test(
     ];
 
     const attempts = [
-      { pathname: '/api/beta/session', method: 'GET' },
-      { pathname: '/api/beta/screens', method: 'GET' },
+      { pathname: '/api/session', method: 'GET' },
+      { pathname: '/api/screens', method: 'GET' },
       {
-        pathname: '/api/beta/settings',
+        pathname: '/api/settings',
         method: 'POST',
         body: '{"settings":{"theme":"dark"},"revision":0}',
       },
       {
-        pathname: '/api/beta/screens/pair',
+        pathname: '/api/screens/pair',
         method: 'POST',
         body: '{"code":"ABCD-EFGH","name":"x"}',
       },
-      { pathname: '/api/beta/screens/revoke', method: 'POST', body: `{"id":"${'A'.repeat(22)}"}` },
+      { pathname: '/api/screens/revoke', method: 'POST', body: `{"id":"${'A'.repeat(22)}"}` },
       { pathname: '/api/auth/sign-out', method: 'POST', body: '{}' },
       { pathname: '/api/auth/get-session', method: 'GET' },
     ];
@@ -637,29 +637,29 @@ test('state-changing pairing routes require exact origin, JSON and owner CSRF', 
   assert.equal(noCsrf.json.error, 'invalid_csrf');
   const othersCsrf = await alice.pairScreen(code, 'X', { 'X-CSRF-Token': bob.csrfToken });
   assert.equal(othersCsrf.status, 403);
-  const textPlain = await alice.request('/api/beta/screens/pair', {
+  const textPlain = await alice.request('/api/screens/pair', {
     method: 'POST',
     rawBody: JSON.stringify({ code, name: 'X' }),
     headers: { 'Content-Type': 'text/plain', 'X-CSRF-Token': alice.csrfToken },
   });
   assert.equal(textPlain.status, 415);
-  const extraKey = await alice.request('/api/beta/screens/pair', {
+  const extraKey = await alice.request('/api/screens/pair', {
     method: 'POST',
     body: { code, name: 'X', workspaceId: 'someone-else' },
     headers: { 'X-CSRF-Token': alice.csrfToken },
   });
   assert.equal(extraKey.status, 400);
-  const anonymous = await createBrowser(handle.origin).request('/api/beta/screens/pair', {
+  const anonymous = await createBrowser(handle.origin).request('/api/screens/pair', {
     method: 'POST',
     body: { code, name: 'X' },
   });
   assert.equal(anonymous.status, 401);
-  assert.equal((await createBrowser(handle.origin).request('/api/beta/screens')).status, 401);
+  assert.equal((await createBrowser(handle.origin).request('/api/screens')).status, 401);
   assert.ok(
-    [404, 405].includes((await alice.request('/api/beta/screens/pair')).status),
+    [404, 405].includes((await alice.request('/api/screens/pair')).status),
     'GET never pairs',
   );
-  assert.ok([404, 405].includes((await alice.request('/api/beta/screens/revoke')).status));
+  assert.ok([404, 405].includes((await alice.request('/api/screens/revoke')).status));
   assert.equal((await alice.revokeScreen('A'.repeat(22), { 'X-CSRF-Token': '' })).status, 403);
   assert.equal((await alice.revokeScreen('short')).status, 400);
 
@@ -694,11 +694,7 @@ test('GET requests never change pairing state', http, async (t) => {
   await waiting.tv.pairingStatus();
   await tv.loadDisplay();
   await alice.listScreens();
-  for (const pathname of [
-    '/api/tv/challenge',
-    '/api/tv/pairing/exchange',
-    '/api/beta/screens/pair',
-  ]) {
+  for (const pathname of ['/api/tv/challenge', '/api/tv/pairing/exchange', '/api/screens/pair']) {
     const result = await alice.request(pathname);
     assert.ok([404, 405].includes(result.status), pathname);
   }
