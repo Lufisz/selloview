@@ -1,0 +1,732 @@
+/* The board: metrics, chart, attention list and orders table, with its preview, TV and dark
+   variants. Shared by the sample app, the owner page and the TV page. */
+.align-right {
+  text-align: right;
+}
+.board {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 31px 33px 17px;
+}
+.board-preview {
+  border: 0;
+  border-radius: 0;
+}
+.board-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 27px;
+}
+.board-heading h1 {
+  font-size: 29px;
+  font-weight: 500;
+  letter-spacing: -1px;
+  margin: 8px 0;
+}
+.board-heading p {
+  color: var(--muted);
+  font-size: 11px;
+}
+.board-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.snapshot-label {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 10px;
+  color: var(--muted);
+}
+.board-controls select,
+.board-controls .button {
+  flex: 0 0 auto;
+  width: auto;
+  height: 44px;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid #d7ddd2;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
+.board-controls select {
+  padding-right: 40px;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr 1fr 1.1fr;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 25px 0;
+}
+.metric {
+  padding: 0 26px;
+  border-left: 1px solid var(--line);
+}
+.metric:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.metric:last-child {
+  padding-right: 0;
+}
+.metric-label {
+  color: var(--muted);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 18px;
+}
+.metric-value {
+  font-size: clamp(25px, 2.65vw, 38px);
+  font-weight: 450;
+  letter-spacing: -0.055em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  margin: 8px 0 12px;
+  white-space: nowrap;
+}
+.metric-bottom {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.change {
+  padding: 2px 5px;
+  font-size: 9px;
+  border-radius: 4px;
+}
+.change.positive {
+  background: var(--green-soft);
+  color: #395f3e;
+}
+.change.negative {
+  background: var(--amber-soft);
+  color: #865619;
+}
+.metric-comparison {
+  color: var(--muted);
+  font-size: 9px;
+}
+.metrics-context {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 10px 0 0;
+}
+.goal-values {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+}
+.goal-values > span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.goal-values .metric-value {
+  margin-bottom: 9px;
+}
+.percent-symbol {
+  font-size: 22px;
+  letter-spacing: -1px;
+  margin-left: 2px;
+}
+.progress-track {
+  height: 5px;
+  background: #ebeee7;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-track > span {
+  display: block;
+  background: #778c68;
+  height: 100%;
+  border-radius: inherit;
+}
+.help-button {
+  border: 1px solid #aeb8ab;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 50%;
+  width: 13px;
+  height: 13px;
+  font-size: 9px;
+  font-family: Georgia, serif;
+  line-height: 11px;
+  padding: 0;
+}
+.board-main {
+  display: grid;
+  grid-template-columns: minmax(0, 2.25fr) minmax(240px, 1fr);
+  border-bottom: 1px solid var(--line);
+}
+.board-main.no-aside {
+  grid-template-columns: 1fr;
+}
+.chart-panel {
+  padding: 27px 29px 20px 0;
+  min-width: 0;
+}
+.section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.section-heading h2 {
+  font-size: 13px;
+  font-weight: 550;
+  letter-spacing: -0.15px;
+}
+.section-heading > .muted {
+  font-size: 10px;
+}
+.chart-legend {
+  display: flex;
+  gap: 13px;
+  font-size: 9px;
+  color: var(--muted);
+}
+.chart-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.chart-legend i {
+  width: 11px;
+  height: 2px;
+  background: var(--green);
+}
+.chart-legend i.previous {
+  background: transparent;
+  border-top: 2px dashed #aeb8a8;
+}
+.revenue-chart {
+  width: 100%;
+  display: block;
+  margin: 24px 0 7px;
+  overflow: visible;
+}
+.revenue-chart text {
+  fill: var(--muted);
+  font-size: 10px;
+}
+.gridline {
+  stroke: var(--line);
+  stroke-width: 1;
+}
+.chart-current {
+  stroke: var(--green);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.chart-previous {
+  stroke: #b2bca9;
+  stroke-width: 1.7;
+  fill: none;
+  stroke-dasharray: 5 6;
+  stroke-linejoin: round;
+}
+.chart-area {
+  fill: #edf2eb;
+  opacity: 0.75;
+}
+.chart-dot {
+  fill: var(--surface);
+  stroke: var(--green);
+  stroke-width: 2;
+}
+.attention-panel {
+  border-left: 1px solid var(--line);
+  padding: 27px 0 20px 28px;
+}
+.count {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  background: var(--amber-soft);
+  color: #8c632d;
+}
+.attention-item {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.attention-item h3 {
+  font-size: 12px;
+  font-weight: 550;
+  margin: 8px 0 5px;
+  letter-spacing: -0.1px;
+}
+.attention-item h3 .status-dot {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.attention-item:last-child {
+  border-bottom: 0;
+}
+.attention-item p {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.attention-item .text-button {
+  margin-top: 7px;
+  font-size: 10px;
+}
+.board-footnote {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 9px;
+  padding-top: 14px;
+}
+.board-footnote > span:first-child {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.workspace > .board {
+  box-shadow: 0 2px 10px #283b2603;
+}
+.orders-panel {
+  padding-top: 25px;
+}
+.orders-panel .section-heading {
+  margin-bottom: 18px;
+}
+.orders-scroll {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  white-space: nowrap;
+}
+th {
+  text-align: left;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 450;
+  padding: 0 16px 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+td {
+  font-size: 11px;
+  padding: 13px 16px 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+th:last-child,
+td:last-child {
+  padding-right: 0;
+}
+.order-id,
+.order-amount {
+  font-weight: 550;
+}
+.order-status {
+  display: inline-block;
+  padding: 3px 8px;
+  color: #45633e;
+  background: #edf3e9;
+  border-radius: 4px;
+  font-size: 9px;
+}
+.order-status.fulfilled {
+  background: #f0f1ed;
+  color: #68716b;
+}
+.board-empty {
+  color: var(--muted);
+  font-size: 12px;
+  padding: 24px 0;
+  line-height: 1.8;
+}
+.error-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px 15px;
+  background: var(--amber-soft);
+  border: 1px solid #ead8bb;
+  font-size: 11px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  color: #795522;
+}
+.error-banner .text-button {
+  margin-left: auto;
+  color: inherit;
+  font-size: 10px;
+}
+/* TV is an alternate presentation of the same data, not a separate product. */
+.tv-shell {
+  padding: 24px 40px 15px;
+  max-width: 2200px;
+  margin: auto;
+  min-height: 100vh;
+}
+.tv-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 25px;
+  gap: 20px;
+}
+.tv-topbar > div {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.tv-topbar .brand {
+  font-size: 23px;
+}
+.board-tv {
+  padding: 35px 40px 20px;
+}
+.board-tv .board-heading h1 {
+  font-size: clamp(32px, 2.8vw, 54px);
+}
+.board-tv .metric-value {
+  font-size: clamp(35px, 4vw, 68px);
+}
+.board-tv .metric-label {
+  font-size: 14px;
+}
+.board-tv .metric-comparison {
+  font-size: 11px;
+}
+.board-tv .change {
+  font-size: 12px;
+}
+.board-tv .section-heading h2 {
+  font-size: 17px;
+}
+.board-tv .attention-item h3 {
+  font-size: 15px;
+}
+.board-tv .attention-item p {
+  font-size: 12px;
+}
+.board-tv .orders-panel {
+  display: none;
+}
+.board-tv .board-main {
+  grid-template-columns: minmax(0, 2.7fr) minmax(270px, 1fr);
+}
+.board-tv .board-main.no-aside {
+  grid-template-columns: 1fr;
+}
+.board-tv .revenue-chart {
+  max-height: 32vh;
+}
+/* Dark board: swaps the palette tokens inside the board, then fixes what the tokens do not reach. */
+.dark-board {
+  --surface: #202c28;
+  --ink: #e8ede5;
+  --muted: #adb9ab;
+  --line: #39453c;
+  --green: #b3c8a0;
+  --green-soft: #354635;
+  --amber-soft: #4e4029;
+  --amber-ink: #f2d6a4;
+  --paper: #18221e;
+  background: var(--paper);
+  color: var(--ink);
+}
+.dark-board .chart-area {
+  fill: #354c36;
+}
+.dark-board .progress-track {
+  background: #3c483d;
+}
+.dark-board .progress-track > span {
+  background: #aec294;
+}
+.dark-board .change.positive {
+  color: #c6d9b6;
+}
+.dark-board .count {
+  background: #51462f;
+  color: #e8cf9b;
+}
+.dark-board select {
+  background-color: #26362e;
+  border-color: #50604f;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='m2 4 4 4 4-4' fill='none' stroke='%23e8ede5' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+.dark-board .chart-previous {
+  stroke: #697b64;
+}
+.dark-board .chart-dot {
+  fill: #202c28;
+}
+.dark-board .text-button {
+  color: var(--ink);
+}
+.dark-board .error-banner {
+  border-color: #78613e;
+  color: var(--amber-ink);
+}
+.dark-board .change.negative {
+  color: var(--amber-ink);
+}
+@media (min-width: 1700px) {
+  .board-tv .attention-item {
+    padding-top: 30px;
+    padding-bottom: 30px;
+  }
+  .board-tv .attention-item h3 {
+    font-size: 21px;
+  }
+  .board-tv .attention-item p,
+  .board-tv .attention-item .text-button {
+    font-size: 15px;
+  }
+}
+@media (max-width: 1100px) {
+  .board {
+    padding: 25px 24px 16px;
+  }
+  .metric {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .metric-value {
+    font-size: 30px;
+  }
+  .goal-values {
+    gap: 7px;
+  }
+  .board-main {
+    grid-template-columns: minmax(0, 1.8fr) minmax(230px, 1fr);
+  }
+  .chart-panel {
+    padding-right: 20px;
+  }
+  .attention-panel {
+    padding-left: 20px;
+  }
+  .chart-legend {
+    gap: 9px;
+    font-size: 8px;
+  }
+}
+@media (max-width: 767px) {
+  .board {
+    padding: 22px 18px 15px;
+  }
+  .board-heading {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    padding-bottom: 22px;
+    gap: 18px;
+  }
+  .board-heading h1 {
+    font-size: 25px;
+  }
+  .board-heading .eyebrow {
+    font-size: 8px;
+  }
+  .board-heading p {
+    font-size: 10px;
+  }
+  .board-preview .snapshot-label {
+    font-size: 8px;
+  }
+  .board-preview .board-heading {
+    display: block;
+  }
+  .board-preview .board-controls {
+    margin-top: 10px;
+  }
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+    padding: 0;
+  }
+  .metric {
+    padding: 18px 0;
+  }
+  .metric:nth-child(2) {
+    padding-left: 16px;
+  }
+  .metric:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  .metric:nth-child(4) {
+    padding-left: 16px;
+    border-top: 1px solid var(--line);
+  }
+  .metric-value {
+    font-size: clamp(24px, 6.5vw, 32px);
+    margin-top: 9px;
+  }
+  .metric-label {
+    font-size: 10px;
+  }
+  .metric-bottom {
+    gap: 5px;
+  }
+  .metric-comparison {
+    font-size: 8px;
+  }
+  .change {
+    font-size: 8px;
+  }
+  .goal-values {
+    display: block;
+  }
+  .goal-values > span {
+    font-size: 9px;
+  }
+  .goal-values .metric-value {
+    margin-bottom: 0;
+  }
+  .progress-track {
+    margin: 8px 0;
+  }
+  .board-main,
+  .board-tv .board-main {
+    grid-template-columns: 1fr;
+  }
+  .chart-panel {
+    padding: 24px 0 18px;
+  }
+  .section-heading {
+    gap: 8px;
+  }
+  .section-heading h2 {
+    font-size: 12px;
+  }
+  .chart-legend {
+    gap: 8px;
+    font-size: 7px;
+  }
+  .chart-legend i {
+    width: 7px;
+  }
+  .revenue-chart {
+    margin-top: 25px;
+  }
+  .revenue-chart text {
+    font-size: 13px;
+  }
+  .chart-current {
+    stroke-width: 3.5;
+  }
+  .attention-panel {
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    padding: 22px 0 18px;
+  }
+  .attention-item {
+    padding: 17px 0;
+  }
+  .board-preview .attention-panel {
+    display: none;
+  }
+  .board-footnote {
+    font-size: 8px;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .board-preview .board-footnote > span:last-child {
+    display: none;
+  }
+  .board-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .board-controls select {
+    width: auto;
+  }
+  .orders-panel .section-heading {
+    align-items: flex-start;
+  }
+  .orders-panel .section-heading > span {
+    max-width: 100px;
+    font-size: 9px;
+    text-align: right;
+  }
+  td {
+    font-size: 10px;
+  }
+  .tv-shell {
+    padding: 20px 15px;
+  }
+  .tv-topbar {
+    flex-wrap: wrap;
+  }
+  .tv-topbar > div {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .tv-topbar .text-button {
+    font-size: 10px;
+  }
+  .board-tv {
+    padding: 22px 18px;
+  }
+  .board-tv .metric-value {
+    font-size: 32px;
+  }
+  .board-tv .metric-label {
+    font-size: 11px;
+  }
+  .board-tv .metric-comparison {
+    font-size: 9px;
+  }
+  .board-tv .section-heading h2 {
+    font-size: 13px;
+  }
+  .board-tv .revenue-chart {
+    max-height: none;
+  }
+  .board:not(.board-preview) .metric-comparison {
+    font-size: 10px;
+  }
+  .board:not(.board-preview) .chart-legend {
+    font-size: 9px;
+  }
+  .board:not(.board-preview) .revenue-chart text {
+    font-size: 22px;
+  }
+  .board:not(.board-preview) .revenue-chart text:first-of-type {
+    display: none;
+  }
+}
+/* The full-size board (not the hero's miniature preview, not TV mode) needs more readable
+   supporting text. */
+.board:not(.board-preview):not(.board-tv) .metric-label {
+  font-size: 12px;
+}
+.board:not(.board-preview):not(.board-tv) .metric-comparison,
+.board:not(.board-preview):not(.board-tv) .chart-legend,
+.board:not(.board-preview):not(.board-tv) .board-footnote {
+  font-size: 11px;
+}
+.board:not(.board-preview):not(.board-tv) .attention-item p {
+  font-size: 12px;
+}
+.board:not(.board-preview):not(.board-tv) .attention-item h3 {
+  font-size: 14px;
+}
+.dark-board .board-tv .metric-label {
+  font-size: 14px;
+}

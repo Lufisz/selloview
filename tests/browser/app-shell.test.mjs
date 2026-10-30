@@ -16,23 +16,45 @@ import {
   SAMPLE_ORDERS,
 } from '../../public/demo/demo-data.js';
 
-const sharedCss = await readFile(
-  new URL('../../public/shared/styles.css', import.meta.url),
-  'utf8',
-);
-const ownerCss = await readFile(new URL('../../public/owner/owner.css', import.meta.url), 'utf8');
+const PAGE_STYLESHEETS = {
+  demo: ['/shared/styles.css', '/shared/board.css', '/demo/demo.css'],
+  owner: ['/shared/styles.css', '/shared/board.css', '/owner/owner.css'],
+  tv: ['/shared/styles.css', '/shared/board.css', '/tv/tv.css'],
+};
+
+function readPublicFile(publicPath) {
+  return readFile(new URL(`../../public${publicPath}`, import.meta.url), 'utf8');
+}
+
+const sharedCss = await readPublicFile('/shared/styles.css');
+const pageSpecificCss = (
+  await Promise.all(
+    ['/shared/board.css', '/demo/demo.css', '/owner/owner.css', '/tv/tv.css'].map(readPublicFile),
+  )
+).join('\n');
 
 function countOf(source, text) {
   return source.split(text).length - 1;
 }
 
 test('only the shared stylesheet defines the header, brand and app font', () => {
-  assert.equal(countOf(sharedCss + ownerCss, '@font-face'), 1);
-  assert.doesNotMatch(ownerCss, /\.header-inner\s*\{/);
+  assert.equal(countOf(sharedCss + pageSpecificCss, '@font-face'), 1);
+  assert.doesNotMatch(pageSpecificCss, /\.header-inner\s*\{/);
   // The TV top bar has its own brand size; every page header uses the shared one.
-  assert.doesNotMatch(ownerCss, /^(?!.*tv-).*\.brand( img)?\s*\{/m);
-  assert.doesNotMatch(ownerCss, /owner-rail-gutter/);
+  assert.doesNotMatch(pageSpecificCss, /^(?!.*tv-).*\.brand( img)?\s*\{/m);
+  assert.doesNotMatch(pageSpecificCss, /owner-rail-gutter/);
   assert.match(sharedCss, /\.header-inner \{\n  max-width: var\(--app-max-width\);/);
+});
+
+test('every page loads the shared stylesheets first, then its own', async () => {
+  // Later rules win ties, so the order is part of the design: tokens, then the board, then the page.
+  for (const [page, expected] of Object.entries(PAGE_STYLESHEETS)) {
+    const html = await readPublicFile(`/${page}/${page}.html`);
+    const linked = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map(
+      (match) => match[1],
+    );
+    assert.deepEqual(linked, expected, `${page} page stylesheets`);
+  }
 });
 
 test('every sample workspace page uses the same header navigation', () => {

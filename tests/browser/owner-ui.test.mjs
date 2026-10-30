@@ -186,7 +186,7 @@ test('unsaved settings are kept and screen removal still needs a confirmation', 
   assert.match(confirming, /data-action="cancel-revoke"/);
 });
 
-test('owner styles are scoped so the TV and sign-in screens keep their own', () => {
+test('owner workspace styles are scoped so the sign-in screens keep their own', () => {
   const css = fs.readFileSync(new URL('../../public/owner/owner.css', import.meta.url), 'utf8');
   const marker = css.indexOf('/* ---- Owner workspace');
   assert.ok(marker > 0, 'owner section exists');

@@ -149,7 +149,7 @@ function chartScale(chart) {
  */
 export function renderChart(chart, { preview = false } = {}) {
   if (!chart.current.length || !hasUsableGeometry(chart)) {
-    return `<p class="live-empty">${escapeHtml(chart.emptyText)}</p>`;
+    return `<p class="board-empty">${escapeHtml(chart.emptyText)}</p>`;
   }
   const { ceiling, xAt, yAt } = chartScale(chart);
   const polylinePoints = (points) =>
@@ -252,7 +252,7 @@ export function renderAttentionPanel(attention, { hideActions = false, storeDoma
     .join('');
   return `<aside class="attention-panel">
     <div class="section-heading"><h2>${escapeHtml(attention.title)}</h2><span class="count">${attention.items.length}</span></div>
-    ${attention.items.length ? itemsHtml : `<p class="live-empty">${escapeHtml(attention.emptyText)}</p>`}
+    ${attention.items.length ? itemsHtml : `<p class="board-empty">${escapeHtml(attention.emptyText)}</p>`}
   </aside>`;
 }
 
@@ -299,7 +299,7 @@ export function renderOrdersPanel(orders, { storeDomain } = {}) {
     </div>`;
   return `<section class="orders-panel">
     <div class="section-heading"><h2>${escapeHtml(orders.title)}</h2>${noteHtml}</div>
-    ${orders.rows.length ? tableHtml : `<p class="live-empty">${escapeHtml(orders.emptyText)}</p>`}
+    ${orders.rows.length ? tableHtml : `<p class="board-empty">${escapeHtml(orders.emptyText)}</p>`}
   </section>`;
 }
 

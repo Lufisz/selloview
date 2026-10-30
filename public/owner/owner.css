@@ -1,4 +1,5 @@
-/* Owner and TV page additions on top of the shared tokens in styles.css. */
+/* The owner page at /app: sign-in and the workspace. Loaded after shared/styles.css and
+   shared/board.css. */
 .session-main {
   max-width: 560px;
   margin: 0 auto;
@@ -25,23 +26,6 @@
 .form-message {
   margin: 12px 0 0;
 }
-.tv-notice {
-  background: var(--amber-soft);
-  border: 1px solid #ead8bb;
-  border-radius: var(--radius);
-  padding: 16px 18px;
-}
-.tv-notice h2 {
-  font-size: 15px;
-  font-weight: 550;
-  margin: 0 0 8px;
-}
-.tv-notice p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.7;
-}
 .screen-list {
   list-style: none;
   margin: 18px 0 8px;
@@ -63,64 +47,6 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-.tv-card {
-  max-width: 760px;
-  margin: 8vh auto 0;
-  padding: 48px;
-}
-.tv-card h1 {
-  font-size: 40px;
-  font-weight: 450;
-  letter-spacing: -1px;
-  margin: 18px 0 22px;
-}
-.tv-steps {
-  font-size: 20px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-.tv-code {
-  font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
-  font-size: 72px;
-  letter-spacing: 8px;
-  margin: 28px 0;
-}
-body[data-theme='dark'] {
-  --paper: #1b2421;
-  --surface: #25302c;
-  --ink: #edf1ec;
-  --muted: #a5b0a8;
-  --line: #34413c;
-  --amber-soft: #4e4029;
-  background: var(--paper);
-  color: var(--ink);
-}
-
-/* Owner board and TV board reuse the shared board styles; these rules add what they need on top. */
-.live-empty {
-  color: var(--muted);
-  font-size: 12px;
-  padding: 24px 0;
-  line-height: 1.8;
-}
-.board-tv .help-button {
-  display: none;
-}
-.board-tv .metric-comparison {
-  line-height: 1.5;
-}
-.dark-board .text-button {
-  color: var(--ink);
-}
-.dark-board .error-banner {
-  background: #4e4029;
-  border-color: #78613e;
-  color: #f2d6a4;
-}
-.dark-board .change.negative {
-  background: #4e4029;
-  color: #f2d6a4;
-}
 .stacked-form input[type='text'] {
   max-width: 420px;
   width: 100%;
@@ -130,225 +56,7 @@ body[data-theme='dark'] {
   opacity: 0.6;
   transform: none;
 }
-
-/* The TV page is a fixed stage: the whole board fits one screen and nothing scrolls.
-   Sizes follow the screen height (vh), so the same layout holds at 720p, 1080p and 4K.
-   Plain vh values instead of clamp() keep older TV browsers on the same layout. */
-html.tv-fit,
-.tv-fit body {
-  height: 100%;
-  overflow: hidden;
-}
-.tv-fit .tv-shell {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  min-height: 0;
-  max-width: none;
-  padding: 2.2vh 2.4vw 2vh;
-}
-.tv-fit .tv-topbar {
-  flex: 0 0 auto;
-  margin-bottom: 1.6vh;
-}
-.tv-fit .tv-topbar .brand {
-  font-size: 2.2vh;
-}
-.tv-fit .tv-card {
-  margin-top: 4vh;
-}
-.tv-fit .board-tv {
-  box-sizing: border-box;
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
-  padding: 2.8vh 2.4vw 1.4vh;
-}
-.tv-fit .board-tv .board-heading {
-  flex: 0 0 auto;
-  padding-bottom: 1.8vh;
-}
-.tv-fit .board-tv .board-heading h1 {
-  font-size: 4.6vh;
-  margin: 0 0 0.6vh;
-}
-.tv-fit .board-tv .board-heading p {
-  font-size: 1.5vh;
-}
-/* The store logo replaces the name at the same height. Logos are usually drawn for a light
-   page, so the dark theme shows them as a white silhouette; a dark logo would vanish otherwise. */
-.tv-fit .board-tv .board-logo-title {
-  line-height: 0;
-}
-.tv-fit .board-tv .board-logo {
-  display: block;
-  height: 4.6vh;
-  max-width: 40vw;
-  object-fit: contain;
-  object-position: left center;
-  width: auto;
-}
-.tv-fit .dark-board .board-logo {
-  filter: brightness(0) invert(1);
-}
-.tv-fit .board-tv .metrics {
-  flex: 0 0 auto;
-  padding: 2.2vh 0;
-}
-.tv-fit .board-tv .metric-label {
-  font-size: 1.8vh;
-}
-.tv-fit .board-tv .metric-value {
-  font-size: 6.6vh;
-  margin: 0.8vh 0 1vh;
-}
-.tv-fit .board-tv .change,
-.tv-fit .board-tv .metric-comparison {
-  font-size: 1.4vh;
-}
-.tv-fit .board-tv .metrics-context {
-  flex: 0 0 auto;
-  font-size: 1.4vh;
-  margin-top: 1vh;
-}
-.tv-fit .board-tv .error-banner {
-  flex: 0 0 auto;
-  font-size: 1.4vh;
-  margin: 0 0 1.4vh;
-  padding: 0.9vh 1.2vw;
-}
-/* Chart and attention share whatever height is left. */
-.tv-fit .board-tv .board-main {
-  flex: 1 1 auto;
-  grid-template-rows: minmax(0, 1fr);
-  min-height: 0;
-}
-.tv-fit .board-tv .chart-panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 2.4vh 2vw 1.4vh 0;
-}
-.tv-fit .board-tv .section-heading {
-  flex: 0 0 auto;
-}
-.tv-fit .board-tv .section-heading h2 {
-  font-size: 2vh;
-}
-.tv-fit .board-tv .chart-legend,
-.tv-fit .board-tv .count {
-  font-size: 1.4vh;
-}
-.tv-fit .board-tv .revenue-chart {
-  flex: 1 1 0;
-  height: 0;
-  margin: 1.6vh 0 0;
-  max-height: none;
-  min-height: 0;
-}
-.tv-fit .board-tv .attention-panel {
-  min-height: 0;
-  overflow: hidden;
-  padding: 2.4vh 0 1.4vh 2vw;
-}
-/* Each part gets its natural shape: the chart is wide and short, so it takes the left with the
-   alerts as a row beneath it; latest orders are a tall list, so they take the full right side.
-   Columns are fractions of the width and text is sized by height, so a 16:9 screen keeps the
-   same proportions at any resolution. */
-.tv-fit .board-tv .board-main.with-orders {
-  grid-template-areas:
-    'chart orders'
-    'attention orders';
-  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-}
-.tv-fit .board-tv .with-orders .chart-panel {
-  grid-area: chart;
-}
-.tv-fit .board-tv .with-orders .orders-panel {
-  grid-area: orders;
-}
-.tv-fit .board-tv .with-orders .attention-panel {
-  border-left: 0;
-  border-top: 1px solid var(--line);
-  column-gap: 2vw;
-  display: grid;
-  grid-area: attention;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  padding: 1.8vh 2vw 1.4vh 0;
-}
-.tv-fit .board-tv .with-orders .attention-panel .section-heading,
-.tv-fit .board-tv .with-orders .attention-panel .live-empty {
-  grid-column: 1 / -1;
-  justify-content: flex-start;
-}
-.tv-fit .board-tv .with-orders .attention-item {
-  border-bottom: 0;
-  padding: 1vh 0 0;
-}
-.tv-fit .board-tv .board-main .orders-panel {
-  border-left: 1px solid var(--line);
-  display: block;
-  min-height: 0;
-  overflow: hidden;
-  padding: 2.4vh 0 1.4vh 2vw;
-}
-.tv-fit .board-tv .orders-panel .section-heading {
-  margin-bottom: 1.4vh;
-}
-.tv-fit .board-tv .section-heading > .muted {
-  font-size: 1.3vh;
-}
-.tv-fit .board-tv .orders-scroll {
-  overflow: hidden;
-}
-.tv-fit .board-tv th {
-  font-size: 1.3vh;
-  padding: 0 1vw 1vh 0;
-}
-.tv-fit .board-tv td {
-  font-size: 1.75vh;
-  padding: 0.9vh 1vw 0.9vh 0;
-}
-.tv-fit .board-tv th:last-child,
-.tv-fit .board-tv td:last-child {
-  padding-right: 0;
-}
-.tv-fit .board-tv .order-status {
-  font-size: 1.35vh;
-  padding: 0.25vh 0.6vw;
-}
-/* Chart text is in SVG units; 13 units read clearly once the chart is scaled up for a TV. */
-.tv-fit .board-tv .revenue-chart text {
-  font-size: 13px;
-}
-.tv-fit .board-tv .live-empty {
-  font-size: 1.5vh;
-}
-.tv-fit .board-tv .attention-item {
-  padding: 1.6vh 0;
-}
-.tv-fit .board-tv .attention-item h3 {
-  font-size: 1.9vh;
-  margin: 0.6vh 0 0.4vh;
-}
-.tv-fit .board-tv .attention-item p,
-.tv-fit .board-tv .attention-type {
-  font-size: 1.5vh;
-}
-.tv-fit .board-tv .board-footnote {
-  flex: 0 0 auto;
-  font-size: 1.3vh;
-  padding-top: 1.2vh;
-}
-.tv-fit .field-error {
-  flex: 0 0 auto;
-}
-
-/* Shared account-entry presentation, separate from the owner workspace and TV. */
+/* Account-entry presentation (sign-in and registration), separate from the owner workspace. */
 .entry-page {
   color: var(--ink);
 }
@@ -435,7 +143,6 @@ html.tv-fit,
     font-size: 26px;
   }
 }
-
 .entry-form-card .stacked-form {
   margin-top: 28px;
   text-align: left;
@@ -483,10 +190,9 @@ html.tv-fit,
   color: var(--muted);
   font-size: 13px;
 }
-
 /* ---- Owner workspace (/app after sign-in) --------------------------------------------------
-   Everything below is scoped to .owner-body (set on <body> only while the owner page is shown),
-   so the TV page and the sign-in screens keep the shared styles untouched. */
+   Everything below is scoped to .owner-body (set on <body> only while the workspace is shown),
+   so the sign-in screens keep the shared styles untouched. */
 .owner-body {
   font-weight: 400;
 }
@@ -510,7 +216,7 @@ html.tv-fit,
 }
 .owner-body[data-theme='dark'] .change.negative,
 .owner-body[data-theme='dark'] .count {
-  color: #f2d6a4;
+  color: var(--amber-ink);
 }
 .owner-body[data-theme='dark'] .chart-area {
   fill: #3a5846;
@@ -585,7 +291,6 @@ html.tv-fit,
 .owner-nav a:hover {
   color: var(--ink);
 }
-
 /* Connection: one compact status strip. */
 .owner-strip {
   display: flex;
@@ -685,7 +390,6 @@ html.tv-fit,
   font-size: 13px;
   margin: 0 0 8px;
 }
-
 /* Next steps: a single quiet line instead of a card. */
 .owner-setup {
   display: flex;
@@ -718,7 +422,6 @@ html.tv-fit,
   color: var(--muted);
   text-decoration: line-through;
 }
-
 /* The board: dashboard first, tighter than the shared board. */
 .owner-body .owner-overview {
   margin-bottom: 18px;
@@ -768,7 +471,6 @@ html.tv-fit,
   line-height: 1.55;
   margin: 4px 0 8px;
 }
-
 /* Settings and screens: two compact panels side by side. */
 .owner-columns {
   display: grid;
@@ -835,7 +537,6 @@ html.tv-fit,
 .owner-body .owner-panel .text-button {
   font-size: 13px;
 }
-
 @media (max-width: 860px) {
   .owner-columns {
     grid-template-columns: minmax(0, 1fr);
@@ -870,8 +571,8 @@ html.tv-fit,
     max-width: none;
   }
 }
+/* Keeps brand and sign-out on one header row, matching every other page. */
 @media (max-width: 480px) {
-  /* Keeps brand and sign-out on one header row, matching every other page. */
   .owner-body .owner-identity {
     display: none;
   }
