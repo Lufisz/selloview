@@ -4,6 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
+import net from 'node:net';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadBetaConfig } from '../server/beta/beta-server.mjs';
@@ -266,6 +268,31 @@ test('operator CLI initializes once, invites exact emails, lists, revokes and pr
   }
 });
 
+/** Every IPv4 address of this machine that is not loopback. */
+function externalIPv4Addresses() {
+  const addresses = [];
+  for (const interfaceAddresses of Object.values(os.networkInterfaces())) {
+    for (const address of interfaceAddresses ?? []) {
+      if (address.family === 'IPv4' && !address.internal) addresses.push(address.address);
+    }
+  }
+  return addresses;
+}
+
+/** True when something accepts a TCP connection at host:port before the timeout. */
+function acceptsConnection(host, port, timeoutMs = 2000) {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    const finish = (accepted) => {
+      socket.destroy();
+      resolve(accepted);
+    };
+    socket.setTimeout(timeoutMs, () => finish(false));
+    socket.once('connect', () => finish(true));
+    socket.once('error', () => finish(false));
+  });
+}
+
 const processOptions = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 
 test(
@@ -321,18 +348,15 @@ test(
     assert.equal(send.json.error, 'delivery_not_configured');
     assert.equal(output.includes(secret), false);
 
-    const listening = await fs.readFile('/proc/net/tcp', 'utf8');
-    const hexPort = port.toString(16).toUpperCase().padStart(4, '0');
-    const sockets = listening.split('\n').filter((line) => line.includes(`:${hexPort} `));
-    assert.ok(
-      sockets.some((line) => line.includes(`0100007F:${hexPort}`)),
-      'listens on 127.0.0.1',
-    );
-    assert.equal(
-      sockets.some((line) => line.includes(`00000000:${hexPort}`)),
-      false,
-      'never listens on all interfaces',
-    );
+    // Loopback only: the requests above reached 127.0.0.1, and none of this machine's other
+    // addresses may accept a connection. (/proc/net/tcp would show the same, but only on Linux.)
+    const externalAddresses = externalIPv4Addresses();
+    if (externalAddresses.length === 0) {
+      t.diagnostic('no non-loopback IPv4 address on this machine; all-interfaces probe skipped');
+    }
+    for (const address of externalAddresses) {
+      assert.equal(await acceptsConnection(address, port), false, `never listens on ${address}`);
+    }
   },
 );
 
