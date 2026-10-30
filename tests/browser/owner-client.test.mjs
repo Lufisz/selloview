@@ -113,7 +113,7 @@ test('sign-in view escapes input and never shows a fake success', () => {
     step: 'email',
     email: '"><img src=x onerror=alert(1)>',
     message:
-      'This beta cannot send sign-in codes yet because email delivery is not set up. No code was sent.',
+      'This server cannot send sign-in codes yet because email delivery is not set up. No code was sent.',
     tone: 'error',
   });
   assert.equal(emailStep.includes('<img src=x'), false);

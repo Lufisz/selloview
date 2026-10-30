@@ -1,8 +1,8 @@
-// Pure HTML for the owner's store connection on the beta page. Every dynamic value is escaped here.
+// Pure HTML for the owner's store connection on the owner page. Every dynamic value is escaped here.
 import { escapeHtml, formatDateTime } from '../shared/model.js';
 import { actionButton, statusDot } from '../shared/ui.js';
 import { renderBoard } from '../shared/board.js';
-import { buildLiveBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { buildStoreBoardModel, normalizePeriod } from '../shared/board-model.js';
 import { messageForError } from './owner-client.js';
 
 const RETURN_MESSAGES = Object.freeze({
@@ -13,7 +13,7 @@ const RETURN_MESSAGES = Object.freeze({
 const STATE_HEADINGS = Object.freeze({
   loading: 'Checking the store connection',
   setup_required: 'Store connection is not set up yet',
-  pilot_unavailable: 'Store connection is not available for this account',
+  owner_not_allowed: 'Store connection is not available for this account',
   not_connected: 'No store connected',
   connected: 'Store connected',
   reconnect_required: 'Reconnect your store',
@@ -22,7 +22,7 @@ const STATE_HEADINGS = Object.freeze({
 function messageHtml(message, tone) {
   if (!message) return '';
   const role = tone === 'error' ? 'alert' : 'status';
-  return `<p class="beta-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
+  return `<p class="form-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
 }
 
 function syncSummary(connection, snapshot) {
@@ -56,9 +56,9 @@ function connectFormHtml({ connection, store, busy, error }) {
   const label = isReconnect ? 'Reconnect Shopify' : 'Connect Shopify';
   const isBusy = busy === 'connecting';
   const value = store.draft === undefined ? connection.store : store.draft;
-  return `<form class="beta-form owner-connect-form" data-form="connect-shopify" novalidate>
-    <label for="beta-store">Shopify store address</label>
-    <input id="beta-store" name="store" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="your-store.myshopify.com" value="${escapeHtml(value)}" required>
+  return `<form class="stacked-form owner-connect-form" data-form="connect-shopify" novalidate>
+    <label for="owner-store">Shopify store address</label>
+    <input id="owner-store" name="store" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="your-store.myshopify.com" value="${escapeHtml(value)}" required>
     ${error ? messageHtml(error, 'error') : ''}
     <p class="field-hint">You will sign in and approve read-only access in Shopify, then return here. MetricTV cannot change your orders, products or stock.</p>
     <button class="button ${isReconnect ? 'secondary' : 'primary'} small" type="submit"${isBusy ? ' disabled aria-busy="true"' : ''}>${isBusy ? 'Opening Shopify…' : escapeHtml(label)}</button>
@@ -133,13 +133,13 @@ function stripContent(state) {
       return {
         tone: 'neutral',
         detail:
-          'This beta server has no Shopify app configuration, so a store cannot be connected. Nothing on this page is sample or live store data.',
+          'This server has no Shopify app configuration, so a store cannot be connected. Nothing on this page is sample or live store data.',
       };
-    case 'pilot_unavailable':
+    case 'owner_not_allowed':
       return {
         tone: 'neutral',
         detail:
-          'During this beta only a pilot owner can connect a store. Your workspace has no store connected and shows no figures. Nothing on this page is sample or live store data.',
+          'Only the owner this server is set up for can connect a store. Your workspace has no store connected and shows no figures. Nothing on this page is sample or live store data.',
       };
     case 'not_connected':
       return {
@@ -215,7 +215,7 @@ export function renderStorePanel(state) {
 /** The read-only board for a connected store; '' unless validated figures are present. */
 export function renderOwnerBoard({ store, session, now, userChoices }) {
   if (!store.snapshot || !store.connection || store.connection.state !== 'connected') return '';
-  const model = buildLiveBoardModel({
+  const model = buildStoreBoardModel({
     snapshot: store.snapshot,
     period: normalizePeriod(session.workspace.settings.period),
     unavailableMessage: '',
@@ -224,7 +224,7 @@ export function renderOwnerBoard({ store, session, now, userChoices }) {
   // The demo opens the metric definition in a dialog; here it is printed below the board instead.
   const metrics = model.metrics.map((metric) => ({ ...metric, help: undefined }));
   const boardHtml = renderBoard({ ...model, metrics }, { tvLink: false });
-  return `<div class="beta-board">
+  return `<div class="owner-board">
     ${boardHtml}
     <details class="owner-tech owner-definition" data-details-key="definition"${detailsOpenAttribute(userChoices, 'definition')}>
       <summary>How these figures are calculated</summary>

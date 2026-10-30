@@ -4,19 +4,19 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAuth } from '../../server/accounts/auth.mjs';
 import { openInitializedDatabase } from '../../server/accounts/accounts.mjs';
-import { createBetaServer } from '../../server/app.mjs';
+import { createAppServer } from '../../server/app.mjs';
 import {
   createRegistrationPolicy,
   loadRegistrationConfig,
 } from '../../server/accounts/registration.mjs';
-import { createBetaShopifyService } from '../../server/shopify/connection-service.mjs';
+import { createShopifyService } from '../../server/shopify/connection-service.mjs';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   createBrowser,
   createMemoryMailTransport,
   curlAvailable,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
@@ -41,13 +41,13 @@ async function startRegistering(t, environment, maxAccounts) {
     mailTransport,
     registration,
   });
-  const server = createBetaServer({
+  const server = createAppServer({
     auth,
     database,
     config: { origin: environment.origin, secret: environment.secret },
     mailTransport,
     registration,
-    shopify: createBetaShopifyService({
+    shopify: createShopifyService({
       database,
       config: { status: 'setup_required' },
       origin: environment.origin,
@@ -82,8 +82,8 @@ test('registration config is closed by default and validates the cap', () => {
 });
 
 test('by default registration is closed and strangers cannot create accounts', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
 
   const status = await browser.request('/api/registration');
@@ -103,7 +103,7 @@ test('by default registration is closed and strangers cannot create accounts', h
 });
 
 test('a new address becomes an account only after the correct code', http, async (t) => {
-  const environment = await createBetaEnvironment(t);
+  const environment = await createAppEnvironment(t);
   const handle = await startRegistering(t, environment, 5);
   const email = 'newcomer@example.test';
   const browser = createBrowser(handle.origin);
@@ -132,7 +132,7 @@ test('a new address becomes an account only after the correct code', http, async
 });
 
 test('the account cap holds; existing owners still sign in at the cap', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
   const handle = await startRegistering(t, environment, 2);
 
   const first = createBrowser(handle.origin);
@@ -161,7 +161,7 @@ test('the account cap holds; existing owners still sign in at the cap', http, as
 });
 
 test('concurrent verifications cannot exceed the cap', http, async (t) => {
-  const environment = await createBetaEnvironment(t);
+  const environment = await createAppEnvironment(t);
   const handle = await startRegistering(t, environment, 2);
   const emails = ['a@example.test', 'b@example.test', 'c@example.test', 'd@example.test'];
   const browsers = emails.map(() => createBrowser(handle.origin));
@@ -175,7 +175,7 @@ test('concurrent verifications cannot exceed the cap', http, async (t) => {
 });
 
 test('new-address code requests are bounded per client', http, async (t) => {
-  const environment = await createBetaEnvironment(t);
+  const environment = await createAppEnvironment(t);
   const handle = await startRegistering(t, environment, 100);
   const browser = createBrowser(handle.origin);
   const statuses = [];

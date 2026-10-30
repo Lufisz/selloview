@@ -64,8 +64,8 @@ test('ordinary files are found with their content type, including a symlink that
 
 test('the index file and the blocked paths are chosen by the caller', async (context) => {
   const publicDir = makePublicDirectory(context);
-  const betaIndex = await lookup(publicDir, '/', { indexFile: 'beta.html' });
-  assert.ok(betaIndex.filePath.endsWith('beta.html'));
+  const ownerIndex = await lookup(publicDir, '/', { indexFile: 'owner.html' });
+  assert.ok(ownerIndex.filePath.endsWith('owner.html'));
 
   const blockedPaths = new Set(['/app.js', '/index.html']);
   assert.equal(await lookup(publicDir, '/app.js', { indexFile: 'index.html', blockedPaths }), null);

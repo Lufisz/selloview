@@ -7,7 +7,7 @@
 //   npm run admin -- owners                    list invited owners (emails and workspace ids)
 //
 // Configuration comes from the environment: METRICTV_DB_PATH, METRICTV_AUTH_SECRET, METRICTV_ORIGIN.
-import { loadBetaConfig } from '../server/config.mjs';
+import { loadServerConfig } from '../server/config.mjs';
 import {
   initializeDatabase,
   inviteOwner,
@@ -30,7 +30,7 @@ async function runWithDatabase(config, action) {
 
 async function main(argv) {
   const [command, emailArgument] = argv;
-  const config = loadBetaConfig();
+  const config = loadServerConfig();
   const credentials = { secret: config.secret, origin: config.origin };
 
   if (command === 'init') {

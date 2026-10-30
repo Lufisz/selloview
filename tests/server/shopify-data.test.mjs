@@ -1,5 +1,5 @@
-// Workspace-scoped Shopify data for the beta: owner dashboard, paired TVs, cache reuse, renewal,
-// revocation, restart and disconnect. Real beta server and collector over curl; Shopify's
+// Workspace-scoped Shopify data: owner dashboard, paired TVs, cache reuse, renewal,
+// revocation, restart and disconnect. Real app server and collector over curl; Shopify's
 // answers are the SYNTHETIC fixture in synthetic-shopify.mjs, so none of this proves a live
 // installation.
 import test from 'node:test';
@@ -50,7 +50,7 @@ test(
     const { board } = display.json;
     assert.equal(isUsableSnapshot(board, { requireStoreDomain: false }), true);
     assert.equal(isUsableSnapshot(board), false, 'the TV payload has no store domain at all');
-    assert.equal(board.shop.name, 'Synthetic Beta Shop');
+    assert.equal(board.shop.name, 'Synthetic Shop');
     assert.deepEqual(Object.keys(board.shop).sort(), [
       'currency',
       'logoVersion',
@@ -98,7 +98,7 @@ test(
       notice: '',
       now: Date.parse(updated.json.serverTime),
     });
-    assert.match(html, /Synthetic Beta Shop/);
+    assert.match(html, /Synthetic Shop/);
     assert.match(html, /dark-board/);
     assert.match(html, /Last 30 full days|Order value/);
     assert.match(html, /Latest orders/, 'orders sit beside the chart on the TV');
@@ -138,7 +138,7 @@ test(
       html,
       new RegExp(`<img class="board-logo" src="/api/display/logo\\?v=${logoVersion}"`),
     );
-    assert.match(html, /alt="Synthetic Beta Shop"/, 'the name stays available to screen readers');
+    assert.match(html, /alt="Synthetic Shop"/, 'the name stays available to screen readers');
 
     const logo = await tv.loadLogo(`?v=${logoVersion}`);
     assert.equal(logo.status, 200);
@@ -168,7 +168,7 @@ test(
     for (const tv of [aliceTv, secondAliceTv, bobTv]) {
       const display = await tv.loadDisplay();
       assert.equal(
-        display.json.storeConnection.state === 'pilot_unavailable' ||
+        display.json.storeConnection.state === 'owner_not_allowed' ||
           display.json.storeConnection.state === 'not_connected',
         true,
       );
@@ -189,7 +189,7 @@ test(
         assert.ok(display.json.board);
       }
       const bobDisplay = await bobTv.loadDisplay();
-      assert.equal(bobDisplay.json.storeConnection.state, 'pilot_unavailable');
+      assert.equal(bobDisplay.json.storeConnection.state, 'owner_not_allowed');
       assert.equal('board' in bobDisplay.json, false);
     }
     assert.equal(scenario.upstream.state.graphqlCalls.length, callsAfterFirstSnapshot);

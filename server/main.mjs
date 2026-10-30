@@ -10,16 +10,16 @@ import {
   loadMailConfig,
   unconfiguredTransport,
 } from './accounts/mail-transport.mjs';
-import { createBetaServer } from './app.mjs';
-import { loadBetaConfig } from './config.mjs';
-import { loadBetaShopifyConfig } from './shopify/config.mjs';
-import { createBetaShopifyService } from './shopify/connection-service.mjs';
+import { createAppServer } from './app.mjs';
+import { loadServerConfig } from './config.mjs';
+import { loadShopifyConfig } from './shopify/config.mjs';
+import { createShopifyService } from './shopify/connection-service.mjs';
 
 function startFromEnvironment() {
-  const config = loadBetaConfig();
+  const config = loadServerConfig();
   const mailConfig = loadMailConfig();
   const mailTransport = mailConfig ? createResendTransport(mailConfig) : unconfiguredTransport;
-  const shopifyConfig = loadBetaShopifyConfig(process.env);
+  const shopifyConfig = loadShopifyConfig(process.env);
   const registrationConfig = loadRegistrationConfig(process.env);
   const database = openInitializedDatabase(config.databasePath);
   const registration = createRegistrationPolicy({ database, config: registrationConfig });
@@ -30,17 +30,17 @@ function startFromEnvironment() {
     mailTransport,
     registration,
   });
-  const shopify = createBetaShopifyService({
+  const shopify = createShopifyService({
     database,
     config: shopifyConfig,
     origin: config.origin,
   });
-  const server = createBetaServer({ auth, database, config, mailTransport, registration, shopify });
+  const server = createAppServer({ auth, database, config, mailTransport, registration, shopify });
   server.listen(config.port, config.host, () => {
     const delivery = mailTransport.configured
       ? 'configured'
       : 'NOT configured (sign-in codes cannot be sent)';
-    console.log(`MetricTV beta on http://${config.host}:${config.port} for ${config.origin}`);
+    console.log(`MetricTV listening on http://${config.host}:${config.port} for ${config.origin}`);
     console.log(`Email delivery: ${delivery}`);
     const signUp = registration.enabled
       ? `OPEN, capped at ${registrationConfig.maxAccounts} accounts`
@@ -55,7 +55,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   try {
     startFromEnvironment();
   } catch (error) {
-    console.error(`MetricTV beta cannot start: ${error.message}`);
+    console.error(`MetricTV cannot start: ${error.message}`);
     process.exit(1);
   }
 }

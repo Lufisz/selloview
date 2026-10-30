@@ -77,7 +77,7 @@ function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 2
       activeElement: null,
     };
     globalThis.window = {
-      location: { search: ${JSON.stringify(search)}, hash: '', pathname: '/', origin: 'https://beta.example.test', assign: () => {} },
+      location: { search: ${JSON.stringify(search)}, hash: '', pathname: '/', origin: 'https://metrictv.example.test', assign: () => {} },
       history: { replaceState: (state, title, url) => replaced.push(url) },
     };
     const timers = [];

@@ -1,57 +1,46 @@
-/* Beta-only additions on top of the shared tokens in styles.css. */
-.beta-main {
+/* Owner and TV page additions on top of the shared tokens in styles.css. */
+.session-main {
   max-width: 560px;
   margin: 0 auto;
   padding: 48px 24px 64px;
 }
-.beta-card {
+.session-card {
   padding: 36px;
 }
-.beta-card h1 {
+.session-card h1 {
   font-size: 29px;
   font-weight: 450;
   letter-spacing: -0.9px;
   margin: 18px 0 22px;
 }
-.beta-form label {
+.stacked-form label {
   display: block;
   font-size: 12px;
   font-weight: 550;
   margin: 18px 0 8px;
 }
-.beta-form .button {
+.stacked-form .button {
   margin-top: 20px;
 }
-.beta-message {
+.form-message {
   margin: 12px 0 0;
 }
-.beta-owner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  margin: 0 0 22px;
-}
-.beta-notice {
+.tv-notice {
   background: var(--amber-soft);
   border: 1px solid #ead8bb;
   border-radius: var(--radius);
   padding: 16px 18px;
 }
-.beta-notice h2,
-.beta-section-title {
+.tv-notice h2 {
   font-size: 15px;
   font-weight: 550;
   margin: 0 0 8px;
 }
-.beta-notice p {
+.tv-notice p {
   margin: 0;
   color: var(--muted);
   font-size: 13px;
   line-height: 1.7;
-}
-.beta-section-title {
-  margin-top: 30px;
 }
 .screen-list {
   list-style: none;
@@ -108,15 +97,6 @@ body[data-theme='dark'] {
 }
 
 /* Owner board and TV board reuse the shared board styles; these rules add what they need on top. */
-.beta-main-wide .beta-card {
-  margin-bottom: 24px;
-}
-.beta-board-section {
-  margin-bottom: 24px;
-}
-.beta-board .beta-definition {
-  margin: 12px 4px 0;
-}
 .live-empty {
   color: var(--muted);
   font-size: 12px;
@@ -141,7 +121,7 @@ body[data-theme='dark'] {
   background: #4e4029;
   color: #f2d6a4;
 }
-.beta-form input[type='text'] {
+.stacked-form input[type='text'] {
   max-width: 420px;
   width: 100%;
 }
@@ -456,16 +436,16 @@ html.tv-fit,
   }
 }
 
-.entry-form-card .beta-form {
+.entry-form-card .stacked-form {
   margin-top: 28px;
   text-align: left;
 }
-.entry-form-card .beta-form label {
+.entry-form-card .stacked-form label {
   margin: 18px 0 8px;
   font-size: 13px;
   font-weight: 400;
 }
-.entry-form-card .beta-form input {
+.entry-form-card .stacked-form input {
   width: 100%;
   max-width: none;
   min-height: 44px;
@@ -473,7 +453,7 @@ html.tv-fit,
   font-family: inherit;
   font-size: 16px;
 }
-.entry-form-card .beta-form .button {
+.entry-form-card .stacked-form .button {
   min-height: 44px;
   margin-top: 18px;
   padding: 10px 16px;
@@ -646,10 +626,10 @@ html.tv-fit,
   overflow-wrap: anywhere;
 }
 .owner-strip-body,
-.owner-strip > .beta-message {
+.owner-strip > .form-message {
   flex: 1 1 100%;
 }
-.owner-strip .beta-message {
+.owner-strip .form-message {
   margin: 0;
 }
 .owner-manage {
@@ -689,7 +669,7 @@ html.tv-fit,
   color: var(--muted);
   margin: 0 0 4px;
 }
-.owner-body .beta-form .button {
+.owner-body .stacked-form .button {
   margin-top: 0;
 }
 .owner-body .owner-connect-form input {

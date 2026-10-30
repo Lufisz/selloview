@@ -1,4 +1,4 @@
-// Private SQLite file for the invite-only beta: accounts, sessions, rate limits, workspaces.
+// Private SQLite file: accounts, sessions, rate limits, workspaces, screens and store links.
 //
 // The path is explicit operator configuration. Serving never creates the file, so a typo or a
 // wiped disk cannot silently start a fresh, empty (and therefore takeover-able) account store.

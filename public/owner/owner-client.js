@@ -1,4 +1,4 @@
-// Browser API for the invite-only beta page. Talks only to same-origin beta routes.
+// Browser API for the owner page. Talks only to same-origin routes.
 // The CSRF token returned by the session endpoint stays in memory; nothing is put in storage.
 
 export const SESSION_URL = '/api/session';
@@ -21,7 +21,7 @@ const PAIRING_CODE_PATTERN = /^[A-Z0-9]{8}$/;
 
 export const ERROR_MESSAGES = Object.freeze({
   delivery_not_configured:
-    'This beta cannot send sign-in codes yet because email delivery is not set up. No code was sent.',
+    'This server cannot send sign-in codes yet because email delivery is not set up. No code was sent.',
   delivery_failed: 'The code email could not be sent. Please try again later.',
   invalid_code:
     'That code did not work. It may be wrong, used already or expired. Request a new one.',
@@ -41,9 +41,9 @@ export const ERROR_MESSAGES = Object.freeze({
   invalid_name: 'Name the screen with 1 to 40 letters, numbers, spaces or . _ - characters.',
   screen_limit: 'This workspace already has the maximum number of screens. Remove one first.',
   not_found: 'That screen is already gone.',
-  setup_required: 'Store connection is not set up on this beta server yet.',
-  pilot_unavailable: 'Store connection is limited to the pilot owner during this beta.',
-  store_not_allowed: 'This beta pilot can connect only one specific store, and this is not it.',
+  setup_required: 'Store connection is not set up on this server yet.',
+  owner_not_allowed: 'Store connection is limited to the owner this server is set up for.',
+  store_not_allowed: 'This server can connect only one specific store, and this is not it.',
   store_in_use: 'That store is already connected to another MetricTV workspace.',
   invalid_store: 'Enter the store address as shown in Shopify, ending in .myshopify.com.',
   start_failed: 'Shopify authorization could not be started. Nothing was changed. Try again.',
@@ -120,7 +120,7 @@ export function requestSignInCode(email, fetchImpl = fetch) {
   return sendRequest({ fetchImpl, url: SEND_CODE_URL, body: { email, type: 'sign-in' } });
 }
 
-/** Registration is deliberately closed unless the operator enables a bounded beta. */
+/** Registration is deliberately closed unless the operator enables it, with a cap. */
 export function loadRegistrationStatus(fetchImpl = fetch) {
   return sendRequest({ fetchImpl, url: REGISTRATION_URL, method: 'GET' });
 }

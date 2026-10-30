@@ -1,6 +1,6 @@
-// Optional Shopify settings for the beta, read from the private runtime environment.
+// Optional Shopify settings, read from the private runtime environment.
 //
-// All six names absent: the beta honestly reports "setup required" and offers no connection.
+// All six names absent: the app honestly reports "setup required" and offers no connection.
 // Some but not all, or any malformed value: startup fails (fail closed) with a code only.
 // The values never reach a browser, a log or a serialized config object.
 import path from 'node:path';
@@ -85,7 +85,7 @@ function parseStore(value) {
  * Pure: never reads files. Returns `{ status: 'setup_required' }` or a frozen ready config whose
  * secrets are non-enumerable. Throws ShopifyError('invalid_connection_config') without details.
  */
-export function loadBetaShopifyConfig(env, { projectRoot = PROJECT_ROOT } = {}) {
+export function loadShopifyConfig(env, { projectRoot = PROJECT_ROOT } = {}) {
   const presentCount = SETTING_NAMES.filter((name) => !isBlank(env[name])).length;
   if (presentCount === 0) return Object.freeze({ status: 'setup_required' });
   if (presentCount !== SETTING_NAMES.length) throw invalidConfig();

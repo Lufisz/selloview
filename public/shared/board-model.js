@@ -6,7 +6,7 @@ import { safeShopifyAdminUrl } from './ui.js';
 
 const STALE_AFTER_MS = 5 * 60 * 1000;
 
-export const LIVE_PERIOD_OPTIONS = Object.freeze([
+export const BOARD_PERIOD_OPTIONS = Object.freeze([
   { value: 'days60', label: 'Last 60 full days' },
   { value: 'month', label: 'Last 30 full days' },
   { value: 'week', label: 'Last 7 full days' },
@@ -15,7 +15,7 @@ export const LIVE_PERIOD_OPTIONS = Object.freeze([
 
 /** Returns a known period key, defaulting to the 7-day view. */
 export function normalizePeriod(value) {
-  return LIVE_PERIOD_OPTIONS.some((option) => option.value === value) ? value : 'week';
+  return BOARD_PERIOD_OPTIONS.some((option) => option.value === value) ? value : 'week';
 }
 
 /** "FULFILLED" or "PARTIALLY_PAID" to "Fulfilled" or "Partially paid". */
@@ -201,7 +201,7 @@ function buildChartModel(snapshot, period, currency) {
  * Builds the shared board view model from a server snapshot. Order value, not net sales.
  * `compact` drops the payment column from latest orders for the TV.
  */
-export function buildLiveBoardModel({
+export function buildStoreBoardModel({
   snapshot,
   period,
   unavailableMessage,
@@ -220,7 +220,7 @@ export function buildLiveBoardModel({
     title: snapshot.shop.name,
     storeDomain: snapshot.shop.domain,
     subtitle: formatPeriodLabel(selected.label),
-    periodOptions: LIVE_PERIOD_OPTIONS,
+    periodOptions: BOARD_PERIOD_OPTIONS,
     selectedPeriod: period,
     banner: warning ? { message: warning } : null,
     changeStyle: 'signs',

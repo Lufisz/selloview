@@ -132,7 +132,7 @@ response is refused).
 
 - Workspace-bound. Every store read starts from a workspace derived from a verified owner or display
   session. A shop name in a request authorizes nothing. SQLite enforces one store per workspace and one
-  workspace per store (`workspace_store`, UNIQUE on both). Other owners get `pilot_unavailable` and never
+  workspace per store (`workspace_store`, UNIQUE on both). Other owners get `owner_not_allowed` and never
   data; the pilot restriction (owner and store) is configuration, not part of the data model.
 - Owner routes: `GET /api/shopify` (state + validated snapshot), `POST /api/shopify/start`
   (`{store}`), `POST /api/shopify/disconnect` (`{}`). The POSTs need the Better Auth session, the

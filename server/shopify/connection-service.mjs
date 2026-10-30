@@ -1,11 +1,12 @@
-// Workspace-scoped Shopify connection for the invite-only beta.
+// Workspace-scoped Shopify connection.
 //
 // One shared official-SDK client; one encrypted grant file, grant manager and snapshot cache per
 // linked workspace. Everything that touches a store starts from a workspace the server derived
 // from a verified owner session or display session. A shop name in a request is never enough.
 //
-// The pilot restricts which owner and which exact store may be linked (`config`); the data model
-// stays workspace-bound so lifting that restriction later does not change any isolation rule.
+// The configuration (METRICTV_SHOPIFY_*) restricts which owner and which exact store may be linked;
+// the data model stays workspace-bound so lifting that restriction later does not change any
+// isolation rule.
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { createAdminRunner } from './admin-runner.mjs';
@@ -43,6 +44,8 @@ import {
   workspaceIsOwnedBy,
 } from './links.mjs';
 
+// The redirect URL registered in each operator's Shopify app. The path is part of that
+// registration, so it never changes.
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 
 const WORKSPACE_ID_PATTERN = /^[0-9a-f-]{36}$/;
@@ -55,18 +58,19 @@ const LOGO_RETRY_MS = 30 * 60 * 1000;
 const START_RATE_LIMIT = { limit: 6, windowMs: 60_000 };
 const STATES_THAT_MAY_CONNECT = new Set(['not_connected', 'connected', 'reconnect_required']);
 
-// Dedicated cookie names: the SDK's defaults would collide with the private OAuth cookies when
-// both services share a hostname (browsers key cookies by host, not by port).
-const BETA_STATE_COOKIE_SUFFIXES = Object.freeze(['metrictv_beta_oauth_state', '.sig']);
+// Dedicated cookie names: the SDK's defaults would collide with other OAuth cookies when services
+// share a hostname (browsers key cookies by host, not by port). The names keep their original
+// prefix so an authorization that is in flight during an upgrade still completes.
+const OAUTH_STATE_COOKIE_SUFFIXES = Object.freeze(['metrictv_beta_oauth_state', '.sig']);
 const BINDING_COOKIE_BASE = 'metrictv_beta_oauth_bind';
 
 /**
  * @param {object} options
  * @param {import('node:sqlite').DatabaseSync} options.database
- * @param {{status: string}} options.config  From loadBetaShopifyConfig.
- * @param {string} options.origin  Exact public beta origin.
+ * @param {{status: string}} options.config  From loadShopifyConfig.
+ * @param {string} options.origin  Exact public origin.
  */
-export function createBetaShopifyService({
+export function createShopifyService({
   database,
   config,
   origin,
@@ -78,8 +82,8 @@ export function createBetaShopifyService({
   const isReady = config.status === 'ready';
   const isSecure = new URL(origin).protocol === 'https:';
   const cookiePrefix = isSecure ? '__Secure-' : '';
-  const stateCookieName = `${cookiePrefix}${BETA_STATE_COOKIE_SUFFIXES[0]}`;
-  const signatureCookieName = `${stateCookieName}${BETA_STATE_COOKIE_SUFFIXES[1]}`;
+  const stateCookieName = `${cookiePrefix}${OAUTH_STATE_COOKIE_SUFFIXES[0]}`;
+  const signatureCookieName = `${stateCookieName}${OAUTH_STATE_COOKIE_SUFFIXES[1]}`;
   const bindingCookieName = `${cookiePrefix}${BINDING_COOKIE_BASE}`;
   const callbackUrl = `${origin}${SHOPIFY_CALLBACK_PATH}`;
   const startLimiter = createRateLimiter(START_RATE_LIMIT);
@@ -102,7 +106,7 @@ export function createBetaShopifyService({
     });
   }
 
-  function isPilotOwner(email) {
+  function isAllowedOwner(email) {
     return isReady && typeof email === 'string' && email.toLowerCase() === config.ownerEmail;
   }
 
@@ -192,15 +196,15 @@ export function createBetaShopifyService({
 
   /**
    * The single decision about what a workspace may see. Returns { state, runtime? }. A runtime is
-   * returned only for a workspace that is linked to the configured store, belongs to the pilot
+   * returned only for a workspace that is linked to the configured store, belongs to the allowed
    * owner, and still holds a usable grant.
    */
   async function resolve(workspaceId, ownerEmail) {
     if (!isReady) return { state: 'setup_required' };
-    if (!isPilotOwner(ownerEmail)) return { state: 'pilot_unavailable' };
+    if (!isAllowedOwner(ownerEmail)) return { state: 'owner_not_allowed' };
     const link = readLink(database, workspaceId);
     if (!link) return { state: 'not_connected' };
-    if (link.shop !== config.store) return { state: 'pilot_unavailable' };
+    if (link.shop !== config.store) return { state: 'owner_not_allowed' };
     if (link.state === 'reconnect_required') return { state: 'reconnect_required' };
     const runtime = runtimeFor(workspaceId);
     const grantState = await runtime.manager.currentState();
@@ -212,7 +216,7 @@ export function createBetaShopifyService({
   function describeConnection(resolved, ownerEmail) {
     const { state, runtime } = resolved;
     const connection = { state };
-    if (isPilotOwner(ownerEmail)) {
+    if (isAllowedOwner(ownerEmail)) {
       connection.store = config.store;
       connection.canConnect = STATES_THAT_MAY_CONNECT.has(state);
     } else {
@@ -230,7 +234,7 @@ export function createBetaShopifyService({
   function ownerStillAllowed(attempt) {
     const session = readLiveSession(database, attempt.session_id, now());
     if (!session || session.userId !== attempt.user_id) return false;
-    if (!isPilotOwner(session.email)) return false;
+    if (!isAllowedOwner(session.email)) return false;
     return workspaceIsOwnedBy(database, attempt.workspace_id, session.userId);
   }
 
@@ -290,7 +294,7 @@ export function createBetaShopifyService({
 
   return {
     configured: isReady,
-    isPilotOwner,
+    isAllowedOwner,
 
     /** Owner dashboard: connection summary plus the full safe snapshot when one exists. */
     async inspect(workspaceId, ownerEmail) {
@@ -326,13 +330,14 @@ export function createBetaShopifyService({
     /** Starts the SDK flow. Returns { status: 'ok', authorizationUrl, cookies } or a denial. */
     async begin({ workspaceId, owner, sessionId, userAgent, store }) {
       if (!isReady) return { status: 'setup_required' };
-      if (!isPilotOwner(owner.email)) return { status: 'pilot_unavailable' };
+      if (!isAllowedOwner(owner.email)) return { status: 'owner_not_allowed' };
       if (store !== config.store) return { status: 'store_not_allowed' };
       const holder = readLinkByShop(database, config.store);
       if (holder && holder.workspace_id !== workspaceId) return { status: 'store_in_use' };
       if (!startLimiter.consume(workspaceId).allowed) return { status: 'rate_limited' };
 
-      const sdkRequest = new Request(`${origin}/auth/beta/shopify/start`, {
+      // The SDK reads only the user agent from this request; its URL is never served.
+      const sdkRequest = new Request(`${origin}/api/shopify/start`, {
         method: 'POST',
         headers: typeof userAgent === 'string' ? { 'user-agent': userAgent } : {},
       });
@@ -439,7 +444,7 @@ export function createBetaShopifyService({
     /** Local disconnect: link, pending attempts, cached figures and the grant file all go. */
     async disconnect({ workspaceId, ownerEmail }) {
       if (!isReady) return { status: 'setup_required' };
-      if (!isPilotOwner(ownerEmail)) return { status: 'pilot_unavailable' };
+      if (!isAllowedOwner(ownerEmail)) return { status: 'owner_not_allowed' };
       discardAttemptsForWorkspace(database, workspaceId);
       removeLink(database, workspaceId);
       const runtime = runtimeFor(workspaceId);

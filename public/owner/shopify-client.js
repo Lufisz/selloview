@@ -1,4 +1,4 @@
-// Browser API for the owner's Shopify connection on the beta page. Same-origin requests only.
+// Browser API for the owner's Shopify connection on the owner page. Same-origin requests only.
 // Authorization is entirely server-side: the page never sees a token, a secret or a grant; the only
 // secret it holds is the short-lived CSRF token from the session endpoint, in memory.
 import { normaliseStore } from '../shared/model.js';
@@ -9,11 +9,13 @@ import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 export const SHOPIFY_STATUS_URL = '/api/shopify';
 export const SHOPIFY_START_URL = '/api/shopify/start';
 export const SHOPIFY_DISCONNECT_URL = '/api/shopify/disconnect';
+// The redirect path registered in the operator's Shopify app; the server uses the same value.
+// It keeps its original name because renaming it would break every existing registration.
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 
 const CONNECTION_STATES = Object.freeze([
   'setup_required',
-  'pilot_unavailable',
+  'owner_not_allowed',
   'not_connected',
   'connected',
   'reconnect_required',

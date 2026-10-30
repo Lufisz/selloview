@@ -28,9 +28,9 @@ import {
   sendJson,
 } from './http/guards.mjs';
 import { ensureWorkspace, updateWorkspaceSettings } from './accounts/workspaces.mjs';
-import { createBetaShopifyService } from './shopify/connection-service.mjs';
+import { createShopifyService } from './shopify/connection-service.mjs';
 import { createShopifyRoutes } from './shopify/routes.mjs';
-import { BETA_PUBLIC_FILES } from './http/public-files.mjs';
+import { APP_PUBLIC_FILES } from './http/public-files.mjs';
 import { createAppVersion } from './screens/app-version.mjs';
 import { createScreenRoutes } from './screens/screen-routes.mjs';
 import {
@@ -54,7 +54,11 @@ const CODE_PATTERN = /^\d{6}$/;
 const TV_PAGE_PATH = '/tv';
 const MAX_EMAIL_LENGTH = 254;
 
-/** CSRF token bound to one server-side session; the browser keeps it in memory only. */
+/**
+ * CSRF token bound to one server-side session; the browser keeps it in memory only. The label is
+ * part of the HMAC input, so it keeps its original value: changing it would invalidate the token of
+ * every page that is open during an upgrade.
+ */
 function csrfTokenFor(secret, sessionId) {
   return crypto.createHmac('sha256', secret).update(`beta-csrf\n${sessionId}`).digest('base64url');
 }
@@ -103,16 +107,16 @@ const AUTH_ROUTES = Object.freeze({
  * @param {{configured: boolean}} dependencies.mailTransport
  * @param {ReturnType<typeof import('./accounts/registration.mjs').createRegistrationPolicy>} [dependencies.registration]
  *   Defaults to closed (invite-only).
- * @param {ReturnType<typeof createBetaShopifyService>} [dependencies.shopify]
+ * @param {ReturnType<typeof createShopifyService>} [dependencies.shopify]
  *   Defaults to a service that reports "setup required" and never contacts Shopify.
  */
-export function createBetaHandler({
+export function createAppHandler({
   auth,
   database,
   config,
   mailTransport,
   registration = closedRegistration,
-  shopify = createBetaShopifyService({
+  shopify = createShopifyService({
     database,
     config: { status: 'setup_required' },
     origin: config.origin,
@@ -121,7 +125,7 @@ export function createBetaHandler({
 }) {
   const { origin, secret, trustedIpHeader = '' } = config;
   const responseHeaders = createResponseHeaders(origin);
-  const appVersion = createAppVersion(publicDir, BETA_PUBLIC_FILES);
+  const appVersion = createAppVersion(publicDir, APP_PUBLIC_FILES);
 
   function reply(response, status, body, extraHeaders) {
     return sendJson(response, responseHeaders, status, body, extraHeaders);
@@ -301,7 +305,7 @@ export function createBetaHandler({
 
   async function serveStatic(request, response, pathname) {
     const requestedPath = Object.hasOwn(PAGE_FILES, pathname) ? PAGE_FILES[pathname] : pathname;
-    if (!BETA_PUBLIC_FILES.has(requestedPath)) return reply(response, 404, { error: 'not_found' });
+    if (!APP_PUBLIC_FILES.has(requestedPath)) return reply(response, 404, { error: 'not_found' });
     const file = await findPublicFile(publicDir, requestedPath, { indexFile: 'owner/owner.html' });
     if (!file) return reply(response, 404, { error: 'not_found' });
     const data = await fs.readFile(file.filePath);
@@ -346,12 +350,12 @@ export function createBetaHandler({
       if (response.headersSent) return response.destroy();
       if (error instanceof RequestRejection)
         return reply(response, error.status, { error: error.code });
-      console.error(`beta request failed: ${error?.name ?? 'Error'}`);
+      console.error(`request failed: ${error?.name ?? 'Error'}`);
       return reply(response, 500, { error: 'server_error' });
     }
   };
 }
 
-export function createBetaServer(dependencies) {
-  return applyServerLimits(createServer(SERVER_OPTIONS, createBetaHandler(dependencies)));
+export function createAppServer(dependencies) {
+  return applyServerLimits(createServer(SERVER_OPTIONS, createAppHandler(dependencies)));
 }

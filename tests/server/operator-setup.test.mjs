@@ -8,7 +8,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadBetaConfig } from '../../server/config.mjs';
+import { loadServerConfig } from '../../server/config.mjs';
 import {
   PrivateDatabaseError,
   createPrivateDatabaseFile,
@@ -32,39 +32,43 @@ import {
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const VALID_SECRET = 'S'.repeat(40);
 const GOOD_ENV = {
-  METRICTV_DB_PATH: '/var/tmp/metrictv-beta-private/beta.sqlite',
+  METRICTV_DB_PATH: '/var/tmp/metrictv-private/metrictv.sqlite',
   METRICTV_AUTH_SECRET: VALID_SECRET,
-  METRICTV_ORIGIN: 'https://beta.example.test',
+  METRICTV_ORIGIN: 'https://metrictv.example.test',
 };
 
 test('configuration rejects unsafe or missing values instead of defaulting', () => {
-  const config = loadBetaConfig(GOOD_ENV);
+  const config = loadServerConfig(GOOD_ENV);
   assert.equal(config.host, '127.0.0.1');
-  assert.equal(config.origin, 'https://beta.example.test');
+  assert.equal(config.origin, 'https://metrictv.example.test');
   assert.equal(config.port, 4330);
 
   const badChanges = [
     { METRICTV_DB_PATH: undefined },
-    { METRICTV_DB_PATH: 'relative/beta.sqlite' },
-    { METRICTV_DB_PATH: '/var/tmp/../tmp/beta.sqlite' },
+    { METRICTV_DB_PATH: 'relative/metrictv.sqlite' },
+    { METRICTV_DB_PATH: '/var/tmp/../tmp/metrictv.sqlite' },
     { METRICTV_DB_PATH: '/var/tmp/beta.db' },
-    { METRICTV_DB_PATH: path.join(PROJECT_ROOT, 'state', 'beta.sqlite') },
+    { METRICTV_DB_PATH: path.join(PROJECT_ROOT, 'state', 'metrictv.sqlite') },
     { METRICTV_AUTH_SECRET: 'short' },
     { METRICTV_AUTH_SECRET: undefined },
     { METRICTV_ORIGIN: undefined },
-    { METRICTV_ORIGIN: 'http://beta.example.test' },
-    { METRICTV_ORIGIN: 'https://beta.example.test/' },
-    { METRICTV_ORIGIN: 'https://beta.example.test/path' },
-    { METRICTV_ORIGIN: 'https://user:pass@beta.example.test' },
+    { METRICTV_ORIGIN: 'http://metrictv.example.test' },
+    { METRICTV_ORIGIN: 'https://metrictv.example.test/' },
+    { METRICTV_ORIGIN: 'https://metrictv.example.test/path' },
+    { METRICTV_ORIGIN: 'https://user:pass@metrictv.example.test' },
     { METRICTV_PORT: '0' },
     { METRICTV_PORT: 'abc' },
     { METRICTV_TRUSTED_IP_HEADER: 'bad header' },
   ];
   for (const change of badChanges) {
-    assert.throws(() => loadBetaConfig({ ...GOOD_ENV, ...change }), Error, JSON.stringify(change));
+    assert.throws(
+      () => loadServerConfig({ ...GOOD_ENV, ...change }),
+      Error,
+      JSON.stringify(change),
+    );
   }
   assert.equal(
-    loadBetaConfig({ ...GOOD_ENV, METRICTV_ORIGIN: 'http://127.0.0.1:4330' }).origin,
+    loadServerConfig({ ...GOOD_ENV, METRICTV_ORIGIN: 'http://127.0.0.1:4330' }).origin,
     'http://127.0.0.1:4330',
   );
 });
@@ -93,7 +97,7 @@ test('a leftover BETA_ setting is refused with its replacement named, and its va
   const leftoverValue = 'leftover-value-that-must-not-be-printed';
   for (const [oldName, newName] of RENAMED_SETTINGS) {
     assert.throws(
-      () => loadBetaConfig({ ...GOOD_ENV, [oldName]: leftoverValue }),
+      () => loadServerConfig({ ...GOOD_ENV, [oldName]: leftoverValue }),
       (error) =>
         error.message.includes(`${oldName} is now ${newName}`) &&
         !error.message.includes(leftoverValue),
@@ -105,7 +109,7 @@ test('a leftover BETA_ setting is refused with its replacement named, and its va
 test('a leftover setting counts even when empty, all of them are listed, and unknown names are left alone', () => {
   assert.throws(
     () =>
-      loadBetaConfig({
+      loadServerConfig({
         ...GOOD_ENV,
         BETA_PORT: '',
         BETA_ORIGIN: '',
@@ -117,12 +121,12 @@ test('a leftover setting counts even when empty, all of them are listed, and unk
       error.message.includes('BETA_SHOPIFY_TOKEN_DIR is now METRICTV_SHOPIFY_TOKEN_DIR'),
   );
   // A name this project never had is not a renamed setting.
-  assert.equal(loadBetaConfig({ ...GOOD_ENV, BETA_UNRELATED: 'x' }).port, 4330);
+  assert.equal(loadServerConfig({ ...GOOD_ENV, BETA_UNRELATED: 'x' }).port, 4330);
 });
 
 test('the private database is created once, private, outside the project, and never auto-created', async (t) => {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'nested', 'beta.sqlite');
+  const databasePath = path.join(directory, 'nested', 'metrictv.sqlite');
   assert.equal(parseDatabasePath(databasePath), databasePath);
 
   assert.throws(
@@ -268,7 +272,7 @@ function runCli(args, env) {
 test('operator CLI initializes once, invites exact emails, lists, revokes and prints no secrets', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const env = {
-    METRICTV_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
+    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
     METRICTV_AUTH_SECRET: 'cli-secret-'.padEnd(48, 'x'),
     METRICTV_ORIGIN: 'http://127.0.0.1:4331',
   };
@@ -347,7 +351,7 @@ test(
     const secret = 'proc-secret-'.padEnd(48, 'y');
     const env = {
       PATH: process.env.PATH,
-      METRICTV_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
+      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
       METRICTV_AUTH_SECRET: secret,
       METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
       METRICTV_PORT: String(port),
@@ -412,7 +416,7 @@ function runServerOnce(env) {
 
 test('server start without an initialized database fails and creates nothing', async (t) => {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'beta.sqlite');
+  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
   const result = await runServerOnce({
     METRICTV_DB_PATH: databasePath,
     METRICTV_AUTH_SECRET: VALID_SECRET,

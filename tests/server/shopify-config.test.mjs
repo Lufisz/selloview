@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
-import { loadBetaShopifyConfig } from '../../server/shopify/config.mjs';
+import { loadShopifyConfig } from '../../server/shopify/config.mjs';
 import {
   curlAvailable,
   findFreePort,
@@ -32,16 +32,16 @@ function validEnvironment(directory) {
 // ---- configuration ------------------------------------------------------------------------
 
 test('no Shopify settings at all is a safe setup-required state', () => {
-  assert.deepEqual({ ...loadBetaShopifyConfig({}) }, { status: 'setup_required' });
+  assert.deepEqual({ ...loadShopifyConfig({}) }, { status: 'setup_required' });
   assert.deepEqual(
-    { ...loadBetaShopifyConfig({ METRICTV_SHOPIFY_CLIENT_ID: '' }) },
+    { ...loadShopifyConfig({ METRICTV_SHOPIFY_CLIENT_ID: '' }) },
     { status: 'setup_required' },
   );
 });
 
 test('complete settings load; partial or malformed settings fail closed without details', () => {
   const directory = path.join(path.sep, 'var', 'lib', 'metrictv-test-grants');
-  const config = loadBetaShopifyConfig(validEnvironment(directory));
+  const config = loadShopifyConfig(validEnvironment(directory));
   assert.equal(config.status, 'ready');
   assert.equal(config.ownerEmail, 'owner@example.test', 'the owner address is normalized');
   assert.equal(config.store, SYNTHETIC_STORE);
@@ -76,7 +76,7 @@ test('complete settings load; partial or malformed settings fail closed without 
   );
   for (const env of bad) {
     assert.throws(
-      () => loadBetaShopifyConfig(env),
+      () => loadShopifyConfig(env),
       (error) =>
         error.code === 'invalid_connection_config' &&
         !String(error.message).includes(SYNTHETIC_CLIENT_SECRET),
@@ -113,7 +113,7 @@ function runNode(args, env, { until } = {}) {
 }
 
 test(
-  'the real beta process refuses partial Shopify settings and starts with complete ones',
+  'the real server process refuses partial Shopify settings and starts with complete ones',
   processOptions,
   async (t) => {
     const directory = await makeTemporaryDirectory(t);
@@ -121,7 +121,7 @@ test(
     const secret = 'proc-secret-'.padEnd(48, 'z');
     const base = {
       PATH: process.env.PATH,
-      METRICTV_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
+      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
       METRICTV_AUTH_SECRET: secret,
       METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
       METRICTV_PORT: String(port),

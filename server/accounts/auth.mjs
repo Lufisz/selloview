@@ -94,7 +94,7 @@ function restrictBrowserEndpoints() {
  * @param {object} options
  * @param {import('node:sqlite').DatabaseSync} options.database
  * @param {string} options.secret  Operator-provided, at least 32 characters.
- * @param {string} options.origin  Exact public origin, e.g. https://beta.example.com.
+ * @param {string} options.origin  Exact public origin, e.g. https://metrictv.example.com.
  * @param {{sendSignInCode: Function}} options.mailTransport
  * @param {boolean} [options.allowUserCreation]  True only for the operator invite command.
  * @param {import('./registration.mjs').closedRegistration} [options.registration]
@@ -135,6 +135,8 @@ export function createAuthOptions({
       disableOriginCheck: false,
       disableCSRFCheck: false,
       useSecureCookies: isHttps,
+      // Not renamed with the rest of "beta": it is in every owner's browser as the session cookie
+      // name, so changing it would sign everybody out.
       cookiePrefix: 'metrictv_beta',
       defaultCookieAttributes: { httpOnly: true, sameSite: 'strict', secure: isHttps },
       ipAddress: { ipAddressHeaders: [CLIENT_IP_HEADER] },

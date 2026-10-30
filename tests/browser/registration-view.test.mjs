@@ -42,7 +42,7 @@ test('email and code entry share the account-entry layout without changing form 
   const email = renderSignIn({ ...BASE, registering: false });
   assert.match(email, /class="entry-card entry-form-card"/);
   assert.match(email, /data-form="request-code"/);
-  assert.match(email, /id="beta-email"[^>]*type="email"[^>]*autocomplete="email"/);
+  assert.match(email, /id="owner-email"[^>]*type="email"[^>]*autocomplete="email"/);
   assert.match(email, /invitation only/);
   const code = renderSignIn({
     ...BASE,

@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  buildLiveBoardModel,
+  buildStoreBoardModel,
   buildSyncWarning,
   formatPeriodLabel,
   humanizeStatus,
-  LIVE_PERIOD_OPTIONS,
+  BOARD_PERIOD_OPTIONS,
   normalizePeriod,
 } from '../../public/shared/board-model.js';
 
@@ -74,7 +74,7 @@ const boardInput = (overrides = {}) => ({
 });
 
 test('the board model keeps order-value wording, snapshot currency and restricted links', () => {
-  const model = buildLiveBoardModel(boardInput());
+  const model = buildStoreBoardModel(boardInput());
   assert.equal(model.metrics[0].label, 'Order value');
   assert.match(model.metrics[0].value, /50[,.]00/);
   assert.equal(model.chart.axisStep, 100);
@@ -88,8 +88,8 @@ test('the board model keeps order-value wording, snapshot currency and restricte
 });
 
 test('the TV model drops the payment column from the latest orders', () => {
-  const owner = buildLiveBoardModel(boardInput());
-  const tv = buildLiveBoardModel(boardInput({ compact: true }));
+  const owner = buildStoreBoardModel(boardInput());
+  const tv = buildStoreBoardModel(boardInput({ compact: true }));
   assert.deepEqual(
     owner.orders.columns.map((column) => column.label),
     ['Order', 'Placed', 'Payment', 'Fulfillment', 'Value'],
@@ -102,7 +102,7 @@ test('the TV model drops the payment column from the latest orders', () => {
 });
 
 test('the chart adapts title, legend, dot radius and series to the selected period', () => {
-  const chartOf = (period) => buildLiveBoardModel(boardInput({ period })).chart;
+  const chartOf = (period) => buildStoreBoardModel(boardInput({ period })).chart;
 
   const week = chartOf('week');
   assert.equal(week.title, 'Daily order value');
@@ -143,13 +143,13 @@ test('stale, interrupted and incomplete data are labelled, never hidden', () => 
     /last successful/,
   );
 
-  const staleModel = buildLiveBoardModel(boardInput({ now: NOW + 600000 }));
+  const staleModel = buildStoreBoardModel(boardInput({ now: NOW + 600000 }));
   assert.equal(staleModel.status.tone, 'amber');
   assert.match(staleModel.status.text, /^Last snapshot /);
   assert.equal(staleModel.banner.message, buildSyncWarning(fresh, '', NOW + 600000));
-  assert.match(buildLiveBoardModel(boardInput()).status.text, /^Updated /);
+  assert.match(buildStoreBoardModel(boardInput()).status.text, /^Updated /);
   assert.equal(
-    buildLiveBoardModel(boardInput({ unavailableMessage: 'offline' })).status.text,
+    buildStoreBoardModel(boardInput({ unavailableMessage: 'offline' })).status.text,
     'Connection interrupted',
   );
 });
@@ -164,7 +164,7 @@ test('label helpers', () => {
 });
 
 test('an unknown period falls back to the 7-day view', () => {
-  for (const option of LIVE_PERIOD_OPTIONS) {
+  for (const option of BOARD_PERIOD_OPTIONS) {
     assert.equal(normalizePeriod(option.value), option.value);
   }
   for (const unknown of ['', 'year', undefined, null, 7, '__proto__']) {

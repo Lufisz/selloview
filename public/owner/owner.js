@@ -1,5 +1,5 @@
-// Beta page controller: owns state and events; markup lives in beta-view.js, requests in
-// beta-client.js. No browser storage, no secrets, no store data.
+// Owner page controller: owns state and events; markup lives in owner-view.js and store-view.js,
+// requests in owner-client.js and shopify-client.js. No browser storage, no secrets, no store data.
 import {
   loadOwnerSession,
   loadRegistrationStatus,

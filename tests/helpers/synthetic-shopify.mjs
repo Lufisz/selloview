@@ -1,9 +1,9 @@
-// SYNTHETIC Shopify for the beta tests: a bounded fetch transport that answers the token endpoint
+// SYNTHETIC Shopify for the tests: a bounded fetch transport that answers the token endpoint
 // and the three fixed GraphQL queries with made-up data. Nothing here contacts Shopify, uses a
 // real credential or proves a live installation; it exercises protocol and failure handling only.
 import crypto from 'node:crypto';
 
-export const SYNTHETIC_STORE = 'synthetic-beta-store.myshopify.com';
+export const SYNTHETIC_STORE = 'synthetic-store.myshopify.com';
 export const SYNTHETIC_CLIENT_ID = 'synthetic_client_id_0001';
 export const SYNTHETIC_CLIENT_SECRET = 'synthetic_client_secret_value_0001';
 export const SCOPE_TEXT = 'read_all_orders,read_orders,read_products,read_inventory';
@@ -97,7 +97,7 @@ export function createSyntheticShopify({ now = Date.now } = {}) {
     if (queryName === 'DashboardShop') {
       return {
         shop: {
-          name: 'Synthetic Beta Shop',
+          name: 'Synthetic Shop',
           myshopifyDomain: SYNTHETIC_STORE,
           currencyCode: 'EUR',
           ianaTimezone: 'Europe/Stockholm',

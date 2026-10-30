@@ -3,7 +3,7 @@ import { escapeHtml } from '../shared/model.js';
 import { BRAND_NAME, brandLink, statusDot, tvShell } from '../shared/ui.js';
 import { PERIOD_LABELS } from '../shared/labels.js';
 import { renderBoard } from '../shared/board.js';
-import { buildLiveBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { buildStoreBoardModel, normalizePeriod } from '../shared/board-model.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
 const TV_MESSAGES = Object.freeze({
@@ -57,8 +57,8 @@ export function renderConnecting() {
 
 // What a paired screen says when it has no figures to show. None of these is sample data.
 const STORE_STATE_MESSAGES = Object.freeze({
-  setup_required: 'Store connection is not set up on this beta server yet.',
-  pilot_unavailable: 'Store connection is not available for this workspace during the pilot.',
+  setup_required: 'Store connection is not set up on this server yet.',
+  owner_not_allowed: 'Store connection is not available for this workspace.',
   not_connected: 'No store is connected. Connect one from your MetricTV workspace page.',
   reconnect_required:
     'Store access ended. Reconnect the store from your MetricTV workspace page to see figures again.',
@@ -86,7 +86,7 @@ function renderUnavailableMessage(display, notice) {
     `<section class="board tv-card" aria-labelledby="tv-title">
       <p class="eyebrow"><span class="tiny-line"></span>PAIRED</p>
       <h1 id="tv-title">${statusDot()} ${escapeHtml(display.screen.name)}</h1>
-      <div class="beta-notice" data-store-state="${escapeHtml(display.storeConnection.state)}">
+      <div class="tv-notice" data-store-state="${escapeHtml(display.storeConnection.state)}">
         <h2>No figures to show</h2>
         <p>${escapeHtml(STORE_STATE_MESSAGES[stateKey])} Nothing on this screen is sample or placeholder data.</p>
       </div>
@@ -113,7 +113,7 @@ function logoUrlFor(shop) {
 // The server sends at most 8 orders and 3 grouped alerts, so both lists fit beside the chart.
 function renderBoardScreen(display, notice, now) {
   const boardModel = withoutHelp(
-    buildLiveBoardModel({
+    buildStoreBoardModel({
       snapshot: display.board,
       period: normalizePeriod(display.settings.period),
       unavailableMessage: '',

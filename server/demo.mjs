@@ -11,7 +11,7 @@ import {
   parseRequestPath,
   SERVER_OPTIONS,
 } from './http/static-files.mjs';
-import { BETA_ONLY_PATHS } from './http/public-files.mjs';
+import { APP_ONLY_PATHS } from './http/public-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'public');
 
@@ -33,7 +33,7 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
 
     const file = await findPublicFile(publicDir, parsed.pathname, {
       indexFile: 'demo/demo.html',
-      blockedPaths: BETA_ONLY_PATHS,
+      blockedPaths: APP_ONLY_PATHS,
     });
     if (!file) return sendText(response, 404, 'Not found');
     try {

@@ -96,8 +96,8 @@ export function validateGrant(grant, { clientId, store, savedAtLimit } = {}) {
   };
 }
 
-// `workspaceId` is only set by the multi-workspace beta: it binds a file to one workspace, so a
-// copy placed under another workspace's name fails to decrypt. Without it the data is unchanged.
+// `workspaceId` binds a file to one workspace, so a copy placed under another workspace's name
+// fails to decrypt. The app always sets it; without it the layout simply has no workspace line.
 function associatedData(clientId, store, workspaceId) {
   const base = `${ENVELOPE_FORMAT}/v${ENVELOPE_VERSION}\nclient:${clientId}\nstore:${store}`;
   return Buffer.from(workspaceId === undefined ? base : `${base}\nworkspace:${workspaceId}`);

@@ -6,13 +6,13 @@ import { createAuth } from '../../server/accounts/auth.mjs';
 import { openInitializedDatabase } from '../../server/accounts/accounts.mjs';
 import { unconfiguredTransport } from '../../server/accounts/mail-transport.mjs';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   createBrowser,
   createFailingMailTransport,
   createMemoryMailTransport,
   curlAvailable,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 
 // Real HTTP needs a client outside this process (see tests/helpers/app-server.mjs).
@@ -29,8 +29,8 @@ test(
   'an invited owner signs in with a code, sees their workspace and signs out',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const browser = createBrowser(handle.origin);
 
     const before = await browser.loadSession();
@@ -74,8 +74,8 @@ test(
 );
 
 test('session cookie is HttpOnly, SameSite=Strict and expires', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
   await browser.requestCode(ALICE);
   const response = await browser.verifyCode(ALICE, handle.mailTransport.lastCodeFor(ALICE));
@@ -87,8 +87,8 @@ test('session cookie is HttpOnly, SameSite=Strict and expires', http, async (t) 
 });
 
 test('an https origin makes the session cookie Secure with a __Secure- prefix', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const httpsOrigin = 'https://beta.example.test';
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const httpsOrigin = 'https://metrictv.example.test';
   const transport = createMemoryMailTransport();
   const database = openInitializedDatabase(environment.databasePath);
   t.after(() => database.close());
@@ -122,8 +122,8 @@ test('an https origin makes the session cookie Secure with a __Secure- prefix', 
 });
 
 test('a code works once: replay, wrong code and expiry are all refused', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
 
   const first = createBrowser(handle.origin);
   await first.requestCode(ALICE);
@@ -148,8 +148,8 @@ test('a code works once: replay, wrong code and expiry are all refused', http, a
 });
 
 test('too many wrong attempts invalidate the code even for the right value', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
   await browser.requestCode(ALICE);
   const code = handle.mailTransport.lastCodeFor(ALICE);
@@ -162,8 +162,8 @@ test('too many wrong attempts invalidate the code even for the right value', htt
 });
 
 test('an email that was never invited gets no code and no account', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
   const usersBefore = countRows(handle.database, 'user');
 
@@ -184,8 +184,8 @@ test(
   'sign-up and other account endpoints are unavailable over HTTP and inside the library',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const { browser } = await signInOwner(handle, ALICE);
     const usersBefore = countRows(handle.database, 'user');
 
@@ -247,8 +247,8 @@ test(
 );
 
 test('extra sign-in fields cannot set profile data or sign up', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
   await browser.requestCode(ALICE);
   const code = handle.mailTransport.lastCodeFor(ALICE);
@@ -263,8 +263,8 @@ test('extra sign-in fields cannot set profile data or sign up', http, async (t) 
 });
 
 test('code requests are rate limited and the limit survives a restart', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  let handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  let handle = await startAppServer(t, environment);
   const browser = createBrowser(handle.origin);
   const statuses = [];
   for (let request = 0; request < 4; request += 1) {
@@ -275,16 +275,16 @@ test('code requests are rate limited and the limit survives a restart', http, as
   assert.ok(countRows(handle.database, 'rateLimit') > 0, 'counters live in SQLite');
 
   await handle.close();
-  handle = await startBetaServer(t, environment);
+  handle = await startAppServer(t, environment);
   const afterRestart = await createBrowser(handle.origin).requestCode(ALICE);
   assert.equal(afterRestart.status, 429);
   assert.equal(handle.mailTransport.messages.length, 0);
 });
 
 test('delivery failures are reported honestly and never as success', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
 
-  const unconfigured = await startBetaServer(t, environment, {
+  const unconfigured = await startAppServer(t, environment, {
     mailTransport: unconfiguredTransport,
   });
   const noMail = await createBrowser(unconfigured.origin).requestCode(ALICE);
@@ -293,7 +293,7 @@ test('delivery failures are reported honestly and never as success', http, async
   assert.equal(countRows(unconfigured.database, 'verification'), 0);
   await unconfigured.close();
 
-  const failing = await startBetaServer(t, environment, {
+  const failing = await startAppServer(t, environment, {
     mailTransport: createFailingMailTransport(),
   });
   const outage = await createBrowser(failing.origin).requestCode(ALICE);

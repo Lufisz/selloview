@@ -1,4 +1,4 @@
-// Workspace-scoped Shopify OAuth for the beta, over real HTTP (curl) against the real beta server.
+// Workspace-scoped Shopify OAuth, over real HTTP (curl) against the real app server.
 // Every Shopify answer comes from the SYNTHETIC fixture in synthetic-shopify.mjs: these tests
 // prove protocol, binding and failure handling, not a live Shopify installation.
 import test from 'node:test';
@@ -6,13 +6,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   BROWSER_AGENT,
   createBrowser,
   curlAvailable,
   httpRequest,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 import { isUsableSnapshot } from '../../public/shared/snapshot-validation.js';
 import {
@@ -43,11 +43,11 @@ async function assertNothingStored(scenario, email) {
 }
 
 test(
-  'without Shopify settings the beta reports setup required and never calls Shopify',
+  'without Shopify settings the app reports setup required and never calls Shopify',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const { browser, session } = await signInOwner(handle, ALICE);
     assert.deepEqual(session.storeConnection, { state: 'setup_required', canConnect: false });
 
@@ -68,7 +68,7 @@ test(
 );
 
 test(
-  'the pilot owner connects through OAuth with no SameSite=Strict cookie on the callback',
+  'the allowed owner connects through OAuth with no SameSite=Strict cookie on the callback',
   http,
   async (t) => {
     const scenario = await createScenario(t);
@@ -354,10 +354,10 @@ test(
 
     await bob.browser.loadSession();
     assert.deepEqual((await bob.browser.shopifyStatus()).json.connection, {
-      state: 'pilot_unavailable',
+      state: 'owner_not_allowed',
       canConnect: false,
     });
-    assert.equal(bob.session.storeConnection.state, 'pilot_unavailable');
+    assert.equal(bob.session.storeConnection.state, 'owner_not_allowed');
     assert.equal(
       'store' in bob.session.storeConnection,
       false,
@@ -365,7 +365,7 @@ test(
     );
     const bobStart = await bob.browser.startShopify(SYNTHETIC_STORE);
     assert.equal(bobStart.status, 403);
-    assert.deepEqual(bobStart.json, { error: 'pilot_unavailable' });
+    assert.deepEqual(bobStart.json, { error: 'owner_not_allowed' });
     assert.equal((await bob.browser.disconnectShopify()).status, 403);
 
     await connectOwner(alice.browser);
@@ -374,12 +374,12 @@ test(
     // Bob still sees nothing, and neither does a TV paired to Bob.
     const bobStatus = await bob.browser.shopifyStatus();
     assert.equal(bobStatus.json.snapshot, null);
-    assert.equal(bobStatus.text.includes('Synthetic Beta Shop'), false);
+    assert.equal(bobStatus.text.includes('Synthetic Shop'), false);
     const bobTv = await pairTv(scenario.handle, bob.browser, 'Bob TV');
     const bobDisplay = await bobTv.loadDisplay();
-    assert.equal(bobDisplay.json.storeConnection.state, 'pilot_unavailable');
+    assert.equal(bobDisplay.json.storeConnection.state, 'owner_not_allowed');
     assert.equal('board' in bobDisplay.json, false);
-    assert.equal(bobDisplay.text.includes('Synthetic Beta Shop'), false);
+    assert.equal(bobDisplay.text.includes('Synthetic Shop'), false);
     assert.equal(bobDisplay.text.includes(SYNTHETIC_STORE), false);
 
     // Only Alice's workspace is linked to the store.
@@ -424,7 +424,7 @@ test(
     await connectOwner(alice.browser);
     await waitForSnapshot(alice.browser);
 
-    // The operator makes Bob the pilot owner while Alice's link still exists.
+    // The operator makes Bob the allowed owner while Alice's link still exists.
     await scenario.restart({ ownerEmail: BOB });
     const bob = await scenario.signIn(BOB);
     const refused = await bob.browser.startShopify(SYNTHETIC_STORE);
@@ -432,10 +432,10 @@ test(
     assert.deepEqual(refused.json, { error: 'store_in_use' });
     assert.equal(scenario.link(BOB), null);
 
-    // Alice is no longer the pilot owner, so her old link yields no data either.
+    // Alice is no longer the allowed owner, so her old link yields no data either.
     const aliceAgain = await scenario.signIn(ALICE);
     const status = await aliceAgain.browser.shopifyStatus();
-    assert.equal(status.json.connection.state, 'pilot_unavailable');
+    assert.equal(status.json.connection.state, 'owner_not_allowed');
     assert.equal(status.json.snapshot, null);
   },
 );
@@ -475,7 +475,7 @@ test(
     assert.equal((await browser.disconnectShopify({ 'X-CSRF-Token': 'wrong' })).status, 403);
 
     for (const badStore of [
-      'Synthetic-Beta-Store.myshopify.com',
+      'Synthetic-Store.myshopify.com',
       ` ${SYNTHETIC_STORE}`,
       `https://${SYNTHETIC_STORE}`,
       `${SYNTHETIC_STORE}/admin`,
@@ -511,7 +511,7 @@ test(
 );
 
 test(
-  'the removed single-store routes are not served, while the modules the beta pages import are',
+  'the removed single-store routes are not served, while the modules the app pages import are',
   http,
   async (t) => {
     const scenario = await createScenario(t);
@@ -529,7 +529,7 @@ test(
       const response = await anonymous.request(forbidden);
       assert.equal(response.status, 404, forbidden);
     }
-    // Presentation modules the beta pages import are served.
+    // Presentation modules the app pages import are served.
     for (const allowed of [
       '/demo/demo.html',
       '/demo/demo.js',
@@ -559,7 +559,7 @@ test(
     const scenario = await createScenario(t);
     const { browser } = await scenario.signIn(ALICE);
     await beginAuthorization(browser);
-    // A browser applies Path matching: none of the beta flow cookies go to the private callback
+    // A browser applies Path matching: none of the Shopify flow cookies go to the private callback
     // path, and the private SDK cookie names are never used here.
     assert.equal(browser.cookieHeader({ pathname: '/auth/shopify/callback', crossSite: true }), '');
     assert.equal(

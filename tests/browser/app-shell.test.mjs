@@ -20,18 +20,18 @@ const sharedCss = await readFile(
   new URL('../../public/shared/styles.css', import.meta.url),
   'utf8',
 );
-const betaCss = await readFile(new URL('../../public/owner/owner.css', import.meta.url), 'utf8');
+const ownerCss = await readFile(new URL('../../public/owner/owner.css', import.meta.url), 'utf8');
 
 function countOf(source, text) {
   return source.split(text).length - 1;
 }
 
 test('only the shared stylesheet defines the header, brand and app font', () => {
-  assert.equal(countOf(sharedCss + betaCss, '@font-face'), 1);
-  assert.doesNotMatch(betaCss, /\.header-inner\s*\{/);
+  assert.equal(countOf(sharedCss + ownerCss, '@font-face'), 1);
+  assert.doesNotMatch(ownerCss, /\.header-inner\s*\{/);
   // The TV top bar has its own brand size; every page header uses the shared one.
-  assert.doesNotMatch(betaCss, /^(?!.*tv-).*\.brand( img)?\s*\{/m);
-  assert.doesNotMatch(betaCss, /owner-rail-gutter/);
+  assert.doesNotMatch(ownerCss, /^(?!.*tv-).*\.brand( img)?\s*\{/m);
+  assert.doesNotMatch(ownerCss, /owner-rail-gutter/);
   assert.match(sharedCss, /\.header-inner \{\n  max-width: var\(--app-max-width\);/);
 });
 

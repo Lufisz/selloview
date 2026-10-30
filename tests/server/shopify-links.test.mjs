@@ -17,7 +17,7 @@ import {
   migrateDatabase,
   openInitializedDatabase,
 } from '../../server/accounts/accounts.mjs';
-import { createBetaEnvironment } from '../helpers/app-server.mjs';
+import { createAppEnvironment } from '../helpers/app-server.mjs';
 import { SYNTHETIC_STORE } from '../helpers/synthetic-shopify.mjs';
 
 const OWNER = 'owner@example.test';
@@ -25,7 +25,7 @@ const OWNER = 'owner@example.test';
 // ---- links and attempts ------------------------------------------------------------------------
 
 async function databaseWithOwners(t, emails) {
-  const environment = await createBetaEnvironment(t, { invites: emails });
+  const environment = await createAppEnvironment(t, { invites: emails });
   const database = openInitializedDatabase(environment.databasePath);
   t.after(() => database.close());
   const workspaces = emails.map((email) =>
@@ -159,7 +159,7 @@ test('a session counts as live only while its row exists and has not expired', a
 // ---- migration ---------------------------------------------------------------------------------
 
 test('schema 2 is refused until migrated; migration keeps accounts, sessions, screens and settings', async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [OWNER] });
+  const environment = await createAppEnvironment(t, { invites: [OWNER] });
   const database = openInitializedDatabase(environment.databasePath);
   const user = database.prepare('SELECT id FROM "user"').get();
   const workspace = database.prepare('SELECT id FROM workspace').get();

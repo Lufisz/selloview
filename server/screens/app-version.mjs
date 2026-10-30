@@ -1,4 +1,4 @@
-// Fingerprint of the page files the beta serves. A paired TV receives it with every display
+// Fingerprint of the page files the app serves. A paired TV receives it with every display
 // poll and reloads itself when it changes, so a TV left running never keeps old page code.
 //
 // Built from file names, sizes and modification times rather than contents: cheap enough to

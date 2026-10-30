@@ -1,4 +1,4 @@
-// Shared setup for the beta tests. Everything here is synthetic: temporary databases under the
+// Shared setup for the server tests. Everything here is synthetic: temporary databases under the
 // OS temp directory (TMPDIR), disposable emails on example.test, and an in-memory mail transport
 // that stands in for the provider. The authentication, session and rate-limit code under test is
 // the real Better Auth library running against real SQLite files.
@@ -14,8 +14,8 @@ import {
   inviteOwner,
   openInitializedDatabase,
 } from '../../server/accounts/accounts.mjs';
-import { createBetaServer } from '../../server/app.mjs';
-import { createBetaShopifyService } from '../../server/shopify/connection-service.mjs';
+import { createAppServer } from '../../server/app.mjs';
+import { createShopifyService } from '../../server/shopify/connection-service.mjs';
 
 /** SYNTHETIC delivery: records codes in memory so tests can complete the real sign-in flow. */
 export function createMemoryMailTransport() {
@@ -51,15 +51,15 @@ export async function findFreePort() {
 
 export async function makeTemporaryDirectory(t) {
   const base = await fs.realpath(os.tmpdir());
-  const directory = await fs.mkdtemp(path.join(base, 'metrictv-beta-'));
+  const directory = await fs.mkdtemp(path.join(base, 'metrictv-test-'));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   return directory;
 }
 
 /** Creates an initialized private database and returns the settings to open it again. */
-export async function createBetaEnvironment(t, { invites = [] } = {}) {
+export async function createAppEnvironment(t, { invites = [] } = {}) {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'beta.sqlite');
+  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
   const secret = crypto.randomBytes(48).toString('base64url');
   const port = await findFreePort();
   const origin = `http://127.0.0.1:${port}`;
@@ -71,8 +71,8 @@ export async function createBetaEnvironment(t, { invites = [] } = {}) {
   return { directory, databasePath, secret, origin, port };
 }
 
-/** Starts the real beta HTTP server on loopback. Returns a handle with close(). */
-export async function startBetaServer(
+/** Starts the real app HTTP server on loopback. Returns a handle with close(). */
+export async function startAppServer(
   t,
   environment,
   {
@@ -94,7 +94,7 @@ export async function startBetaServer(
   });
   const config = { origin: environment.origin, secret: environment.secret, trustedIpHeader };
   // The Shopify side is real service code; only its outbound transport is a synthetic fixture.
-  const shopify = createBetaShopifyService({
+  const shopify = createShopifyService({
     database,
     config: shopifyConfig,
     origin: environment.origin,
@@ -102,7 +102,7 @@ export async function startBetaServer(
     now,
     refreshIntervalMs,
   });
-  const server = createBetaServer({
+  const server = createAppServer({
     auth,
     database,
     config,

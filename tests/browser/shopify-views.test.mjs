@@ -20,7 +20,7 @@ const OWNER = 'owner@example.test';
 
 // ---- owner page client ---------------------------------------------------------------------------
 
-function syntheticSnapshot({ shopName = 'Synthetic Beta Shop' } = {}) {
+function syntheticSnapshot({ shopName = 'Synthetic Shop' } = {}) {
   const now = new Date();
   const hour = 3600 * 1000;
   const orders = [1, 2, 3].map((index) => ({
@@ -71,8 +71,8 @@ test('the client accepts only well-formed connections and drops unusable snapsho
   assert.equal(parseConnection({ state: 'connected', store: 'not a store' }), null);
   assert.equal(parseConnection({ state: 'connected', store: 'Upper.myshopify.com' }), null);
   assert.equal(parseConnection({ state: 'connected', sync: { state: 'weird' } }), null);
-  assert.deepEqual(parseConnection({ state: 'pilot_unavailable', canConnect: false }), {
-    state: 'pilot_unavailable',
+  assert.deepEqual(parseConnection({ state: 'owner_not_allowed', canConnect: false }), {
+    state: 'owner_not_allowed',
     store: '',
     canConnect: false,
     sync: null,
@@ -87,7 +87,7 @@ test('the client accepts only well-formed connections and drops unusable snapsho
   };
   const good = await loadShopifyStatus(fakeFetch(200, { connection, snapshot }).fetchImpl);
   assert.equal(good.ok, true);
-  assert.equal(good.snapshot.shop.name, 'Synthetic Beta Shop');
+  assert.equal(good.snapshot.shop.name, 'Synthetic Shop');
 
   const broken = { ...snapshot, periods: { ...snapshot.periods, week: null } };
   const dropped = await loadShopifyStatus(
@@ -111,8 +111,8 @@ test('the client accepts only well-formed connections and drops unusable snapsho
 });
 
 test('starting a connection sends only the canonical store and follows only a Shopify address', async () => {
-  const authorize = `https://${SYNTHETIC_STORE}/admin/oauth/authorize?client_id=x&scope=read_all_orders,read_orders,read_products,read_inventory&redirect_uri=https%3A%2F%2Fbeta.example.test%2Fauth%2Fbeta%2Fshopify%2Fcallback&state=abc`;
-  const callbackUrl = 'https://beta.example.test/auth/beta/shopify/callback';
+  const authorize = `https://${SYNTHETIC_STORE}/admin/oauth/authorize?client_id=x&scope=read_all_orders,read_orders,read_products,read_inventory&redirect_uri=https%3A%2F%2Fmetrictv.example.test%2Fauth%2Fbeta%2Fshopify%2Fcallback&state=abc`;
+  const callbackUrl = 'https://metrictv.example.test/auth/beta/shopify/callback';
   const ok = fakeFetch(200, { authorizationUrl: authorize });
   const started = await startShopifyConnection(
     { csrfToken: 'tok', storeText: ` ${SYNTHETIC_STORE.toUpperCase()} `, callbackUrl },
@@ -140,7 +140,7 @@ test('starting a connection sends only the canonical store and follows only a Sh
     `https://${SYNTHETIC_STORE}/somewhere/else`,
     `${authorize}&scope=write_orders`,
     authorize.replace('read_all_orders,read_orders,read_products,read_inventory', 'write_orders'),
-    authorize.replace('beta.example.test', 'evil.example.test'),
+    authorize.replace('metrictv.example.test', 'evil.example.test'),
     'javascript:alert(1)',
     42,
   ]) {
@@ -152,9 +152,9 @@ test('starting a connection sends only the canonical store and follows only a Sh
   }
   const denied = await startShopifyConnection(
     { csrfToken: 'tok', storeText: SYNTHETIC_STORE, callbackUrl },
-    fakeFetch(403, { error: 'pilot_unavailable' }).fetchImpl,
+    fakeFetch(403, { error: 'owner_not_allowed' }).fetchImpl,
   );
-  assert.deepEqual(denied, { ok: false, error: 'pilot_unavailable' });
+  assert.deepEqual(denied, { ok: false, error: 'owner_not_allowed' });
 
   assert.deepEqual(
     await disconnectShopify({ csrfToken: 'tok' }, fakeFetch(200, { disconnected: true }).fetchImpl),
@@ -218,13 +218,13 @@ test('every connection state has an honest panel, and only the connectable ones 
   assert.match(setup, /no Shopify app configuration/);
   assert.equal(/<form|<input/.test(setup), false);
 
-  const pilot = panel({
+  const notAllowed = panel({
     status: 'ready',
-    connection: { state: 'pilot_unavailable', store: '', canConnect: false, sync: null },
+    connection: { state: 'owner_not_allowed', store: '', canConnect: false, sync: null },
     snapshot: null,
   });
-  assert.match(pilot, /only a pilot owner/);
-  assert.equal(/<form|<input/.test(pilot), false);
+  assert.match(notAllowed, /Only the owner this server is set up for/);
+  assert.equal(/<form|<input/.test(notAllowed), false);
 
   const none = panel({
     status: 'ready',

@@ -84,7 +84,7 @@ test('first read is neutral and stale or failed reads are warnings, never health
 });
 
 test('states without a store offer no manage disclosure', () => {
-  for (const state of ['setup_required', 'pilot_unavailable']) {
+  for (const state of ['setup_required', 'owner_not_allowed']) {
     const html = panel({ connection: { ...connection(state), canConnect: false } });
     assert.match(html, /owner-strip is-neutral/);
     assert.doesNotMatch(html, /<details|<form/);
@@ -137,8 +137,8 @@ test('the owner page has no setup card; settings and screens are compact and pai
   });
   assert.doesNotMatch(html, /Set up your screen|owner-setup/, 'complete setup shows no checklist');
   assert.match(html, /class="owner-fields"/);
-  assert.match(html, /for="beta-period"/);
-  assert.match(html, /for="beta-theme"/);
+  assert.match(html, /for="owner-period"/);
+  assert.match(html, /for="owner-theme"/);
   assert.match(html, /name="code"/);
   assert.match(html, /name="name"/);
   assert.match(html, /Hall TV/);
@@ -198,11 +198,7 @@ test('owner styles are scoped so the TV and sign-in screens keep their own', () 
       assert.match(selector, /^(\.owner-|\.owner-body|\.owner-page)/, selector);
     }
   }
-  assert.doesNotMatch(
-    css.slice(0, marker),
-    /\.owner-/,
-    'shared beta rules gain nothing owner-only',
-  );
+  assert.doesNotMatch(css.slice(0, marker), /\.owner-/, 'shared rules gain nothing owner-only');
 });
 
 /** Runs the real controller against a fake page, then plays owner events and returns the HTML. */
@@ -223,7 +219,7 @@ function runControllerScenario(steps) {
       activeElement: null,
     };
     globalThis.window = {
-      location: { search: '', hash: '', pathname: '/', origin: 'https://beta.example.test', assign: () => {} },
+      location: { search: '', hash: '', pathname: '/', origin: 'https://metrictv.example.test', assign: () => {} },
       history: { replaceState: () => {} },
     };
     globalThis.setTimeout = () => 1;

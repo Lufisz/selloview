@@ -1,4 +1,4 @@
-// Pure HTML for the beta page. Every dynamic value is escaped here, whoever supplied it.
+// Pure HTML for the owner page. Every dynamic value is escaped here, whoever supplied it.
 import { escapeHtml } from '../shared/model.js';
 import { BRAND_NAME, actionButton, brandLink, siteHeader } from '../shared/ui.js';
 import { PERIOD_CHOICES, THEME_CHOICES, messageForError } from './owner-client.js';
@@ -7,7 +7,7 @@ import { detailsOpenAttribute, renderOwnerBoard, renderStorePanel } from './stor
 
 export { PERIOD_LABELS, THEME_LABELS };
 
-function pageShell(headerTrailingHtml, contentHtml, mainClass = 'workspace beta-main') {
+function pageShell(headerTrailingHtml, contentHtml, mainClass = 'workspace session-main') {
   const header = siteHeader({
     brandHtml: brandLink({ href: '/', label: `${BRAND_NAME} beta` }),
     navHtml: '',
@@ -19,7 +19,7 @@ function pageShell(headerTrailingHtml, contentHtml, mainClass = 'workspace beta-
 function messageHtml(message, tone) {
   if (!message) return '';
   const role = tone === 'error' ? 'alert' : 'status';
-  return `<p class="beta-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
+  return `<p class="form-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
 }
 
 function entryPageHtml(contentHtml) {
@@ -31,9 +31,9 @@ function emailStepHtml({ email, message, tone, registering = false }) {
   const hint = registering
     ? 'Verify your email to create your account. No password or card required.'
     : 'Access is by invitation only. If this address is invited, a code is sent to it.';
-  return `<form class="beta-form" data-form="request-code" novalidate>
-    <label for="beta-email">${emailLabel}</label>
-    <input id="beta-email" name="email" type="email" autocomplete="email" inputmode="email" value="${escapeHtml(email)}" required>
+  return `<form class="stacked-form" data-form="request-code" novalidate>
+    <label for="owner-email">${emailLabel}</label>
+    <input id="owner-email" name="email" type="email" autocomplete="email" inputmode="email" value="${escapeHtml(email)}" required>
     ${messageHtml(message, tone)}
     <button class="button primary full-width" type="submit">Email me a sign-in code</button>
     <p class="field-hint">${hint}</p>
@@ -41,10 +41,10 @@ function emailStepHtml({ email, message, tone, registering = false }) {
 }
 
 function codeStepHtml({ email, message, tone }) {
-  return `<form class="beta-form" data-form="verify-code" novalidate>
+  return `<form class="stacked-form" data-form="verify-code" novalidate>
     <p class="field-hint">Enter the 6-digit code sent to ${escapeHtml(email)}. It works once and expires in 5 minutes.</p>
-    <label for="beta-code">Sign-in code</label>
-    <input id="beta-code" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9 ]*" maxlength="8" required>
+    <label for="owner-code">Sign-in code</label>
+    <input id="owner-code" name="code" type="text" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9 ]*" maxlength="8" required>
     ${messageHtml(message, tone)}
     <button class="button primary full-width" type="submit">Sign in</button>
     ${actionButton({ action: 'change-email', label: 'Use a different email' })}
@@ -56,9 +56,9 @@ export function renderSignIn(state) {
   if (state.registering && state.step !== 'code' && !state.registration?.available) {
     const full = state.registration?.enabled === true;
     return entryPageHtml(
-      `<section class="entry-card" aria-labelledby="beta-title">
+      `<section class="entry-card" aria-labelledby="owner-title">
         <p class="entry-status">Private beta</p>
-        <h1 id="beta-title">${full ? 'The beta is at capacity.' : 'Registration is not open yet.'}</h1>
+        <h1 id="owner-title">${full ? 'The beta is at capacity.' : 'Registration is not open yet.'}</h1>
         <p class="registration-description">${full ? 'New registrations are paused while the beta is at capacity. Existing owners can still sign in.' : 'We are testing MetricTV with a small group of stores before opening registration.'}</p>
         ${messageHtml(state.message, state.tone)}
         <div class="registration-actions">
@@ -72,9 +72,9 @@ export function renderSignIn(state) {
   const heading = state.registering ? 'Create your workspace.' : 'Sign in to your workspace.';
   const stepHtml = state.step === 'code' ? codeStepHtml(state) : emailStepHtml(state);
   return entryPageHtml(
-    `<section class="entry-card entry-form-card" aria-labelledby="beta-title">
+    `<section class="entry-card entry-form-card" aria-labelledby="owner-title">
       <p class="entry-status">${state.registering ? 'Free beta' : 'Private beta'}</p>
-      <h1 id="beta-title">${heading}</h1>
+      <h1 id="owner-title">${heading}</h1>
       ${stepHtml}
       <a class="entry-back" href="/">Back to MetricTV</a>
     </section>`,
@@ -93,15 +93,15 @@ function choiceOptionsHtml(choices, labels, selected) {
 function settingsFormHtml(workspace, message, tone, draft = {}) {
   const period = draft.period ?? workspace.settings.period;
   const theme = draft.theme ?? workspace.settings.theme;
-  return `<form class="beta-form owner-settings-form" data-form="settings">
+  return `<form class="stacked-form owner-settings-form" data-form="settings">
     <div class="owner-fields">
       <div class="owner-field">
-        <label for="beta-period">Reporting period</label>
-        <select id="beta-period" name="period">${choiceOptionsHtml(PERIOD_CHOICES, PERIOD_LABELS, period)}</select>
+        <label for="owner-period">Reporting period</label>
+        <select id="owner-period" name="period">${choiceOptionsHtml(PERIOD_CHOICES, PERIOD_LABELS, period)}</select>
       </div>
       <div class="owner-field">
-        <label for="beta-theme">Appearance</label>
-        <select id="beta-theme" name="theme">${choiceOptionsHtml(THEME_CHOICES, THEME_LABELS, theme)}</select>
+        <label for="owner-theme">Appearance</label>
+        <select id="owner-theme" name="theme">${choiceOptionsHtml(THEME_CHOICES, THEME_LABELS, theme)}</select>
       </div>
     </div>
     ${messageHtml(message, tone)}
@@ -159,15 +159,15 @@ function screenListHtml({ screens, confirmRevokeId, userChoices }) {
 }
 
 function pairFormHtml(draft) {
-  return `<form class="beta-form owner-pair-form" data-form="pair-screen" novalidate>
+  return `<form class="stacked-form owner-pair-form" data-form="pair-screen" novalidate>
     <div class="owner-fields">
       <div class="owner-field">
-        <label for="beta-screen-code">Code shown on the TV</label>
-        <input id="beta-screen-code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="${escapeHtml(draft.code ?? '')}" required>
+        <label for="owner-screen-code">Code shown on the TV</label>
+        <input id="owner-screen-code" name="code" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="${escapeHtml(draft.code ?? '')}" required>
       </div>
       <div class="owner-field">
-        <label for="beta-screen-name">Screen name</label>
-        <input id="beta-screen-name" name="name" type="text" autocomplete="off" maxlength="40" value="${escapeHtml(draft.name ?? '')}" required>
+        <label for="owner-screen-name">Screen name</label>
+        <input id="owner-screen-name" name="name" type="text" autocomplete="off" maxlength="40" value="${escapeHtml(draft.name ?? '')}" required>
       </div>
     </div>
     <button class="button secondary small" type="submit">Approve this screen</button>
@@ -282,9 +282,9 @@ export function renderOwner(state) {
     ? `<section class="owner-overview" id="overview" aria-label="Overview">${boardHtml}</section>`
     : '';
   return `${ownerHeaderHtml(session)}
-    <main class="owner-page beta-main-wide" id="main" tabindex="-1">
+    <main class="owner-page" id="main" tabindex="-1">
       <div class="owner-heading">
-        <${titleTag} class="owner-title" id="beta-title">${escapeHtml(session.workspace.name)}</${titleTag}>
+        <${titleTag} class="owner-title" id="owner-title">${escapeHtml(session.workspace.name)}</${titleTag}>
         ${ownerNavHtml({ hasBoard: Boolean(boardHtml), screenCount })}
       </div>
       <section class="owner-connection" id="connection" aria-label="Store connection">${renderStorePanel(storeState)}</section>
@@ -304,13 +304,13 @@ export function renderOwner(state) {
 export function renderLoading() {
   return pageShell(
     '',
-    `<section class="board beta-card"><h1>Checking your session.</h1></section>`,
+    `<section class="board session-card"><h1>Checking your session.</h1></section>`,
   );
 }
 
 export function renderSessionError(message) {
   return pageShell(
     '',
-    `<section class="board beta-card"><h1>Could not load your session.</h1>${messageHtml(message, 'error')}${actionButton({ action: 'retry', label: 'Try again' })}</section>`,
+    `<section class="board session-card"><h1>Could not load your session.</h1>${messageHtml(message, 'error')}${actionButton({ action: 'retry', label: 'Try again' })}</section>`,
   );
 }

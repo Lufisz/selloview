@@ -1,15 +1,15 @@
-// Beta HTTP boundaries: origin and CSRF checks, bounded input, owner isolation, restart
+// App HTTP boundaries: origin and CSRF checks, bounded input, owner isolation, restart
 // persistence and separation from the demo server. Real HTTP via curl.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDemoHandler } from '../../server/demo.mjs';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   createBrowser,
   curlAvailable,
   httpRequest,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 
 // Real HTTP needs a client outside this process (see tests/helpers/app-server.mjs).
@@ -19,8 +19,8 @@ const ALICE = 'alice@example.test';
 const BOB = 'bob@example.test';
 
 async function twoSignedInOwners(t) {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE, BOB] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE, BOB] });
+  const handle = await startAppServer(t, environment);
   const alice = await signInOwner(handle, ALICE);
   const bob = await signInOwner(handle, BOB);
   return { environment, handle, alice, bob };
@@ -240,8 +240,8 @@ test('sign-in and sign-out also enforce origin, CSRF and body limits', http, asy
 });
 
 test('requests for another Host header are refused', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const result = await httpRequest({
     origin: handle.origin,
     pathname: '/owner/owner.html',
@@ -254,8 +254,8 @@ test(
   'sessions and workspaces survive a restart; a second invite creates nothing new',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    let handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    let handle = await startAppServer(t, environment);
     const { browser, session } = await signInOwner(handle, ALICE);
     assert.equal((await browser.saveSettings({ theme: 'dark', period: 'days60' }, 0)).status, 200);
     const workspaceBefore = handle.database.prepare('SELECT id FROM workspace').get().id;
@@ -274,7 +274,7 @@ test(
     assert.equal(repeated.alreadyInvited, true);
     assert.equal(repeated.workspaceId, workspaceBefore);
 
-    handle = await startBetaServer(t, environment);
+    handle = await startAppServer(t, environment);
     const afterRestart = await browser.loadSession();
     assert.equal(afterRestart.status, 200, 'the browser cookie is still a valid server session');
     assert.equal(afterRestart.json.owner.email, ALICE);
@@ -286,8 +286,8 @@ test(
 );
 
 test('revoked sessions stop working immediately', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const { browser } = await signInOwner(handle, ALICE);
   assert.equal((await browser.loadSession()).status, 200);
 
@@ -302,8 +302,8 @@ test('revoked sessions stop working immediately', http, async (t) => {
 });
 
 test('an expired session is refused', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const { browser } = await signInOwner(handle, ALICE);
   const sample = handle.database.prepare('SELECT expiresAt FROM session').get();
   const longAgo = typeof sample.expiresAt === 'number' ? 946684800000 : '2000-01-01T00:00:00.000Z';
@@ -312,11 +312,11 @@ test('an expired session is refused', http, async (t) => {
 });
 
 test(
-  'the beta serves onboarding and a fictional demo, and answers nothing outside its allowlist',
+  'the app serves onboarding and a fictional demo, and answers nothing outside its allowlist',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const browser = createBrowser(handle.origin);
 
     for (const allowed of [
@@ -374,8 +374,8 @@ test(
 // The owner routes used to live under /api/beta/. Nothing may answer there any more: an open
 // browser tab from before the upgrade must fail visibly, not talk to a half-removed handler.
 test('nothing answers under the old /api/beta/ prefix, signed in or not', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   const { browser } = await signInOwner(handle, ALICE);
   const anonymous = createBrowser(handle.origin);
   const oldRoutes = [
@@ -406,9 +406,9 @@ test('nothing answers under the old /api/beta/ prefix, signed in or not', http, 
   }
 });
 
-test('the demo server does not present the beta files', async () => {
+test('the demo server does not present the app files', async () => {
   const handler = createDemoHandler();
-  for (const betaPath of [
+  for (const appOnlyPath of [
     '/owner/owner.html',
     '/owner/owner.js',
     '/owner/owner-client.js',
@@ -421,7 +421,7 @@ test('the demo server does not present the beta files', async () => {
       },
       end() {},
     };
-    await handler({ method: 'GET', url: betaPath }, response);
-    assert.equal(status, 404, betaPath);
+    await handler({ method: 'GET', url: appOnlyPath }, response);
+    assert.equal(status, 404, appOnlyPath);
   }
 });

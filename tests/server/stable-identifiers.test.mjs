@@ -7,10 +7,10 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   curlAvailable,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 import {
   ALICE,
@@ -29,8 +29,8 @@ test(
   'the owner session cookie keeps its name, so a deployment does not sign owners out',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const { browser } = await signInOwner(handle, ALICE);
     assert.ok(browser.cookies.has('metrictv_beta.session_token'));
   },
@@ -40,8 +40,8 @@ test(
   'the CSRF token is the HMAC of the session id under the "beta-csrf" label',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const handle = await startBetaServer(t, environment);
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const handle = await startAppServer(t, environment);
     const { session } = await signInOwner(handle, ALICE);
     const { id: sessionId } = handle.database.prepare('SELECT id FROM session').get();
     const expected = crypto
@@ -115,8 +115,8 @@ test(
 );
 
 test('the database schema version and table layout are unchanged', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-  const handle = await startBetaServer(t, environment);
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
   assert.equal(handle.database.prepare('PRAGMA user_version').get().user_version, 3);
 
   const tables = handle.database

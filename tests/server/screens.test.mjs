@@ -20,12 +20,12 @@ import {
   parseScreenName,
 } from '../../server/screens/screens.mjs';
 import {
-  createBetaEnvironment,
+  createAppEnvironment,
   createBrowser,
   curlAvailable,
   httpRequest,
   signInOwner,
-  startBetaServer,
+  startAppServer,
 } from '../helpers/app-server.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
@@ -39,8 +39,8 @@ const TRUSTED_IP_HEADER = 'x-test-client-ip';
 const LONG_AGO = 946684800000;
 
 async function setup(t, options = {}) {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE, BOB] });
-  const handle = await startBetaServer(t, environment, options);
+  const environment = await createAppEnvironment(t, { invites: [ALICE, BOB] });
+  const handle = await startAppServer(t, environment, options);
   const alice = await signInOwner(handle, ALICE);
   const bob = await signInOwner(handle, BOB);
   return { environment, handle, alice: alice.browser, bob: bob.browser };
@@ -518,7 +518,7 @@ test('display sessions survive a restart and stop at their 30-day expiry', http,
   const pending = await newTv(handle);
   await handle.close();
 
-  const restarted = await startBetaServer(t, environment);
+  const restarted = await startAppServer(t, environment);
   assert.equal((await tv.loadDisplay()).status, 200, 'same cookie works after restart');
   assert.equal((await pending.tv.pairingStatus()).json.state, 'pending');
   const owner = await signInOwner(restarted, ALICE);
@@ -748,7 +748,7 @@ test('screen names are bounded and plain', http, async (t) => {
 
 // ---- Pages, https cookies, schema ------------------------------------------------------------
 
-test('the beta server serves /tv and its scripts; the demo server does not', http, async (t) => {
+test('the app server serves /tv and its scripts; the demo server does not', http, async (t) => {
   const { handle } = await setup(t);
   const browser = createBrowser(handle.origin);
   for (const pathname of [
@@ -789,11 +789,11 @@ test(
   'an https origin gives __Host- prefixed Secure cookies for both TV credentials',
   http,
   async (t) => {
-    const environment = await createBetaEnvironment(t, { invites: [ALICE] });
-    const httpsOrigin = 'https://beta.example.test';
-    const handle = await startBetaServer(t, { ...environment, origin: httpsOrigin });
+    const environment = await createAppEnvironment(t, { invites: [ALICE] });
+    const httpsOrigin = 'https://metrictv.example.test';
+    const handle = await startAppServer(t, { ...environment, origin: httpsOrigin });
     const headerLines = [
-      'Host: beta.example.test',
+      'Host: metrictv.example.test',
       `Origin: ${httpsOrigin}`,
       'Content-Type: application/json',
     ];
@@ -840,7 +840,7 @@ test(
 );
 
 test('a version 1 database is refused until migrated, then keeps its data', http, async (t) => {
-  const environment = await createBetaEnvironment(t, { invites: [ALICE] });
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
   const { databasePath, secret, origin } = environment;
   const database = openInitializedDatabase(databasePath);
   database.exec(

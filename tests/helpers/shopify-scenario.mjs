@@ -1,16 +1,11 @@
-// Shared scenario setup for the beta Shopify tests. The beta server, Better Auth, SQLite, the
+// Shared scenario setup for the Shopify tests. The app server, Better Auth, SQLite, the
 // grant files and the Shopify OAuth/collector code are all real; only the outbound Shopify
 // transport is the synthetic fixture in synthetic-shopify.mjs.
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { loadBetaShopifyConfig } from '../../server/shopify/config.mjs';
-import {
-  createBetaEnvironment,
-  createBrowser,
-  signInOwner,
-  startBetaServer,
-} from './app-server.mjs';
+import { loadShopifyConfig } from '../../server/shopify/config.mjs';
+import { createAppEnvironment, createBrowser, signInOwner, startAppServer } from './app-server.mjs';
 import {
   SYNTHETIC_CLIENT_ID,
   SYNTHETIC_CLIENT_SECRET,
@@ -46,11 +41,11 @@ export function shopifyEnvironment({ tokenDirectory, key, ownerEmail = ALICE }) 
 }
 
 /**
- * Two invited owners (the first is the pilot owner), a running beta server and a synthetic
+ * Two invited owners (the first is the allowed owner), a running app server and a synthetic
  * Shopify. `clock.offsetMs` moves only the service's clock (token expiry, attempt expiry).
  */
 export async function createScenario(t, { invites = [ALICE, BOB], ownerEmail = ALICE } = {}) {
-  const environment = await createBetaEnvironment(t, { invites });
+  const environment = await createAppEnvironment(t, { invites });
   const tokenDirectory = path.join(environment.directory, 'grants');
   const clock = { offsetMs: 0 };
   const now = () => Date.now() + clock.offsetMs;
@@ -66,10 +61,10 @@ export async function createScenario(t, { invites = [ALICE, BOB], ownerEmail = A
   };
 
   async function start({ ownerEmail: owner = scenario.ownerEmail, key = scenario.key } = {}) {
-    const shopifyConfig = loadBetaShopifyConfig(
+    const shopifyConfig = loadShopifyConfig(
       shopifyEnvironment({ tokenDirectory, key, ownerEmail: owner }),
     );
-    scenario.handle = await startBetaServer(t, environment, {
+    scenario.handle = await startAppServer(t, environment, {
       shopifyConfig,
       fetchImpl: upstream.fetchImpl,
       now,

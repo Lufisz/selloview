@@ -21,7 +21,7 @@ const FAILED_REDIRECT = '/?shopify=failed';
 // Fixed HTTP answers for the refusals the service can report on start.
 const START_DENIALS = Object.freeze({
   setup_required: { status: 503, error: 'setup_required' },
-  pilot_unavailable: { status: 403, error: 'pilot_unavailable' },
+  owner_not_allowed: { status: 403, error: 'owner_not_allowed' },
   store_not_allowed: { status: 403, error: 'store_not_allowed' },
   store_in_use: { status: 409, error: 'store_in_use' },
   rate_limited: { status: 429, error: 'rate_limited' },
@@ -32,7 +32,7 @@ const START_DENIALS = Object.freeze({
 
 /**
  * @param {object} dependencies
- * @param {ReturnType<import('./connection-service.mjs').createBetaShopifyService>} dependencies.shopify
+ * @param {ReturnType<import('./connection-service.mjs').createShopifyService>} dependencies.shopify
  * @param {import('node:sqlite').DatabaseSync} dependencies.database
  * @param {string} dependencies.origin
  * @param {Readonly<Record<string, string>>} dependencies.responseHeaders  Security headers.
@@ -103,8 +103,8 @@ export function createShopifyRoutes({
     if (result.status === 'setup_required') {
       return reply(response, 503, { error: 'setup_required' });
     }
-    if (result.status === 'pilot_unavailable') {
-      return reply(response, 403, { error: 'pilot_unavailable' });
+    if (result.status === 'owner_not_allowed') {
+      return reply(response, 403, { error: 'owner_not_allowed' });
     }
     if (result.status === 'disconnect_failed') {
       return reply(response, 500, { error: 'disconnect_failed' });

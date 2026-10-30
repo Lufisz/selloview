@@ -44,7 +44,7 @@ function assertNoRenamedSettings(env) {
 }
 
 /** Reads operator configuration from environment variables; throws on anything unsafe. */
-export function loadBetaConfig(env = process.env) {
+export function loadServerConfig(env = process.env) {
   assertNoRenamedSettings(env);
   const databasePath = parseDatabasePath(env.METRICTV_DB_PATH);
 

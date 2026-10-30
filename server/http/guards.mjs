@@ -1,4 +1,4 @@
-// Request guards shared by the beta routes: exact-origin checks, bounded JSON bodies, JSON
+// Request guards shared by the app routes: exact-origin checks, bounded JSON bodies, JSON
 // responses. Duplicate or comma-joined security headers are rejected, never merged.
 import { createSecurityHeaders, rawHeaderValues, singleHeaderValue } from './static-files.mjs';
 
