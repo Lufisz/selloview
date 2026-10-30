@@ -14,6 +14,13 @@ artifacts/
 __pycache__/
 *.pyc
 
+# What an instance writes: the database and the encrypted Shopify grants. They belong outside the
+# project; this catches the mistake of putting one inside.
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.grant.json
+
 # Optional development dependencies
 node_modules/
 .venv/

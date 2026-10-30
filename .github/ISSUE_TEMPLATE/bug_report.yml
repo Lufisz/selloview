@@ -1,0 +1,46 @@
+name: Bug report
+description: Something does not work as documented
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **Remove store names, order numbers, amounts, email addresses and credentials** from everything you paste: logs, screenshots and settings. For a security problem, do not open an issue; see SECURITY.md.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where does it happen?
+      options:
+        - The sample board (npm start)
+        - The owner page (/app)
+        - The TV page (/tv)
+        - Installing or upgrading
+        - Something else
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: The output of `node --version`.
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or TV model
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log lines
+      description: Redact anything that names a store, a person or an order.
+      render: text

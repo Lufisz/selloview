@@ -1,0 +1,12 @@
+# Proposes updates as pull requests, so the pinned actions and the exact dependency versions do not
+# go stale. Each one runs the CI checks like any other change.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly

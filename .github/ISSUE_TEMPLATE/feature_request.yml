@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a change before writing it
+body:
+  - type: markdown
+    attributes:
+      value: |
+        MetricTV is deliberately small. Describe the problem first; a short discussion saves a rejected pull request. Never include real store data.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to happen?
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What have you tried or considered instead?

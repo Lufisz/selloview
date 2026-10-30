@@ -1,13 +1,16 @@
 // Pure metric calculation. "Order value" = sum of currentTotalPriceSet, nothing more.
-// Input is RawShopData from server/shopify.mjs; output is the snapshot documented below.
-import { validateStore } from './shopify.mjs';
+// Input is RawShopData from server/shopify/shop-data.mjs; output is the snapshot documented below.
+import { CodedError } from './errors.mjs';
+import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
 
 /**
  * @typedef {{ valueCents: number, orders: number, averageCents: number }} PeriodTotals
  * @typedef {{ date: string, label: string, valueCents: number }} ChartPoint
+ * @typedef {{ current: ChartPoint[], previous: ChartPoint[] }} ChartSeries
  * @typedef {{ id: string, title: string, description: string, url?: string }} AttentionItem
  *
- * The /api/snapshot payload (the server adds `sync` when serving it):
+ * What the owner's board receives from GET /api/shopify (the server adds `sync`; a TV gets the
+ * smaller projection of server/screens/display-board.mjs):
  * @typedef {object} Snapshot
  * @property {'shopify'} source
  * @property {{ name: string, domain: string, currency: string, timeZone: string, plan: (string | null) }} shop
@@ -17,7 +20,8 @@ import { validateStore } from './shopify.mjs';
  *              month: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals },
  *              week: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals },
  *              today: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals } }} periods
- * @property {{ current: ChartPoint[], previous: ChartPoint[] }} chart  Seven local days each.
+ * @property {{ days60: ChartSeries, month: ChartSeries, week: ChartSeries, today: ChartSeries }} charts
+ *   Per period: 60, 30 or 7 local days, or the 24 hours of today.
  * @property {Array<{ number: string, createdAt: string, amountCents: number, paymentStatus: string, fulfillmentStatus: string, url?: string }>} recentOrders
  * @property {AttentionItem[]} attention  At most three.
  * @property {{ count: number, overdueCount: number }} backlog
@@ -28,32 +32,36 @@ import { validateStore } from './shopify.mjs';
  * @typedef {{ order: object, at: number, cents: number }} PreparedOrder
  */
 
-export class MetricsError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'MetricsError';
-    this.code = code;
-  }
-}
+export class MetricsError extends CodedError {}
 
-export const METRIC_DEFINITION =
+const METRIC_DEFINITION =
   'Order value is the sum of Shopify currentTotalPriceSet (shop currency) for non-test, non-cancelled orders created in the period. It is not net sales, cash received or profit, and is not a reconciled Shopify sales report.';
 const BACKLOG_PAYMENT_STATUSES = new Set(['PAID', 'PARTIALLY_PAID', 'PARTIALLY_REFUNDED']);
 const BACKLOG_FULFILLMENT_STATUSES = new Set(['UNFULFILLED', 'PARTIALLY_FULFILLED']);
 const LOW_STOCK_THRESHOLD = 5;
 const HOUR_MS = 3600000;
+// A paid order that is still unfulfilled after this long counts as overdue.
+const OVERDUE_AFTER_MS = 24 * HOUR_MS;
 const MAX_ATTENTION_ITEMS = 3;
 const RECENT_ORDER_COUNT = 8;
-const COVERAGE_DAYS = 130;
+const WEEK_DAYS = 7;
 const THIRTY_DAYS = 30;
 const SIXTY_DAYS = 60;
+// Longer daily charts label the first and last day and every Nth day between; the weekly chart
+// labels every day by its weekday.
+const DATE_LABEL_EVERY_N_DAYS = new Map([
+  [SIXTY_DAYS, 12],
+  [THIRTY_DAYS, 7],
+]);
+const TODAY_CHART_LABEL_HOURS = new Set([0, 6, 12, 18, 23]);
 const ORDER_GID_PATTERN = /^gid:\/\/shopify\/Order\/(\d+)$/;
 
 // ---- money, dates and time zones ----
 
 export function parseCents(amount) {
-  if (typeof amount !== 'string' || !/^\d+(\.\d{1,2})?$/.test(amount))
+  if (typeof amount !== 'string' || !/^\d+(\.\d{1,2})?$/.test(amount)) {
     throw new MetricsError('bad_amount');
+  }
   const [wholePart, fractionPart = ''] = amount.split('.');
   // BigInt keeps very long digit strings exact until the safe-integer check.
   const cents = BigInt(wholePart) * 100n + BigInt(fractionPart.padEnd(2, '0'));
@@ -68,16 +76,24 @@ function addCents(total, cents) {
   return sum;
 }
 
-export function parseInstant(text) {
+function parseInstant(text) {
   if (typeof text !== 'string') throw new MetricsError('bad_date');
   const instant = Date.parse(text);
   if (!Number.isFinite(instant)) throw new MetricsError('bad_date');
   return instant;
 }
 
-function createFormatter(timeZone) {
+const formatterByTimeZone = new Map();
+
+// A snapshot reads the local date of every order several times and building a formatter is slow
+// (a refresh of 10,000 orders stalled the server for over a second), so each time zone's formatter
+// is built once and reused.
+function getFormatter(timeZone) {
+  const knownFormatter = formatterByTimeZone.get(timeZone);
+  if (knownFormatter) return knownFormatter;
+  let formatter;
   try {
-    return new Intl.DateTimeFormat('en-CA', {
+    formatter = new Intl.DateTimeFormat('en-CA', {
       timeZone,
       hourCycle: 'h23',
       year: 'numeric',
@@ -90,6 +106,8 @@ function createFormatter(timeZone) {
   } catch {
     throw new MetricsError('bad_timezone');
   }
+  formatterByTimeZone.set(timeZone, formatter);
+  return formatter;
 }
 
 function wallClockParts(instantMs, formatter) {
@@ -101,8 +119,11 @@ function wallClockParts(instantMs, formatter) {
 }
 
 export function localDate(instantMs, timeZone) {
-  const parts = wallClockParts(instantMs, createFormatter(timeZone));
-  return `${String(parts.year).padStart(4, '0')}-${String(parts.month).padStart(2, '0')}-${String(parts.day).padStart(2, '0')}`;
+  const { year, month, day } = wallClockParts(instantMs, getFormatter(timeZone));
+  const paddedYear = String(year).padStart(4, '0');
+  const paddedMonth = String(month).padStart(2, '0');
+  const paddedDay = String(day).padStart(2, '0');
+  return `${paddedYear}-${paddedMonth}-${paddedDay}`;
 }
 
 // Plain-date arithmetic, independent of any timezone.
@@ -113,7 +134,7 @@ export function addDays(date, dayCount) {
 
 // Instant of local wall-clock time on a plain date (two-pass offset lookup; fine for midnight and ordinary times).
 export function localToInstant(date, timeZone, hour = 0, minute = 0, second = 0) {
-  const formatter = createFormatter(timeZone);
+  const formatter = getFormatter(timeZone);
   const [year, month, day] = date.split('-').map(Number);
   const wallClockAsUtc = Date.UTC(year, month - 1, day, hour, minute, second);
   const offsetAt = (instantMs) => {
@@ -159,7 +180,8 @@ function millisecondsIntoLocalDay(instantMs, formatter) {
 export function adminUrl(domain, gid) {
   const match = ORDER_GID_PATTERN.exec(String(gid));
   if (!match || !isShopifyDomain(domain)) return undefined;
-  return `https://admin.shopify.com/store/${domain.replace(/\.myshopify\.com$/, '')}/orders/${match[1]}`;
+  const storeHandle = domain.replace(/\.myshopify\.com$/, '');
+  return `https://admin.shopify.com/store/${storeHandle}/orders/${match[1]}`;
 }
 
 function isShopifyDomain(domain) {
@@ -199,19 +221,16 @@ function prepareOrders(rawOrders, currency) {
 // Local calendar anchors for today and for full-day windows with their equal-length predecessors.
 function buildReportingWindows(nowMs, timeZone) {
   const today = localDate(nowMs, timeZone);
-  const chartDays = [];
-  for (let offset = -14; offset < 0; offset++) chartDays.push(addDays(today, offset));
   return {
     today,
     yesterday: addDays(today, -1),
     todayStart: localToInstant(today, timeZone),
-    weekStart: localToInstant(addDays(today, -7), timeZone),
-    previousWeekStart: localToInstant(addDays(today, -14), timeZone),
+    weekStart: localToInstant(addDays(today, -WEEK_DAYS), timeZone),
+    previousWeekStart: localToInstant(addDays(today, -WEEK_DAYS * 2), timeZone),
     days30Start: localToInstant(addDays(today, -THIRTY_DAYS), timeZone),
     previousDays30Start: localToInstant(addDays(today, -THIRTY_DAYS * 2), timeZone),
     days60Start: localToInstant(addDays(today, -SIXTY_DAYS), timeZone),
     previousDays60Start: localToInstant(addDays(today, -SIXTY_DAYS * 2), timeZone),
-    chartDays,
   };
 }
 
@@ -238,7 +257,7 @@ function summarizeTotals(valueCents, orderCount) {
 // Orders on `date` at or before the same local clock time as `cutoffMs`.
 // Wall-clock comparison also works when that day had a missing/repeated DST hour.
 function summarizeSameLocalTime(orders, date, cutoffMs, timeZone) {
-  const formatter = createFormatter(timeZone);
+  const formatter = getFormatter(timeZone);
   const cutoffClock = millisecondsIntoLocalDay(cutoffMs, formatter);
   const selected = orders.filter(
     (prepared) =>
@@ -267,8 +286,8 @@ function buildPeriods(orders, windows, nowMs, timeZone, historyStartMs) {
       previous: summarizeRange(orders, previousDays30Start, days30Start),
     },
     week: {
-      label: `${addDays(today, -7)} to ${addDays(today, -1)}`,
-      comparisonLabel: 'compared with previous 7 full days',
+      label: `${addDays(today, -WEEK_DAYS)} to ${addDays(today, -1)}`,
+      comparisonLabel: `compared with previous ${WEEK_DAYS} full days`,
       current: summarizeRange(orders, weekStart, todayStart),
       previous: summarizeRange(orders, previousWeekStart, weekStart),
     },
@@ -281,7 +300,19 @@ function buildPeriods(orders, windows, nowMs, timeZone, historyStartMs) {
   };
 }
 
-// Daily order value for the 14 days before today, split into previous and current weeks.
+// Axis label of one day in a daily chart; '' where the chart leaves the point unlabelled.
+function dayLabel(day, index, dayCount) {
+  if (dayCount === WEEK_DAYS) return weekdayLabel(day);
+  const labelEveryNDays = DATE_LABEL_EVERY_N_DAYS.get(dayCount);
+  const isFirst = index === 0;
+  const isLast = index === dayCount - 1;
+  // A regular label in the last half interval would crowd the label of the last day.
+  const isRegular =
+    index % labelEveryNDays === 0 && dayCount - 1 - index >= Math.floor(labelEveryNDays / 2);
+  return isFirst || isLast || isRegular ? formatMonthDay(day) : '';
+}
+
+// Daily order value for the `dayCount` days before today and the `dayCount` days before those.
 function buildDaysChart(orders, dayCount, windows, timeZone) {
   const { today } = windows;
   const currentDays = [];
@@ -301,23 +332,11 @@ function buildDaysChart(orders, dayCount, windows, timeZone) {
     }
   }
 
-  const step = dayCount === 60 ? 12 : dayCount === 30 ? 7 : 1;
-  const toPoint = (day, index) => {
-    let label = '';
-    if (dayCount === 7) {
-      label = weekdayLabel(day);
-    } else {
-      const isFirst = index === 0;
-      const isLast = index === dayCount - 1;
-      const isStep = index % step === 0 && dayCount - 1 - index >= Math.floor(step / 2);
-      if (isFirst || isLast || isStep) label = formatMonthDay(day);
-    }
-    return {
-      date: day,
-      label,
-      valueCents: centsByDay.get(day) ?? 0,
-    };
-  };
+  const toPoint = (day, index) => ({
+    date: day,
+    label: dayLabel(day, index, dayCount),
+    valueCents: centsByDay.get(day) ?? 0,
+  });
 
   return {
     current: currentDays.map(toPoint),
@@ -327,7 +346,7 @@ function buildDaysChart(orders, dayCount, windows, timeZone) {
 
 function buildTodayChart(orders, windows, nowMs, timeZone) {
   const { today, yesterday } = windows;
-  const formatter = createFormatter(timeZone);
+  const formatter = getFormatter(timeZone);
   const currentHour = wallClockParts(nowMs, formatter).hour;
   const todayCents = new Array(24).fill(0);
   const yesterdayCents = new Array(24).fill(0);
@@ -343,11 +362,10 @@ function buildTodayChart(orders, windows, nowMs, timeZone) {
   }
 
   const toPoint = (hour, centsByHour) => {
-    const isTick = hour === 0 || hour === 6 || hour === 12 || hour === 18 || hour === 23;
-    const label = isTick ? `${String(hour).padStart(2, '0')}:00` : '';
+    const hourText = `${String(hour).padStart(2, '0')}:00`;
     return {
-      date: `${today}T${String(hour).padStart(2, '0')}:00`,
-      label,
+      date: `${today}T${hourText}`,
+      label: TODAY_CHART_LABEL_HOURS.has(hour) ? hourText : '',
       valueCents: centsByHour[hour],
     };
   };
@@ -367,7 +385,7 @@ function summarizeBacklog(orders, nowMs) {
     if (!BACKLOG_PAYMENT_STATUSES.has(displayFinancialStatus)) continue;
     if (!BACKLOG_FULFILLMENT_STATUSES.has(displayFulfillmentStatus)) continue;
     count++;
-    if (nowMs - prepared.at > 24 * HOUR_MS) overdueCount++;
+    if (nowMs - prepared.at > OVERDUE_AFTER_MS) overdueCount++;
   }
   return { count, overdueCount };
 }
@@ -390,12 +408,14 @@ function summarizeInventory(variants) {
 
 function buildCoverageNotes(raw) {
   const notes = [
-    `Older order backlog is unavailable: orders are only read for the last ${COVERAGE_DAYS} days.`,
+    `Older order backlog is unavailable: orders are only read for the last ${HISTORY_DAYS} days.`,
   ];
-  if (!raw.ordersComplete)
+  if (!raw.ordersComplete) {
     notes.push('Order list is incomplete (page cap or cursor problem); totals may be too low.');
-  if (!raw.inventoryComplete)
+  }
+  if (!raw.inventoryComplete) {
     notes.push('Inventory list is incomplete (page cap or cursor problem).');
+  }
   return notes;
 }
 
@@ -416,7 +436,7 @@ function buildAttention({ raw, domain, overdueCount, inventory }) {
     items.push({
       id: 'overdue',
       title: `${overdueCount} ${pluralize(overdueCount, 'order', 'orders')} waiting over 24h`,
-      description: `Paid or partly paid · Last ${COVERAGE_DAYS} days`,
+      description: `Paid or partly paid · Last ${HISTORY_DAYS} days`,
       url: `https://${domain}/admin/orders`,
     });
   }
@@ -454,7 +474,7 @@ function buildRecentOrders(orders, domain) {
 
 /**
  * Builds the dashboard snapshot from raw Shopify data. Throws MetricsError on any invalid input.
- * @param {import('./shopify.mjs').RawShopData} raw
+ * @param {import('./shopify/shop-data.mjs').RawShopData} raw
  * @param {Date} now
  * @returns {Snapshot}
  */
@@ -462,9 +482,10 @@ export function buildSnapshot(raw, now = new Date()) {
   const { shop } = raw;
   const timeZone = shop.ianaTimezone;
   const currency = shop.currencyCode;
-  createFormatter(timeZone); // rejects an unknown time zone before any other work
-  if (!Array.isArray(raw.orders) || !Array.isArray(raw.variants))
+  getFormatter(timeZone); // rejects an unknown time zone before any other work
+  if (!Array.isArray(raw.orders) || !Array.isArray(raw.variants)) {
     throw new MetricsError('bad_shape');
+  }
   assertShopMetadata(shop);
   const nowMs = now.getTime();
   const domain = shop.myshopifyDomain;
@@ -474,9 +495,9 @@ export function buildSnapshot(raw, now = new Date()) {
   const backlog = summarizeBacklog(orders, nowMs);
   const inventory = summarizeInventory(raw.variants);
   const charts = {
-    days60: buildDaysChart(orders, 60, windows, timeZone),
-    month: buildDaysChart(orders, 30, windows, timeZone),
-    week: buildDaysChart(orders, 7, windows, timeZone),
+    days60: buildDaysChart(orders, SIXTY_DAYS, windows, timeZone),
+    month: buildDaysChart(orders, THIRTY_DAYS, windows, timeZone),
+    week: buildDaysChart(orders, WEEK_DAYS, windows, timeZone),
     today: buildTodayChart(orders, windows, nowMs, timeZone),
   };
 
@@ -493,13 +514,12 @@ export function buildSnapshot(raw, now = new Date()) {
     coverage: {
       since: raw.since.toISOString(),
       until: raw.until.toISOString(),
-      historyDays: COVERAGE_DAYS,
+      historyDays: HISTORY_DAYS,
       ordersComplete: raw.ordersComplete,
       inventoryComplete: raw.inventoryComplete,
       notes: buildCoverageNotes(raw),
     },
     periods: buildPeriods(orders, windows, nowMs, timeZone, raw.since.getTime()),
-    chart: charts.week,
     charts,
     recentOrders: buildRecentOrders(orders, domain),
     attention: buildAttention({ raw, domain, overdueCount: backlog.overdueCount, inventory }),

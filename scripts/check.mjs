@@ -21,7 +21,7 @@ async function findJavaScriptFiles(directory) {
   return files;
 }
 
-const sourceFiles = ['server.mjs'];
+const sourceFiles = [];
 for (const directory of sourceDirectories) {
   sourceFiles.push(...(await findJavaScriptFiles(directory)));
 }

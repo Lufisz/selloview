@@ -3,9 +3,8 @@
 This guide runs MetricTV for **one Shopify store** on a server you control: your own domain,
 your own Shopify app, your own email sender. Expect about an hour the first time.
 
-> Status: early. The self-hosted path uses the same code as the hosted beta, which is still
-> invite-only. Nothing here is a supported release yet, and configuration names still carry a
-> `BETA_` prefix. They will be renamed before 1.0 with a migration note.
+> Status: early. The self-hosted path uses the same code as the hosted service, which is still
+> invite-only. Nothing here is a supported release yet.
 
 ## What you get
 
@@ -23,8 +22,8 @@ MetricTV only reads data. It requests `read_orders`, `read_all_orders`, `read_pr
 
 | Requirement | Why |
 | --- | --- |
-| A Linux server (1 vCPU, 512 MB RAM is enough) | Runs one Node.js process and a SQLite file. |
-| Node.js 22.13 or later | Uses the built-in `node:sqlite`. No other runtime. |
+| A Linux server (1 vCPU, 512 MB RAM is enough) | Runs one Node.js process and a SQLite file. [architecture.md](architecture.md#capacity-and-growth) says what one server carries. |
+| Node.js 22.16 or later | Uses the built-in `node:sqlite`. No other runtime. Older versions are refused at start. |
 | A domain name pointing at the server | Shopify and secure cookies need HTTPS. |
 | A reverse proxy with HTTPS, e.g. [Caddy](https://caddyserver.com) | MetricTV only listens on `127.0.0.1`. |
 | A [Resend](https://resend.com) account with a verified sending domain | Delivers sign-in codes. It is currently the only supported mail provider. |
@@ -50,7 +49,7 @@ Apps can no longer be created directly in the store admin.
 
 1. Create an app, for example "MetricTV (self-hosted)".
 2. Create a version with:
-   - **App URL:** your `BETA_ORIGIN`, e.g. `https://metrictv.example.com`
+   - **App URL:** your `METRICTV_ORIGIN`, e.g. `https://metrictv.example.com`
    - **Redirect URL:** `https://metrictv.example.com/auth/beta/shopify/callback`
    - **Scopes:** `read_orders,read_all_orders,read_products,read_inventory`
    - Not embedded in the Shopify admin.
@@ -72,27 +71,35 @@ sudo chmod 600 /etc/metrictv/metrictv.env
 sudo -e /etc/metrictv/metrictv.env
 ```
 
-Every setting is explained in [`.env.example`](../.env.example). Generate the two secrets with:
+Every setting is explained in [`.env.example`](../.env.example). The first group is required. The email
+and Shopify groups are commented out: uncomment and fill in the whole group you use (all of the Shopify
+group, both email lines). Left commented, the server still starts and reports email delivery or the store
+connection as not set up. `METRICTV_TRUSTED_IP_HEADER` is already on: it matches the Caddyfile in step 5,
+which always overwrites that header. With another proxy, keep it only if that proxy does the same. Generate
+the two secrets with:
 
 ```sh
-openssl rand -base64 48   # BETA_AUTH_SECRET
-openssl rand -base64 32   # BETA_SHOPIFY_ENCRYPTION_KEY
+openssl rand -base64 48   # METRICTV_AUTH_SECRET
+openssl rand -base64 32   # METRICTV_SHOPIFY_ENCRYPTION_KEY
 ```
 
 Use a new value for each; never reuse the Shopify client secret. The server refuses to start on a
 missing or malformed value and names the setting, never its value.
 
+Self-service registration (`METRICTV_SELF_REGISTRATION`) is off and not needed for one owner; it is
+described in [auth-and-pairing.md](auth-and-pairing.md#self-service-registration-optional).
+
 ## 4. Create the database and invite yourself
 
 ```sh
 cd /opt/metrictv
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs init
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs invite you@example.com
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs init
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs invite you@example.com
 ```
 
-Invite the same address as `BETA_SHOPIFY_OWNER_EMAIL`. Inviting sends nothing; you request a code on
-the sign-in page. Other commands: `owners`, `revoke <email>` (signs that person out everywhere) and
-`migrate` (after an upgrade).
+Invite the same address as `METRICTV_SHOPIFY_OWNER_EMAIL`. Inviting sends nothing; you request a code on
+the sign-in page. Other commands: `owners`, `revoke <email>` (signs that person out everywhere; the
+address stays invited), `remove <email>` ([below](#removing-an-owner)) and `migrate` (after an upgrade).
 
 ## 5. Run it
 
@@ -103,13 +110,25 @@ sudo systemctl enable --now metrictv
 journalctl -u metrictv -n 20
 ```
 
-The log should report the origin, `Email delivery: configured` and `Shopify store connection:
-configured`. Node prints a warning that `node:sqlite` is experimental; that is expected.
+The log should report the origin, `Email delivery: configured`, `Shopify store connection:
+configured` and `Client address for rate limits: the x-real-ip header`. Node prints a warning that
+`node:sqlite` is experimental; that is expected.
 
 Then put HTTPS in front of it. With Caddy, adapt [`deploy/Caddyfile`](../deploy/Caddyfile), copy it to
-`/etc/caddy/Caddyfile` and run `sudo systemctl reload caddy`. If you use Caddy's `X-Real-IP` line,
-also set `BETA_TRUSTED_IP_HEADER=x-real-ip` and restart MetricTV, so rate limits see real visitor
-addresses instead of the proxy.
+`/etc/caddy/Caddyfile` and run `sudo systemctl reload caddy`. That file sets `X-Real-IP`, which
+`.env.example` already trusts (step 3): the two go together. Without a trusted header every visitor shares
+one set of rate limits, and anyone can use up the owner's sign-in allowance. With another proxy, trust a
+header only if that proxy always overwrites it. If the journal shows `proxy_header_not_trusted`, the proxy
+sends a header MetricTV is not reading.
+
+Check that it is up. `/healthz` answers `{"status":"ok"}`, or `503` when the database cannot be read,
+and is what an uptime monitor should poll. The server only answers the host in `METRICTV_ORIGIN`, so
+from the server itself send that host:
+
+```sh
+curl -s https://metrictv.example.com/healthz
+curl -s -H 'Host: metrictv.example.com' http://127.0.0.1:4330/healthz   # before HTTPS is set up
+```
 
 ## 6. First use
 
@@ -153,12 +172,55 @@ sudo systemctl stop metrictv
 # back up first (see above)
 sudo git pull
 sudo npm ci --omit=dev --ignore-scripts
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs migrate
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs migrate
 sudo systemctl start metrictv
 ```
 
 The server refuses to start on a database from a different schema version until you run `migrate`.
-Paired TVs reload themselves to the new version within a minute.
+Paired TVs notice the new version on their next poll and reload themselves. A screen already on this
+version or later waits a random moment within the following minute, so they do not all fetch the page
+at once; a screen still on an older page reloads at once.
+
+## Coming from the earlier `BETA_` settings
+
+Only for an instance that ran before the settings were renamed. Settings that started with `BETA_` now
+start with `METRICTV_`, and the rest of each name is unchanged: `BETA_DB_PATH` is now
+`METRICTV_DB_PATH`, `BETA_SHOPIFY_TOKEN_DIR` is now `METRICTV_SHOPIFY_TOKEN_DIR`, and so on for all
+fifteen. Rename them in your environment file before you restart. The server and `npm run admin`
+refuse to start while an old name is still set, and the error lists each old name with its
+replacement (never a value).
+
+| Before | Now |
+| --- | --- |
+| `npm run start:beta` | `npm run start:server` |
+| `npm run beta:init`, `beta:migrate`, `beta:owners` | `npm run admin -- init`, `migrate`, `owners` |
+| `npm run beta:invite -- <email>`, `beta:revoke -- <email>` | `npm run admin -- invite <email>`, `revoke <email>` |
+| `ExecStart=… server/beta/beta-server.mjs` | `ExecStart=… server/main.mjs` |
+
+The owner API moved from `/api/beta/…` to `/api/…`, and nothing answers under the old prefix. A
+browser tab that was open during the upgrade shows an error until it is reloaded, and a reverse
+proxy rule that matched `/api/beta/` needs the new prefix. Your database, the encrypted Shopify
+credentials, the Shopify redirect URL and paired TVs are not otherwise affected.
+
+## Removing an owner
+
+`revoke` only signs an owner out; the address stays invited and can sign in again. `remove` deletes the
+owner with the workspace, its paired screens and the stored Shopify credentials, so the address is
+uninvited and a later `invite` starts from nothing:
+
+```sh
+sudo systemctl stop metrictv
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs remove you@example.com
+sudo systemctl start metrictv
+```
+
+Stop the service first: a running server could still write the credentials back. Use the same
+environment file as the server so the command can find the credentials; without the Shopify settings it
+refuses to remove an owner who linked a store (`shopify_settings_missing`). `grant_not_removed` means the
+credentials could not be deleted, usually because the command did not run as the service user (the
+credentials must belong to whoever runs it, root included) or `METRICTV_SHOPIFY_TOKEN_DIR` holds something
+that is not MetricTV's. Nothing was removed then, so run it again once that is fixed. The Shopify app stays installed in the store until you uninstall it in the
+Shopify admin.
 
 ## Removing MetricTV
 
@@ -171,12 +233,13 @@ Paired TVs reload themselves to the new version within a minute.
 | Symptom | Check |
 | --- | --- |
 | Service exits at start | `journalctl -u metrictv`. The message names the setting that is missing or malformed. |
-| "Email delivery is not set up" | Both `BETA_RESEND_API_KEY` and `BETA_MAIL_FROM` must be set. |
-| "The code email could not be sent" | The Resend key, and that `BETA_MAIL_FROM` uses a domain verified in Resend. |
-| Shopify shows a redirect error | The redirect URL in the app version must equal `BETA_ORIGIN` + `/auth/beta/shopify/callback` exactly. |
-| "...can connect only one specific store" or "Store connection is not available for this account" | The store must equal `BETA_SHOPIFY_ALLOWED_STORE` and you must be signed in as `BETA_SHOPIFY_OWNER_EMAIL`. |
+| Every page answers `400 bad_host` | The proxy must pass the original `Host` header, and it must equal the host in `METRICTV_ORIGIN`. |
+| "Email delivery is not set up" | Both `METRICTV_RESEND_API_KEY` and `METRICTV_MAIL_FROM` must be set. |
+| An owner's sign-in code never arrives | The page cannot say why, on purpose. The journal has a `code_delivery_failed` line when sending failed: `delivery_rejected` means Resend refused the request (check the Resend key, and that `METRICTV_MAIL_FROM` uses a domain verified in Resend), `delivery_unreachable` means Resend could not be reached from the server. With no such line, check the spam folder and that the invited address is exactly the one typed. |
+| Shopify shows a redirect error | The redirect URL in the app version must equal `METRICTV_ORIGIN` + `/auth/beta/shopify/callback` exactly. |
+| "...can connect only one specific store" or "Store connection is not available for this account" | The store must equal `METRICTV_SHOPIFY_ALLOWED_STORE` and you must be signed in as `METRICTV_SHOPIFY_OWNER_EMAIL`. |
 | Board says data is out of date | Shopify could not be reached or the app was uninstalled. The last good figures stay visible with a warning; nothing is replaced by zeros. |
-| Everyone gets rate-limited together | Configure `BETA_TRUSTED_IP_HEADER` with a proxy that overwrites that header. |
+| Everyone gets rate-limited together | The start-up log says `Client address for rate limits: the connection` when no header is trusted, and the journal has a `proxy_header_not_trusted` line when a proxy sends one that is not read. Set `METRICTV_TRUSTED_IP_HEADER` to a header the proxy always overwrites. |
 
 ## Limits of the self-hosted version today
 

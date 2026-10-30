@@ -1,0 +1,996 @@
+/* The sample app at /demo: landing, setup, connections and settings pages, and the board scale
+   for the sample workspace. Loaded after shared/styles.css and shared/board.css. */
+.centered-text {
+  text-align: center;
+}
+.text-button.centered {
+  display: flex;
+  margin: 13px auto 0;
+}
+/* The sample badge, the prototype notice and the home page. */
+.sample-badge,
+.outline-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border-radius: 5px;
+  background: #ecefe8;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.outline-badge {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.prototype-notice {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 8px;
+  flex-wrap: wrap;
+  padding: 10px var(--app-gutter);
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+  color: #58634f;
+  background: #edf0e9;
+}
+.notice-divider {
+  margin: 0 5px;
+  color: #bbc2b5;
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 50px;
+  align-items: end;
+  padding: 69px 0 51px;
+}
+.hero h1 {
+  font-size: clamp(48px, 5.5vw, 78px);
+  letter-spacing: -0.065em;
+  font-weight: 500;
+  line-height: 1.03;
+  margin-top: 24px;
+}
+.hero-copy {
+  padding: 0 0 4px 15px;
+}
+.hero-copy > p {
+  color: #646e65;
+  font-size: 15px;
+  line-height: 1.8;
+}
+.hero-actions {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  margin-top: 26px;
+}
+.hero-note {
+  margin-top: 13px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.preview-frame {
+  border: 1px solid #d6ddd2;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 8px 28px #1d302108;
+}
+.preview-topline {
+  min-height: 39px;
+  background: #eef0eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22px;
+  border-bottom: 1px solid var(--line);
+  color: #58634f;
+  font-size: 9px;
+}
+.preview-topline > div {
+  display: flex;
+  gap: 5px;
+  width: 130px;
+}
+.preview-topline > div span {
+  border: 1px solid #bcc6b7;
+  border-radius: 50%;
+  width: 6px;
+  height: 6px;
+}
+.preview-topline a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green);
+}
+.preview-topline .icon {
+  width: 12px;
+  height: 12px;
+}
+.principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 52px;
+  padding: 55px 0 60px;
+}
+.principle-number {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+}
+.principles h2 {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.35px;
+  margin: 16px 0 11px;
+}
+.principles p {
+  max-width: 320px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.project-strip {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 32px 0;
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  align-items: center;
+}
+.project-strip h2 {
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.5px;
+  margin-bottom: 7px;
+}
+.project-strip p {
+  font-size: 12px;
+  color: var(--muted);
+}
+.site-footer {
+  padding-block: 20px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.site-footer > div {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.site-footer .text-button {
+  font-size: 12px;
+  color: var(--muted);
+}
+.footer-prototype {
+  font-size: 11px;
+}
+.demo-tools {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 17px 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.demo-tools .text-button {
+  font-size: 10px;
+}
+.traffic-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f6f7f3;
+  border: 1px dashed #dce2d6;
+  border-radius: 6px;
+  margin-top: 23px;
+  padding: 15px;
+}
+.traffic-note > .icon {
+  color: #7d8e75;
+}
+.traffic-note strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 550;
+  margin-bottom: 3px;
+}
+.traffic-note span {
+  font-size: 10px;
+  color: var(--muted);
+}
+.traffic-note .text-button {
+  margin-left: auto;
+  white-space: nowrap;
+  font-size: 10px;
+}
+/* Onboarding is a quiet editorial page, not another dashboard. */
+.setup-layout {
+  padding-block: var(--app-page-top) 64px;
+  display: grid;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 640px);
+  gap: 80px;
+}
+.setup-sidebar {
+  border-right: 1px solid var(--line);
+  padding-right: 65px;
+}
+.steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.steps li {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  font-size: 12px;
+  color: #7b8378;
+  padding: 15px 0;
+}
+.steps li > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #dce1d5;
+  border-radius: 50%;
+  font-size: 9px;
+}
+.steps li.current {
+  color: var(--ink);
+  font-weight: 550;
+}
+.steps li.current > span {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+.steps li.complete > span {
+  background: #e7eee2;
+  color: var(--green);
+}
+.steps .icon {
+  width: 14px;
+  height: 14px;
+}
+.setup-side-note {
+  margin-top: 70px;
+}
+.setup-side-note h2 {
+  font-size: 20px;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  margin-top: 25px;
+}
+.setup-side-note p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin-top: 14px;
+  max-width: 220px;
+}
+.setup-side-note .quiet-link {
+  font-size: 10px;
+  margin-top: 30px;
+}
+.drawn-board {
+  width: 126px;
+  height: 85px;
+  border: 1px solid #adbaa4;
+  border-radius: 6px;
+  padding: 21px 13px 15px;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  position: relative;
+  background: #eef1e9;
+}
+.drawn-board::before {
+  content: '';
+  position: absolute;
+  top: 10px;
+  left: 13px;
+  width: 32px;
+  height: 2px;
+  background: #a2b196;
+}
+.drawn-board span {
+  width: 19px;
+  background: #b5c5ab;
+  height: 50%;
+  border-radius: 2px 2px 0 0;
+}
+.drawn-board span:nth-child(2) {
+  height: 75%;
+  background: #7f9871;
+}
+.drawn-board span:nth-child(3) {
+  height: 60%;
+}
+.drawn-board span:nth-child(4) {
+  height: 95%;
+  background: var(--green);
+}
+.setup-content {
+  padding-top: 18px;
+}
+.setup-content h1 {
+  margin-top: 12px;
+}
+.setup-description {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+  margin: 21px 0 28px;
+}
+.setup-description strong {
+  font-weight: 500;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.setup-disclosure {
+  border-top: 1px solid var(--line);
+  margin-top: 30px;
+  padding-top: 22px;
+  display: flex;
+  gap: 12px;
+}
+.setup-disclosure .icon {
+  margin-top: 3px;
+  color: #8c9c82;
+}
+.setup-disclosure p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.setup-disclosure strong {
+  font-weight: 550;
+  color: var(--ink);
+}
+.permission-box {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 23px;
+}
+.permission-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+}
+.permission-heading > .icon {
+  color: var(--green);
+}
+.permission-box ul {
+  padding: 19px 0;
+  list-style: none;
+  margin: 0;
+}
+.permission-box li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  padding: 8px 0;
+}
+.permission-box li .icon {
+  width: 14px;
+  height: 14px;
+  color: #718e64;
+}
+.permission-box p {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+  border-top: 1px solid var(--line);
+  padding-top: 15px;
+}
+.inline-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #837350;
+  font-size: 10px;
+  margin: 21px 0;
+}
+.widget-options {
+  border: 0;
+  padding: 0;
+  margin: 24px 0;
+}
+.widget-options legend {
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 10px 0;
+}
+.checkbox-row input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--green);
+  margin: 0;
+  cursor: pointer;
+}
+/* Secondary pages share the same rails and type hierarchy, as one centred column inside the rail. */
+.settings-layout {
+  padding-block: var(--app-page-top) 64px;
+  display: grid;
+  grid-template-columns: minmax(0, 880px);
+  justify-content: center;
+  align-content: start;
+}
+.settings-layout > .quiet-link {
+  justify-self: start;
+}
+.page-heading {
+  margin-bottom: 28px;
+}
+.page-heading h1,
+.setup-content h1 {
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.page-heading h1 {
+  margin-top: 12px;
+}
+.page-heading > p {
+  font-size: 13px;
+  color: var(--muted);
+}
+/* Connections and settings pages. */
+.connection-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 19px;
+  padding: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  margin-top: 15px;
+}
+.connection-icon {
+  width: 42px;
+  height: 45px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+}
+.shopify-icon {
+  background: #eef4e4;
+  color: #718f37;
+}
+.shopify-icon .icon {
+  width: 24px;
+  height: 24px;
+}
+.analytics-icon {
+  background: #faf1e3;
+  gap: 3px;
+  align-items: flex-end;
+  padding: 11px;
+}
+.analytics-icon span {
+  width: 5px;
+  background: #c58c37;
+  height: 10px;
+  border-radius: 2px;
+}
+.analytics-icon span:nth-child(2) {
+  height: 17px;
+}
+.analytics-icon span:nth-child(3) {
+  height: 24px;
+}
+.connection-content {
+  flex: 1;
+  min-width: 0;
+}
+.connection-title {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  flex-wrap: wrap;
+  margin: 4px 0 9px;
+}
+.connection-title h2 {
+  font-size: 16px;
+  font-weight: 550;
+}
+.connection-content p {
+  color: var(--muted);
+  font-size: 12px;
+}
+.connection-domain {
+  display: inline-block;
+  margin-top: 17px;
+  font-size: 11px;
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+.connection-scope {
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 10px;
+}
+.connection-card > .button {
+  margin-top: 5px;
+  flex: 0 0 auto;
+}
+.connection-principle {
+  display: flex;
+  gap: 15px;
+  padding: 32px 0;
+  max-width: 640px;
+}
+.connection-principle > .icon {
+  color: #809274;
+  margin-top: 1px;
+}
+.connection-principle h3 {
+  font-size: 12px;
+  font-weight: 550;
+  margin-bottom: 7px;
+}
+.connection-principle p {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.settings-form {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 0 30px;
+}
+.settings-section {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 50px;
+  padding: 28px 0;
+  border-bottom: 1px solid var(--line);
+}
+.settings-section h2 {
+  font-size: 14px;
+  font-weight: 550;
+  margin-top: 4px;
+}
+.settings-section > div > p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 8px;
+}
+.settings-fields label:first-child {
+  margin-top: 0;
+}
+.settings-fields .field-hint {
+  margin-bottom: 0;
+}
+.settings-actions {
+  padding: 23px 0;
+  display: flex;
+  align-items: center;
+  gap: 23px;
+}
+/* The sample's TV mode. */
+.board-tv .traffic-note {
+  display: none;
+}
+.dark-board .sample-badge {
+  background: #334135;
+}
+/* Dialogs are honest explanations for actions outside this prototype's scope. */
+dialog {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 33px;
+  max-width: 480px;
+  width: calc(100% - 36px);
+  color: var(--ink);
+  box-shadow: 0 22px 80px #162b2526;
+  background: var(--surface);
+}
+dialog::backdrop {
+  background: #14241d55;
+  backdrop-filter: blur(3px);
+}
+dialog h2 {
+  font-size: 27px;
+  font-weight: 450;
+  letter-spacing: -0.7px;
+  margin: 20px 0 17px;
+}
+dialog p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.85;
+  margin-bottom: 25px;
+}
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translate(-50%, 12px);
+  background: #263d31;
+  color: #fff;
+  border-radius: 7px;
+  padding: 12px 20px;
+  font-size: 12px;
+  box-shadow: 0 4px 20px #16291b22;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  z-index: 30;
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+.toast.visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+@media (max-width: 1100px) {
+  .hero {
+    gap: 25px;
+  }
+  .hero-copy {
+    padding-left: 0;
+  }
+  .hero-copy > p {
+    font-size: 13px;
+  }
+  .hero-actions {
+    gap: 16px;
+  }
+  .principles {
+    gap: 30px;
+  }
+  .setup-layout {
+    gap: 55px;
+  }
+  .setup-sidebar {
+    padding-right: 40px;
+  }
+  .connection-card {
+    padding: 23px;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .connection-card > .button {
+    margin-left: 56px;
+  }
+}
+@media (max-width: 767px) {
+  .desktop-only {
+    display: none !important;
+  }
+  .site-header nav:has(.desktop-only) {
+    display: none;
+  }
+  .notice-divider {
+    margin: 0 1px;
+  }
+  .hero {
+    display: block;
+    padding: 40px 0 30px;
+  }
+  .hero .eyebrow {
+    font-size: 8px;
+  }
+  .hero h1 {
+    font-size: clamp(44px, 10.8vw, 70px);
+    margin-top: 20px;
+  }
+  .hero-copy {
+    margin-top: 23px;
+  }
+  .hero-copy > p {
+    font-size: 13px;
+    max-width: 340px;
+    line-height: 1.8;
+  }
+  .hero-actions {
+    margin-top: 21px;
+    gap: 22px;
+  }
+  .hero-actions .button {
+    font-size: 12px;
+    padding: 13px 15px;
+  }
+  .hero-actions .quiet-link {
+    font-size: 12px;
+  }
+  .hero-note {
+    font-size: 9px;
+  }
+  .preview-topline {
+    padding: 0 13px;
+  }
+  .preview-topline > div {
+    width: auto;
+  }
+  .preview-topline > span {
+    display: none;
+  }
+  .principles {
+    grid-template-columns: 1fr;
+    padding: 34px 0;
+    gap: 28px;
+  }
+  .principles article {
+    padding-left: 16px;
+    border-left: 1px solid #cfd8c7;
+  }
+  .principles h2 {
+    margin-top: 8px;
+    font-size: 18px;
+  }
+  .principles p {
+    max-width: none;
+  }
+  .project-strip {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+    padding: 26px 0;
+  }
+  .project-strip h2 {
+    font-size: 22px;
+  }
+  .site-footer {
+    padding-block: 24px;
+    display: block;
+  }
+  .site-footer > div {
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 12px;
+  }
+  .footer-prototype {
+    margin-left: auto;
+  }
+  .demo-tools {
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .demo-tools > span {
+    max-width: 125px;
+  }
+  .demo-tools .text-button {
+    font-size: 9px;
+  }
+  .traffic-note {
+    flex-wrap: wrap;
+    gap: 9px;
+  }
+  .traffic-note > div {
+    flex: 1;
+  }
+  .traffic-note .text-button {
+    margin-left: 27px;
+  }
+  .setup-layout {
+    display: block;
+    padding-bottom: 40px;
+    min-height: 0;
+  }
+  .setup-sidebar {
+    border-right: 0;
+    padding-right: 0;
+  }
+  .steps {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+  }
+  .steps li {
+    gap: 7px;
+    font-size: 10px;
+    padding: 0;
+  }
+  .steps li > span {
+    width: 24px;
+    height: 24px;
+    font-size: 8px;
+  }
+  .setup-side-note {
+    display: none;
+  }
+  .setup-content {
+    padding-top: 10px;
+  }
+  .setup-description {
+    font-size: 12px;
+    margin-top: 18px;
+  }
+  .settings-layout {
+    padding-bottom: 45px;
+    min-height: 0;
+  }
+  .page-heading h1,
+  .setup-content h1 {
+    font-size: 26px;
+  }
+  .page-heading > p {
+    font-size: 12px;
+  }
+  .connection-card {
+    padding: 20px;
+    gap: 14px;
+  }
+  .connection-content {
+    flex-basis: calc(100% - 60px);
+  }
+  .connection-title {
+    gap: 7px;
+  }
+  .connection-title h2 {
+    font-size: 15px;
+  }
+  .connection-card > .button {
+    margin-left: 0;
+    width: 100%;
+  }
+  .connection-content p {
+    font-size: 11px;
+  }
+  .connection-scope {
+    font-size: 9px;
+  }
+  .settings-form {
+    padding: 0 20px;
+  }
+  .settings-section {
+    display: block;
+    padding: 23px 0;
+  }
+  .settings-fields {
+    margin-top: 19px;
+  }
+  .settings-actions {
+    gap: 15px;
+  }
+  .settings-actions .quiet-link {
+    font-size: 11px;
+  }
+}
+/* Sample dashboard board scale. The shared shell above already sets its rails and header;
+   TV mode removes this class and keeps the display layout. */
+.sample-app .board {
+  padding: 20px 24px 12px;
+}
+.sample-app .board-heading {
+  padding-bottom: 16px;
+}
+.sample-app .board-heading h1 {
+  margin: 2px 0 6px;
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+.sample-app .board-heading p {
+  font-size: 12px;
+}
+.sample-app .board-controls select,
+.sample-app .board-controls .button {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+}
+.sample-app .metrics {
+  padding-block: 18px;
+}
+.sample-app .metric-value {
+  font-size: clamp(27px, 2.6vw, 38px);
+  font-weight: 400;
+  letter-spacing: -0.035em;
+  margin-block: 6px;
+}
+.sample-app .metric-label {
+  font-size: 13px;
+}
+.sample-app .metrics-context {
+  font-size: 11px;
+}
+.sample-app .change {
+  font-size: 11px;
+}
+.sample-app .orders-panel td {
+  font-size: 12px;
+}
+.sample-app .orders-panel th,
+.sample-app .order-status {
+  font-size: 11px;
+}
+.sample-app .chart-panel,
+.sample-app .attention-panel {
+  padding-top: 20px;
+  padding-bottom: 18px;
+}
+.sample-app .section-heading h2 {
+  font-size: 14px;
+  font-weight: 500;
+}
+.sample-app .revenue-chart {
+  height: 300px;
+  margin-top: 14px;
+}
+.sample-app .attention-item {
+  padding-block: 18px;
+}
+.sample-app .traffic-note {
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 12px;
+}
+.sample-app .traffic-note strong {
+  font-weight: 400;
+}
+.sample-app .demo-tools {
+  margin-top: 14px;
+  font-size: 12px;
+}
+.sample-app .text-button {
+  min-height: 44px;
+  font-size: 12px;
+}
+@media (max-width: 767px) {
+  .sample-app .board {
+    padding: 16px 14px 10px;
+  }
+  .sample-app .board-heading h1 {
+    font-size: 24px;
+  }
+  .sample-app .orders-panel table {
+    min-width: 650px;
+  }
+  .sample-app .board-controls {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sample-app .metric-value {
+    font-size: 29px;
+  }
+  .sample-app .metric-label {
+    font-size: 12px;
+  }
+  .sample-app .revenue-chart {
+    height: auto;
+    margin-top: 18px;
+  }
+  .sample-app .traffic-note {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
