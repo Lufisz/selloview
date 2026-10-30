@@ -474,6 +474,62 @@ test('a server whose port is taken says so in one line and exits', async (t) => 
   assert.equal(/^\s+at /m.test(result.stderr), false, 'no stack trace');
 });
 
+/** Starts a script and resolves with its output once the line that contains `marker` is complete. */
+function startAndReadOutput(t, script, env, marker) {
+  const child = spawn(process.execPath, [path.join(PROJECT_ROOT, script)], {
+    env: { PATH: process.env.PATH, ...env },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  t.after(() => child.kill('SIGKILL'));
+  child.stderr.resume();
+  return new Promise((resolve, reject) => {
+    let output = '';
+    const timer = setTimeout(() => reject(new Error(`no "${marker}" line in: ${output}`)), 15_000);
+    child.stdout.on('data', (chunk) => {
+      output += chunk;
+      if (
+        output
+          .split('\n')
+          .some((line, index, lines) => line.includes(marker) && index < lines.length - 1)
+      ) {
+        clearTimeout(timer);
+        resolve(output);
+      }
+    });
+    child.on('exit', () => {
+      clearTimeout(timer);
+      reject(new Error(`${script} exited early: ${output}`));
+    });
+  });
+}
+
+test('the start-up lines say whether rate limits can tell visitors apart', async (t) => {
+  async function startupLines(extraEnvironment) {
+    const directory = await makeTemporaryDirectory(t);
+    const port = await findFreePort();
+    const env = {
+      PATH: process.env.PATH,
+      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
+      METRICTV_AUTH_SECRET: VALID_SECRET,
+      METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
+      METRICTV_PORT: String(port),
+      ...extraEnvironment,
+    };
+    assert.equal((await runCli(['init'], env)).code, 0);
+    return startAndReadOutput(t, 'server/main.mjs', env, 'Client address for rate limits');
+  }
+
+  const withoutHeader = await startupLines({});
+  assert.match(
+    withoutHeader,
+    /Client address for rate limits: the connection \(behind a proxy, every visitor looks like the proxy: see METRICTV_TRUSTED_IP_HEADER\)/,
+  );
+
+  const withHeader = await startupLines({ METRICTV_TRUSTED_IP_HEADER: 'X-Real-IP' });
+  assert.match(withHeader, /Client address for rate limits: the x-real-ip header\n/);
+  assert.equal(withHeader.includes('every visitor looks like the proxy'), false);
+});
+
 test('server start without an initialized database fails and creates nothing', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const databasePath = path.join(directory, 'private', 'metrictv.sqlite');

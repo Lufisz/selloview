@@ -55,6 +55,12 @@ function startFromEnvironment() {
     console.log(`Self-service registration: ${signUp}`);
     const connection = shopify.configured ? 'configured' : 'NOT configured (setup required)';
     console.log(`Shopify store connection: ${connection}`);
+    const addressSource =
+      config.trustedIpHeader === ''
+        ? 'the connection (behind a proxy, every visitor looks like the proxy: ' +
+          'see METRICTV_TRUSTED_IP_HEADER)'
+        : `the ${config.trustedIpHeader} header`;
+    console.log(`Client address for rate limits: ${addressSource}`);
   });
 }
 
