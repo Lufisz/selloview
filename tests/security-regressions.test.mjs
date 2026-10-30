@@ -5,8 +5,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
 import { createSecurityHeaders, findPublicFile } from '../server/static-files.mjs';
-import { isUsableSnapshot, fetchSnapshot, MESSAGES } from '../public/live-client.js';
-import { formatPeriodLabel } from '../public/live-view.js';
+import { fetchSnapshot, MESSAGES } from '../public/live-client.js';
+import { isUsableSnapshot } from '../public/snapshot-validation.js';
+import { formatPeriodLabel } from '../public/live-board-model.js';
 import { safeShopifyAdminUrl } from '../public/ui.js';
 import { renderAttentionPanel, renderOrdersPanel } from '../public/board.js';
 
@@ -64,6 +65,7 @@ function syntheticSnapshot() {
 
 test('a complete synthetic server snapshot passes client validation', () => {
   assert.equal(isUsableSnapshot(syntheticSnapshot()), true);
+  assert.equal(isUsableSnapshot(null), false);
 });
 
 const malformedSnapshots = [
@@ -83,6 +85,18 @@ const malformedSnapshots = [
     'invalid store domain',
     (snapshot) => {
       snapshot.shop.domain = 'unrelated.example';
+    },
+  ],
+  [
+    'invalid currency code',
+    (snapshot) => {
+      snapshot.shop.currency = 'eur<';
+    },
+  ],
+  [
+    'unknown time zone',
+    (snapshot) => {
+      snapshot.shop.timeZone = 'Mars/Base';
     },
   ],
   [

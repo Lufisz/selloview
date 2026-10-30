@@ -130,12 +130,61 @@ test('Admin runner sends only fixed read queries and the server-side access toke
       return jsonResponse({ data: { shop: { name: 'Synthetic' } } });
     },
   });
-  for (const name of ['constructor', '__proto__', 'mutation', undefined]) {
-    await assert.rejects(run(name), { code: 'unknown_query' });
+  // The name must be one of the runner's own fixed queries, whatever shape it arrives in.
+  for (const name of [
+    'constructor',
+    '__proto__',
+    'toString',
+    'hasOwnProperty',
+    'valueOf',
+    'mutation',
+    '',
+    undefined,
+    null,
+    5,
+    ['shop'],
+    { toString: () => 'shop' },
+  ]) {
+    await assert.rejects(run(name), { code: 'unknown_query' }, String(name));
   }
   assert.equal(calls, 0);
+  assert.deepEqual(connection.requests, [], 'no token is fetched for an unknown query');
   assert.deepEqual(await run('shop'), { shop: { name: 'Synthetic' } });
   assert.equal(calls, 1);
+});
+
+test('Admin runner runs each fixed query with its own text', async () => {
+  const sentQueries = [];
+  const run = createAdminRunner({
+    store: STORE,
+    connection: connectionStub(),
+    fetchImpl: async (url, options) => {
+      sentQueries.push(JSON.parse(options.body).query);
+      return jsonResponse({ data: {} });
+    },
+  });
+  for (const name of Object.keys(QUERIES)) await run(name);
+  assert.deepEqual(sentQueries, Object.values(QUERIES));
+});
+
+test('Admin runner sends nothing when the access token is unusable', async () => {
+  for (const token of ['', undefined, null, 5, 'x'.repeat(16385)]) {
+    let requests = 0;
+    const run = createAdminRunner({
+      store: STORE,
+      connection: { getAccessToken: async () => token },
+      fetchImpl: async () => {
+        requests++;
+        return jsonResponse({ data: {} });
+      },
+    });
+    await assert.rejects(
+      run('shop'),
+      { code: 'reauthorization_required' },
+      String(token).slice(0, 20),
+    );
+    assert.equal(requests, 0);
+  }
 });
 
 test('Admin runner refreshes once after 401 and uses the newly rotated token', async () => {
