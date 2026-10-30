@@ -1,9 +1,9 @@
 // Pure HTML for the owner's store connection on the beta page. Every dynamic value is escaped here.
-import { escapeHtml, formatDateTime } from './model.js';
-import { actionButton, statusDot } from './ui.js';
-import { renderBoard } from './board.js';
-import { buildLiveBoardModel, normalizePeriod } from './live-board-model.js';
-import { messageForError } from './beta-client.js';
+import { escapeHtml, formatDateTime } from '../shared/model.js';
+import { actionButton, statusDot } from '../shared/ui.js';
+import { renderBoard } from '../shared/board.js';
+import { buildLiveBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { messageForError } from './owner-client.js';
 
 const RETURN_MESSAGES = Object.freeze({
   connected: 'Shopify approved the connection. MetricTV is reading the first figures now.',

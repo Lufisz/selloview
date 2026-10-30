@@ -33,15 +33,15 @@ test('the demo server confines static files and does not serve the owner or TV p
     assert.ok([400, 404].includes(result.status), `${url} -> ${result.status}`);
     assert.doesNotMatch(result.body, /OUTSIDE|private/);
   }
-  for (const url of ['/beta.html', '/beta.js', '/tv.html']) {
+  for (const url of ['/owner/owner.html', '/owner/owner.js', '/tv/tv.html']) {
     assert.equal((await callHandler(handler, { url })).status, 404, url);
   }
   for (const url of [
     '/',
-    '/index.html',
-    '/app.js',
-    '/styles.css',
-    '/model.js',
+    '/demo/demo.html',
+    '/demo/demo.js',
+    '/shared/styles.css',
+    '/shared/model.js',
     '/alias.js',
     '/mark.svg?x=1',
   ]) {

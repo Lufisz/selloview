@@ -11,7 +11,7 @@ const RECHECK_MS = 30 * 1000;
 
 /**
  * @param {string} publicDir   directory the files are served from
- * @param {Iterable<string>} filePaths  served paths such as '/tv.js'
+ * @param {Iterable<string>} filePaths  served paths such as '/tv/tv.js'
  * @returns {(nowMs?: number) => string} current version, recomputed at most every 30 seconds
  */
 export function createAppVersion(publicDir, filePaths) {

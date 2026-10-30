@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { validateAuthorizeUrl } from '../../public/shopify-authorize-url.js';
+import { validateAuthorizeUrl } from '../../public/owner/shopify-authorize-url.js';
 
 const STORE = 'synthetic.myshopify.com';
 const CALLBACK = 'https://board.example.test/auth/shopify/callback';

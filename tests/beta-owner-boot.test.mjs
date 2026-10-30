@@ -1,4 +1,4 @@
-// Runs the real owner-page controller (public/beta.js) against a fake page and SYNTHETIC server
+// Runs the real owner-page controller (public/owner/owner.js) against a fake page and SYNTHETIC server
 // answers. No browser is available here, so this catches controller wiring mistakes (imports,
 // state, polling, redirect handling) but is not a substitute for a real browser check.
 import test from 'node:test';
@@ -52,7 +52,7 @@ function syntheticSnapshot() {
 }
 
 function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 200 }) {
-  const controllerUrl = new URL('../public/beta.js', import.meta.url).href;
+  const controllerUrl = new URL('../public/owner/owner.js', import.meta.url).href;
   const session = {
     owner: { email: 'owner@example.test' },
     sessionExpiresAt: '2099-01-01T00:00:00.000Z',

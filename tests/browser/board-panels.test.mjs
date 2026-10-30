@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderAttentionPanel, renderOrdersPanel } from '../../public/board.js';
+import { renderAttentionPanel, renderOrdersPanel } from '../../public/shared/board.js';
 
 test('an attention panel without items shows its escaped empty text and a zero count', () => {
   const html = renderAttentionPanel({

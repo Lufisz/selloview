@@ -21,6 +21,17 @@ const PUBLIC_FILE_NAMES = [
   'data.json',
 ];
 
+// Laid out like the real public/ folder (one folder per surface), for the demo server tests.
+const SURFACE_FILE_NAMES = [
+  'demo/demo.html',
+  'demo/demo.js',
+  'owner/owner.html',
+  'owner/owner.js',
+  'tv/tv.html',
+  'shared/styles.css',
+  'shared/model.js',
+];
+
 // Request targets that must never return file content from the fixture directory.
 export const ATTACK_PATHS = [
   '/link.js',
@@ -51,7 +62,8 @@ export function makePublicDirectory(context) {
 
   const publicDir = path.join(parent, 'public');
   fs.mkdirSync(publicDir);
-  for (const name of PUBLIC_FILE_NAMES) {
+  for (const name of [...PUBLIC_FILE_NAMES, ...SURFACE_FILE_NAMES]) {
+    fs.mkdirSync(path.dirname(path.join(publicDir, name)), { recursive: true });
     fs.writeFileSync(path.join(publicDir, name), `// ${name}`);
   }
   fs.writeFileSync(path.join(publicDir, 'huge.js'), '');

@@ -354,17 +354,17 @@ export function createBetaHandler({
   });
 
   const PAGE_FILES = {
-    '/': '/landing.html',
-    '/app': '/beta.html',
-    '/register': '/beta.html',
-    '/demo': '/index.html',
-    [TV_PAGE_PATH]: '/tv.html',
+    '/': '/landing/landing.html',
+    '/app': '/owner/owner.html',
+    '/register': '/owner/owner.html',
+    '/demo': '/demo/demo.html',
+    [TV_PAGE_PATH]: '/tv/tv.html',
   };
 
   async function serveStatic(request, response, pathname) {
     const requestedPath = Object.hasOwn(PAGE_FILES, pathname) ? PAGE_FILES[pathname] : pathname;
     if (!BETA_PUBLIC_FILES.has(requestedPath)) return reply(response, 404, { error: 'not_found' });
-    const file = await findPublicFile(publicDir, requestedPath, { indexFile: 'beta.html' });
+    const file = await findPublicFile(publicDir, requestedPath, { indexFile: 'owner/owner.html' });
     if (!file) return reply(response, 404, { error: 'not_found' });
     const data = await fs.readFile(file.filePath);
     response.writeHead(200, {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDialog, createToast, toggleFullscreen } from '../../public/ui.js';
+import { createDialog, createToast, toggleFullscreen } from '../../public/shared/ui.js';
 
 // Replaces globals such as `document` for one test and restores them afterwards.
 function stubGlobals(context, values) {

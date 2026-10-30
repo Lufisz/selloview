@@ -32,7 +32,7 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
     if (parsed.rejection) return sendText(response, 404, 'Not found');
 
     const file = await findPublicFile(publicDir, parsed.pathname, {
-      indexFile: 'index.html',
+      indexFile: 'demo/demo.html',
       blockedPaths: BETA_ONLY_PATHS,
     });
     if (!file) return sendText(response, 404, 'Not found');

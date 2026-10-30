@@ -1,10 +1,10 @@
 // Browser API for the owner's Shopify connection on the beta page. Same-origin requests only.
 // Authorization is entirely server-side: the page never sees a token, a secret or a grant; the only
 // secret it holds is the short-lived CSRF token from the session endpoint, in memory.
-import { normaliseStore } from './model.js';
-import { sendRequest } from './beta-client.js';
+import { normaliseStore } from '../shared/model.js';
+import { sendRequest } from './owner-client.js';
 import { validateAuthorizeUrl } from './shopify-authorize-url.js';
-import { isUsableSnapshot } from './snapshot-validation.js';
+import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
 export const SHOPIFY_STATUS_URL = '/api/beta/shopify';
 export const SHOPIFY_START_URL = '/api/beta/shopify/start';

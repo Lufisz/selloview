@@ -1,10 +1,10 @@
 // Pure HTML for the TV page. Every dynamic value is escaped here, whoever supplied it.
-import { escapeHtml } from './model.js';
-import { BRAND_NAME, brandLink, statusDot, tvShell } from './ui.js';
-import { PERIOD_LABELS } from './beta-labels.js';
-import { renderBoard } from './board.js';
-import { buildLiveBoardModel, normalizePeriod } from './live-board-model.js';
-import { isUsableSnapshot } from './snapshot-validation.js';
+import { escapeHtml } from '../shared/model.js';
+import { BRAND_NAME, brandLink, statusDot, tvShell } from '../shared/ui.js';
+import { PERIOD_LABELS } from '../shared/labels.js';
+import { renderBoard } from '../shared/board.js';
+import { buildLiveBoardModel, normalizePeriod } from '../shared/board-model.js';
+import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
 const TV_MESSAGES = Object.freeze({
   offline: 'Cannot reach the server. Trying again shortly.',

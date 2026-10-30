@@ -1,8 +1,8 @@
 // Demo entry point: owns state, routing and events. Rendering lives in demo-view.js
 // and board.js, fixtures in data.js. Nothing here talks to the network.
-import { SAMPLE_DAYS, SAMPLE_ORDERS, ATTENTION_ITEMS, DEFAULT_SETTINGS } from './data.js';
-import { normaliseStore } from './model.js';
-import { BRAND_NAME, createDialog, createToast, toggleFullscreen } from './ui.js';
+import { SAMPLE_DAYS, SAMPLE_ORDERS, ATTENTION_ITEMS, DEFAULT_SETTINGS } from './demo-data.js';
+import { normaliseStore } from '../shared/model.js';
+import { BRAND_NAME, createDialog, createToast, toggleFullscreen } from '../shared/ui.js';
 import {
   renderHome,
   renderSetup,

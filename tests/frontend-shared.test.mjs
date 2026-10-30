@@ -1,9 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { icon, ICON_NAMES, safeShopifyAdminUrl, brandLink, actionButton } from '../public/ui.js';
-import { renderBoard, renderChart, renderChange, renderMetric } from '../public/board.js';
-import { money } from '../public/model.js';
+import {
+  icon,
+  ICON_NAMES,
+  safeShopifyAdminUrl,
+  brandLink,
+  actionButton,
+} from '../public/shared/ui.js';
+import { renderBoard, renderChart, renderChange, renderMetric } from '../public/shared/board.js';
+import { money } from '../public/shared/model.js';
 
 // All data below is synthetic.
 const ATTACK = '<img src=x onerror=alert(1)>"\'';
@@ -241,8 +247,12 @@ test('shared primitives escape their inputs', () => {
 
 test('shared modules do not import fixtures or fetch data', async () => {
   for (const file of ['ui.js', 'board.js', 'model.js']) {
-    const source = await readFile(new URL(`../public/${file}`, import.meta.url), 'utf8');
-    assert.equal(/from\s+['"]\.\/data\.js['"]/.test(source), false, `${file} imports fixtures`);
+    const source = await readFile(new URL(`../public/shared/${file}`, import.meta.url), 'utf8');
+    assert.equal(
+      /from\s+['"][^'"]*demo-data\.js['"]/.test(source),
+      false,
+      `${file} imports fixtures`,
+    );
     assert.equal(
       /\bfetch\s*\(|XMLHttpRequest|localStorage/.test(source),
       false,

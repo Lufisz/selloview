@@ -6,27 +6,29 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createAppVersion } from '../server/screens/app-version.mjs';
-import { isNewAppVersion } from '../public/tv-client.js';
+import { isNewAppVersion } from '../public/tv/tv-client.js';
 
 const THIRTY_ONE_SECONDS_MS = 31 * 1000;
 
 async function makePublicDirectory(t) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'metrictv-app-version-'));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  await fs.writeFile(path.join(directory, 'tv.js'), 'console.log("one");\n');
-  await fs.writeFile(path.join(directory, 'beta.css'), 'body { color: black; }\n');
+  await fs.mkdir(path.join(directory, 'tv'));
+  await fs.mkdir(path.join(directory, 'owner'));
+  await fs.writeFile(path.join(directory, 'tv', 'tv.js'), 'console.log("one");\n');
+  await fs.writeFile(path.join(directory, 'owner', 'owner.css'), 'body { color: black; }\n');
   return directory;
 }
 
 test('the version changes when a served file changes, and is stable otherwise', async (t) => {
   const directory = await makePublicDirectory(t);
-  const appVersion = createAppVersion(directory, ['/tv.js', '/beta.css']);
+  const appVersion = createAppVersion(directory, ['/tv/tv.js', '/owner/owner.css']);
 
   const first = appVersion(0);
   assert.match(first, /^[A-Za-z0-9_-]{16}$/);
   assert.equal(appVersion(THIRTY_ONE_SECONDS_MS), first, 'unchanged files keep the version');
 
-  await fs.writeFile(path.join(directory, 'tv.js'), 'console.log("a new version");\n');
+  await fs.writeFile(path.join(directory, 'tv', 'tv.js'), 'console.log("a new version");\n');
   assert.equal(appVersion(THIRTY_ONE_SECONDS_MS + 1000), first, 'rechecked at most every 30 s');
   const second = appVersion(2 * THIRTY_ONE_SECONDS_MS);
   assert.notEqual(second, first, 'a deployment produces a new version');
@@ -34,7 +36,7 @@ test('the version changes when a served file changes, and is stable otherwise', 
 
 test('a missing file gives a stable version instead of an error', async (t) => {
   const directory = await makePublicDirectory(t);
-  const appVersion = createAppVersion(directory, ['/tv.js', '/not-there.js']);
+  const appVersion = createAppVersion(directory, ['/tv/tv.js', '/not-there.js']);
   assert.equal(appVersion(0), appVersion(THIRTY_ONE_SECONDS_MS));
 });
 

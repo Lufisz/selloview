@@ -14,7 +14,7 @@ import {
   signInOwner,
   startBetaServer,
 } from './beta-helpers.mjs';
-import { isUsableSnapshot } from '../public/snapshot-validation.js';
+import { isUsableSnapshot } from '../public/shared/snapshot-validation.js';
 import {
   ALICE,
   BOB,
@@ -531,17 +531,17 @@ test(
     }
     // Presentation modules the beta pages import are served.
     for (const allowed of [
-      '/index.html',
-      '/app.js',
-      '/data.js',
-      '/demo-view.js',
-      '/board.js',
-      '/live-board-model.js',
-      '/snapshot-validation.js',
-      '/shopify-authorize-url.js',
-      '/beta-store-view.js',
-      '/beta-shopify-client.js',
-      '/beta-labels.js',
+      '/demo/demo.html',
+      '/demo/demo.js',
+      '/demo/demo-data.js',
+      '/demo/demo-view.js',
+      '/shared/board.js',
+      '/shared/board-model.js',
+      '/shared/snapshot-validation.js',
+      '/owner/shopify-authorize-url.js',
+      '/owner/store-view.js',
+      '/owner/shopify-client.js',
+      '/shared/labels.js',
     ]) {
       const response = await anonymous.request(allowed);
       assert.equal(response.status, 200, allowed);

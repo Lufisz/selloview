@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { SAMPLE_DAYS, SAMPLE_ORDERS } from '../public/data.js';
+import { SAMPLE_DAYS, SAMPLE_ORDERS } from '../public/demo/demo-data.js';
 import {
   escapeHtml,
   summarise,
@@ -9,7 +9,7 @@ import {
   normaliseStore,
   percentChange,
   money,
-} from '../public/model.js';
+} from '../public/shared/model.js';
 
 test('weekly metrics use the correct non-overlapping seven-day windows', () => {
   const result = getPeriod(SAMPLE_DAYS, 'week');

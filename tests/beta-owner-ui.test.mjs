@@ -4,8 +4,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { renderOwner } from '../public/beta-view.js';
-import { renderStorePanel, detailsOpenAttribute } from '../public/beta-store-view.js';
+import { renderOwner } from '../public/owner/owner-view.js';
+import { renderStorePanel, detailsOpenAttribute } from '../public/owner/store-view.js';
 
 const STORE = 'synthetic-ui.myshopify.com';
 const SNAPSHOT = { fetchedAt: '2026-10-29T10:00:00.000Z', shop: { timeZone: 'Europe/Stockholm' } };
@@ -187,7 +187,7 @@ test('unsaved settings are kept and screen removal still needs a confirmation', 
 });
 
 test('owner styles are scoped so the TV and sign-in screens keep their own', () => {
-  const css = fs.readFileSync(new URL('../public/beta.css', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../public/owner/owner.css', import.meta.url), 'utf8');
   const marker = css.indexOf('/* ---- Owner workspace');
   assert.ok(marker > 0, 'owner section exists');
   const ownerCss = css.slice(marker).replace(/\/\*[\s\S]*?\*\//g, '');
@@ -207,7 +207,7 @@ test('owner styles are scoped so the TV and sign-in screens keep their own', () 
 
 /** Runs the real controller against a fake page, then plays owner events and returns the HTML. */
 function runControllerScenario(steps) {
-  const controllerUrl = new URL('../public/beta.js', import.meta.url).href;
+  const controllerUrl = new URL('../public/owner/owner.js', import.meta.url).href;
   const session = { ...OWNER_SESSION, storeConnection: connection('connected', { state: 'ok' }) };
   const script = `
     const listeners = {};

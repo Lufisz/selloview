@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { SAMPLE_DAYS, SAMPLE_ORDERS, ATTENTION_ITEMS, DEFAULT_SETTINGS } from '../public/data.js';
+import {
+  SAMPLE_DAYS,
+  SAMPLE_ORDERS,
+  ATTENTION_ITEMS,
+  DEFAULT_SETTINGS,
+} from '../public/demo/demo-data.js';
 import {
   buildDemoBoardModel,
   renderHome,
@@ -9,7 +14,7 @@ import {
   renderDashboard,
   renderSettings,
   renderConnections,
-} from '../public/demo-view.js';
+} from '../public/demo/demo-view.js';
 
 const demoState = {
   data: { days: SAMPLE_DAYS, orders: SAMPLE_ORDERS, attention: ATTENTION_ITEMS },
@@ -60,8 +65,8 @@ test('demo escapes the editable business name and store text', () => {
 });
 
 test('the demo never talks to a server', async () => {
-  for (const file of ['app.js', 'demo-view.js', 'data.js']) {
-    const source = await readFile(new URL(`../public/${file}`, import.meta.url), 'utf8');
+  for (const file of ['demo.js', 'demo-view.js', 'demo-data.js']) {
+    const source = await readFile(new URL(`../public/demo/${file}`, import.meta.url), 'utf8');
     assert.equal(/\/api\/|fetch\s*\(/.test(source), false, `${file} talks to a server`);
   }
 });

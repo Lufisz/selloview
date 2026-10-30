@@ -32,8 +32,8 @@ import {
   saveWorkspaceSettings,
   signOut,
   verifySignInCode,
-} from '../public/beta-client.js';
-import { renderOwner, renderSignIn } from '../public/beta-view.js';
+} from '../public/owner/owner-client.js';
+import { renderOwner, renderSignIn } from '../public/owner/owner-view.js';
 import {
   curlAvailable,
   findFreePort,

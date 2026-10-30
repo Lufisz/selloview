@@ -28,10 +28,10 @@ import {
   loadShopifyStatus,
   parseConnection,
   startShopifyConnection,
-} from '../public/beta-shopify-client.js';
-import { renderOwner } from '../public/beta-view.js';
-import { renderStorePanel } from '../public/beta-store-view.js';
-import { renderPaired } from '../public/tv-view.js';
+} from '../public/owner/shopify-client.js';
+import { renderOwner } from '../public/owner/owner-view.js';
+import { renderStorePanel } from '../public/owner/store-view.js';
+import { renderPaired } from '../public/tv/tv-view.js';
 import { spawn } from 'node:child_process';
 import {
   createBetaEnvironment,

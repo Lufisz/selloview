@@ -1,9 +1,9 @@
 // Pure HTML for the beta page. Every dynamic value is escaped here, whoever supplied it.
-import { escapeHtml } from './model.js';
-import { BRAND_NAME, actionButton, brandLink, siteHeader } from './ui.js';
-import { PERIOD_CHOICES, THEME_CHOICES, messageForError } from './beta-client.js';
-import { PERIOD_LABELS, THEME_LABELS } from './beta-labels.js';
-import { detailsOpenAttribute, renderOwnerBoard, renderStorePanel } from './beta-store-view.js';
+import { escapeHtml } from '../shared/model.js';
+import { BRAND_NAME, actionButton, brandLink, siteHeader } from '../shared/ui.js';
+import { PERIOD_CHOICES, THEME_CHOICES, messageForError } from './owner-client.js';
+import { PERIOD_LABELS, THEME_LABELS } from '../shared/labels.js';
+import { detailsOpenAttribute, renderOwnerBoard, renderStorePanel } from './store-view.js';
 
 export { PERIOD_LABELS, THEME_LABELS };
 

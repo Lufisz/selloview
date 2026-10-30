@@ -244,7 +244,7 @@ test('requests for another Host header are refused', http, async (t) => {
   const handle = await startBetaServer(t, environment);
   const result = await httpRequest({
     origin: handle.origin,
-    pathname: '/beta.html',
+    pathname: '/owner/owner.html',
     headerLines: ['Host: evil.example'],
   });
   assert.equal(result.status, 400);
@@ -324,16 +324,16 @@ test(
       '/app',
       '/register',
       '/demo',
-      '/landing.css',
+      '/landing/landing.css',
       '/fonts/archivo-latin.woff2',
-      '/beta.html',
-      '/beta.js',
-      '/beta.css',
-      '/styles.css',
-      '/index.html',
-      '/data.js',
-      '/app.js',
-      '/demo-view.js',
+      '/owner/owner.html',
+      '/owner/owner.js',
+      '/owner/owner.css',
+      '/shared/styles.css',
+      '/demo/demo.html',
+      '/demo/demo-data.js',
+      '/demo/demo.js',
+      '/demo/demo-view.js',
     ]) {
       const result = await browser.request(allowed);
       assert.equal(result.status, 200, allowed);
@@ -365,15 +365,20 @@ test(
     const landing = (await browser.request('/')).text;
     assert.match(landing, /Your Shopify store,<br\s*\/>on the big screen\./);
     assert.match(landing, /href="\/register"/);
-    assert.match((await browser.request('/app')).text, /src="\/beta.js"/);
-    assert.match((await browser.request('/register')).text, /src="\/beta.js"/);
-    assert.match((await browser.request('/demo')).text, /src="\/app.js"/);
+    assert.match((await browser.request('/app')).text, /src="\/owner\/owner.js"/);
+    assert.match((await browser.request('/register')).text, /src="\/owner\/owner.js"/);
+    assert.match((await browser.request('/demo')).text, /src="\/demo\/demo.js"/);
   },
 );
 
 test('the demo server does not present the beta files', async () => {
   const handler = createDemoHandler();
-  for (const betaPath of ['/beta.html', '/beta.js', '/beta-client.js', '/beta.css']) {
+  for (const betaPath of [
+    '/owner/owner.html',
+    '/owner/owner.js',
+    '/owner/owner-client.js',
+    '/owner/owner.css',
+  ]) {
     let status;
     const response = {
       writeHead(code) {

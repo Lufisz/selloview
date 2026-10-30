@@ -8,11 +8,16 @@ import {
   renderDashboard,
   renderSettings,
   renderSetup,
-} from '../public/demo-view.js';
-import { ATTENTION_ITEMS, DEFAULT_SETTINGS, SAMPLE_DAYS, SAMPLE_ORDERS } from '../public/data.js';
+} from '../public/demo/demo-view.js';
+import {
+  ATTENTION_ITEMS,
+  DEFAULT_SETTINGS,
+  SAMPLE_DAYS,
+  SAMPLE_ORDERS,
+} from '../public/demo/demo-data.js';
 
-const sharedCss = await readFile(new URL('../public/styles.css', import.meta.url), 'utf8');
-const betaCss = await readFile(new URL('../public/beta.css', import.meta.url), 'utf8');
+const sharedCss = await readFile(new URL('../public/shared/styles.css', import.meta.url), 'utf8');
+const betaCss = await readFile(new URL('../public/owner/owner.css', import.meta.url), 'utf8');
 
 function countOf(source, text) {
   return source.split(text).length - 1;

@@ -7,7 +7,7 @@ import {
   humanizeStatus,
   LIVE_PERIOD_OPTIONS,
   normalizePeriod,
-} from '../../public/live-board-model.js';
+} from '../../public/shared/board-model.js';
 
 // Synthetic snapshot, never real store data.
 const NOW = Date.parse('2026-10-21T12:00:00Z');

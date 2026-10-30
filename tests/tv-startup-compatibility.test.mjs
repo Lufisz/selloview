@@ -54,7 +54,7 @@ function syntheticDisplayWithBoard() {
 }
 
 function runTvStartup({ offline = false, display = null } = {}) {
-  const controllerUrl = new URL('../public/tv.js', import.meta.url).href;
+  const controllerUrl = new URL('../public/tv/tv.js', import.meta.url).href;
   const script = `
     const app = { innerHTML: '' };
     const failures = [];
@@ -142,13 +142,15 @@ test('a TV given figures it cannot validate shows no figures at all', () => {
 // Everything the TV page loads, found by following its import statements.
 function tvModuleClosure() {
   const seen = new Set();
-  const pending = ['tv.js'];
+  const pending = ['tv/tv.js'];
   while (pending.length > 0) {
     const name = pending.pop();
     if (seen.has(name)) continue;
     seen.add(name);
     const source = fs.readFileSync(path.join(PUBLIC_DIRECTORY, name), 'utf8');
-    for (const match of source.matchAll(/from '\.\/([\w-]+\.js)'/g)) pending.push(match[1]);
+    for (const match of source.matchAll(/from '(\.{1,2}\/[\w/-]+\.js)'/g)) {
+      pending.push(path.posix.normalize(path.posix.join(path.posix.dirname(name), match[1])));
+    }
   }
   return [...seen].sort();
 }
@@ -163,9 +165,14 @@ function withoutComments(source) {
 
 test('no module the TV loads uses a built-in that older TV browsers lack', () => {
   const modules = tvModuleClosure();
-  assert.ok(modules.includes('board.js') && modules.includes('live-board-model.js'));
+  assert.ok(modules.includes('shared/board.js') && modules.includes('shared/board-model.js'));
   // The owner page modules are not part of the TV.
-  for (const owner of ['beta.js', 'beta-view.js', 'beta-store-view.js', 'beta-shopify-client.js']) {
+  for (const owner of [
+    'owner/owner.js',
+    'owner/owner-view.js',
+    'owner/store-view.js',
+    'owner/shopify-client.js',
+  ]) {
     assert.equal(modules.includes(owner), false, `${owner} must not load on the TV`);
   }
   const banned = [

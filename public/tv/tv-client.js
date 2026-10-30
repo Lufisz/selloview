@@ -1,6 +1,6 @@
 // Browser API for the TV page. Same-origin requests only; the challenge and display credentials
 // live in HttpOnly cookies the page cannot read, and nothing is put in browser storage.
-import { sendRequest } from './beta-client.js';
+import { sendRequest } from '../owner/owner-client.js';
 
 export const TV_CHALLENGE_URL = '/api/tv/challenge';
 export const TV_PAIRING_URL = '/api/tv/pairing';

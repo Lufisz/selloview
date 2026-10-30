@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { renderSignIn } from '../public/beta-view.js';
-import { loadRegistrationStatus } from '../public/beta-client.js';
+import { renderSignIn } from '../public/owner/owner-view.js';
+import { loadRegistrationStatus } from '../public/owner/owner-client.js';
 
 const BASE = { step: 'email', email: '', message: '', tone: 'info', registering: true };
 

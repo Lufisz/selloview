@@ -1,7 +1,7 @@
 // Demo-only views. Everything here is sample content: the entry point (app.js)
 // passes fixtures in as arguments, so this module imports no data itself.
-import { escapeHtml, money, getPeriod, goalProgress } from './model.js';
-import { renderBoard } from './board.js';
+import { escapeHtml, money, getPeriod, goalProgress } from '../shared/model.js';
+import { renderBoard } from '../shared/board.js';
 import {
   BRAND_NAME,
   icon,
@@ -11,7 +11,7 @@ import {
   siteHeader,
   navLinks,
   tvShell,
-} from './ui.js';
+} from '../shared/ui.js';
 
 const DEMO_CURRENCY = 'EUR';
 const DEMO_TIME_ZONE = 'Europe/Stockholm';

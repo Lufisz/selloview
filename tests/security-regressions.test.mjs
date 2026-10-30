@@ -5,10 +5,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
 import { createSecurityHeaders, findPublicFile } from '../server/http/static-files.mjs';
-import { isUsableSnapshot } from '../public/snapshot-validation.js';
-import { formatPeriodLabel } from '../public/live-board-model.js';
-import { safeShopifyAdminUrl } from '../public/ui.js';
-import { renderAttentionPanel, renderOrdersPanel } from '../public/board.js';
+import { isUsableSnapshot } from '../public/shared/snapshot-validation.js';
+import { formatPeriodLabel } from '../public/shared/board-model.js';
+import { safeShopifyAdminUrl } from '../public/shared/ui.js';
+import { renderAttentionPanel, renderOrdersPanel } from '../public/shared/board.js';
 
 test('shared renderers independently restrict links to the configured Shopify merchant', () => {
   const options = { storeDomain: 'validation.myshopify.com' };

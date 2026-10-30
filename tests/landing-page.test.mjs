@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const html = await readFile(new URL('../public/landing.html', import.meta.url), 'utf8');
-const css = await readFile(new URL('../public/landing.css', import.meta.url), 'utf8');
+const html = await readFile(new URL('../public/landing/landing.html', import.meta.url), 'utf8');
+const css = await readFile(new URL('../public/landing/landing.css', import.meta.url), 'utf8');
 
 const ALLOWED_ROUTES = new Set(['/', '/register', '/app', '/demo']);
 

@@ -14,7 +14,7 @@ import {
   saveWorkspaceSettings,
   signOut,
   verifySignInCode,
-} from './beta-client.js';
+} from './owner-client.js';
 import {
   SHOPIFY_CALLBACK_PATH,
   consumeShopifyReturn,
@@ -22,8 +22,8 @@ import {
   loadShopifyStatus,
   parseStoreDomain,
   startShopifyConnection,
-} from './beta-shopify-client.js';
-import { renderLoading, renderOwner, renderSessionError, renderSignIn } from './beta-view.js';
+} from './shopify-client.js';
+import { renderLoading, renderOwner, renderSessionError, renderSignIn } from './owner-view.js';
 
 const STORE_POLL_MS = 30000;
 const STORE_FIRST_SYNC_POLL_MS = 5000;
