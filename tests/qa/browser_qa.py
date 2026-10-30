@@ -10,7 +10,7 @@ from playwright.sync_api import sync_playwright
 
 BASE_URL = os.environ.get('BASE_URL', 'http://127.0.0.1:4317')
 CHROME = os.environ.get('CHROME')
-OUTPUT = Path(os.environ.get('QA_OUTPUT', str(Path(tempfile.gettempdir()) / 'stillboard-qa')))
+OUTPUT = Path(os.environ.get('QA_OUTPUT', str(Path(tempfile.gettempdir()) / 'metrictv-qa')))
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 

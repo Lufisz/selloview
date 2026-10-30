@@ -306,6 +306,33 @@ test('text typed into the forms survives the page being redrawn', () => {
   assert.match(result.html, /value="half-typed"/);
 });
 
+test('the details an owner opened or closed, and what was typed in them, survive a redraw', () => {
+  const result = runOwnerPage({
+    routes: {
+      '/api/session': [ownerSession()],
+      '/api/screens': [NO_SCREENS],
+      '/api/shopify': [connectedStore()],
+    },
+    actions: [
+      { type: 'toggle', key: 'connection', open: false },
+      { type: 'toggle', key: 'add-screen', open: true },
+      { type: 'input', form: 'pair-screen', name: 'name', value: 'Lobby' },
+      { type: 'input', form: 'connect-shopify', name: 'store', value: 'draft-store.myshopify.com' },
+      { type: 'click', action: 'refresh-screens' },
+    ],
+  });
+
+  assert.deepEqual(result.failures, []);
+  assert.match(result.html, /data-details-key="connection" open>/);
+  assert.doesNotMatch(
+    result.html,
+    /data-details-key="add-screen" open/,
+    'a closed choice stays closed',
+  );
+  assert.match(result.html, /name="name"[^>]*value="Lobby"/);
+  assert.match(result.html, /value="draft-store.myshopify.com"/);
+});
+
 // ---- The Shopify connection --------------------------------------------------------------------
 
 test('connecting asks the server to start, then goes to the Shopify address it returned', () => {
@@ -338,6 +365,23 @@ test('connecting asks the server to start, then goes to the Shopify address it r
     },
   ]);
   assert.deepEqual(result.assigned, [authorizeUrl()]);
+});
+
+test('a store address that cannot be right opens the connection details with the error', () => {
+  const result = runOwnerPage({
+    routes: {
+      '/api/session': [ownerSession()],
+      '/api/screens': [NO_SCREENS],
+      '/api/shopify': [connectedStore()],
+    },
+    actions: [{ type: 'submit', form: 'connect-shopify', fields: { store: 'not a store' } }],
+  });
+  const [, refused] = result.steps;
+
+  assert.deepEqual(refused.requests, [], 'nothing is sent to the server');
+  assert.match(refused.html, /data-details-key="connection" open>/);
+  assert.match(refused.html, /role="alert"/);
+  assert.match(refused.html, /value="not a store"/, 'the submitted text is kept');
 });
 
 test("a Shopify address that is not the store's own authorization page is never visited", () => {

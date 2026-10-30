@@ -3,7 +3,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { renderOwner } from '../../public/owner/owner-view.js';
 import { renderStorePanel, detailsOpenAttribute } from '../../public/owner/store-view.js';
 
@@ -199,95 +198,4 @@ test('owner workspace styles are scoped so the sign-in screens keep their own', 
     }
   }
   assert.doesNotMatch(css.slice(0, marker), /\.owner-/, 'shared rules gain nothing owner-only');
-});
-
-/** Runs the real controller against a fake page, then plays owner events and returns the HTML. */
-function runControllerScenario(steps) {
-  const controllerUrl = new URL('../../public/owner/owner.js', import.meta.url).href;
-  const session = { ...OWNER_SESSION, storeConnection: connection('connected', { state: 'ok' }) };
-  const script = `
-    const listeners = {};
-    const app = {
-      innerHTML: '',
-      addEventListener: (type, handler) => { listeners[type] = handler; },
-      querySelector: () => null,
-      contains: () => false,
-    };
-    globalThis.document = {
-      querySelector: () => app,
-      body: { dataset: {}, classList: { toggle: () => {} } },
-      activeElement: null,
-    };
-    globalThis.window = {
-      location: { search: '', hash: '', pathname: '/', origin: 'https://metrictv.example.test', assign: () => {} },
-      history: { replaceState: () => {} },
-    };
-    globalThis.setTimeout = () => 1;
-    globalThis.clearTimeout = () => {};
-    const answers = {
-      '/api/session': { status: 200, body: ${JSON.stringify(session)} },
-      '/api/screens': { status: 200, body: { screens: [] } },
-      '/api/shopify': { status: 200, body: ${JSON.stringify({ connection: connection('connected', { state: 'ok' }), snapshot: null })} },
-    };
-    globalThis.fetch = async (url) => {
-      const answer = answers[url];
-      return { status: answer.status, ok: answer.status < 300, json: async () => answer.body };
-    };
-    const settle = async () => { for (let turn = 0; turn < 20; turn += 1) await new Promise((r) => setImmediate(r)); };
-    const form = (name) => ({ dataset: { form: name } });
-    const typing = (formName, field, value) => ({
-      target: { name: field, value, closest: () => form(formName) },
-    });
-    const summaryClick = (key, isOpen) => ({
-      target: { closest: (selector) => selector === 'summary'
-        ? { closest: () => ({ dataset: { detailsKey: key }, open: isOpen }) }
-        : null },
-    });
-    const actionClick = (action) => ({
-      target: { closest: (selector) => selector === 'summary' ? null : { dataset: { action } } },
-    });
-    await import(${JSON.stringify(controllerUrl)});
-    await settle();
-    ${steps}
-    console.log(JSON.stringify({ html: app.innerHTML }));
-  `;
-  return JSON.parse(
-    execFileSync(process.execPath, ['--input-type=module', '-e', script], {
-      encoding: 'utf8',
-      timeout: 8000,
-    }),
-  ).html;
-}
-
-test('the controller keeps details choices and typed drafts across re-renders', () => {
-  const html = runControllerScenario(`
-    listeners.click(summaryClick('connection', false));
-    listeners.click(summaryClick('add-screen', true));
-    listeners.input(typing('pair-screen', 'code', 'ab12'));
-    listeners.input(typing('pair-screen', 'name', 'Lobby'));
-    listeners.input(typing('settings', 'period', 'month'));
-    listeners.input(typing('connect-shopify', 'store', 'draft-store.myshopify.com'));
-    listeners.click(actionClick('refresh-screens'));
-    await settle();
-  `);
-  assert.match(html, /data-details-key="connection" open>/);
-  assert.doesNotMatch(html, /data-details-key="add-screen" open/, 'a closed choice stays closed');
-  assert.match(html, /name="code"[^>]*value="ab12"/);
-  assert.match(html, /name="name"[^>]*value="Lobby"/);
-  assert.match(html, /<option value="month" selected>/);
-  assert.match(html, /value="draft-store.myshopify.com"/);
-});
-
-test('an invalid store address opens the connection details with the error, keeping the text', () => {
-  const html = runControllerScenario(`
-    listeners.input(typing('connect-shopify', 'store', 'not a store'));
-    const formData = globalThis.FormData;
-    globalThis.FormData = class { get() { return 'not a store'; } };
-    listeners.submit({ preventDefault() {}, target: { dataset: { form: 'connect-shopify' } } });
-    await settle();
-    globalThis.FormData = formData;
-  `);
-  assert.match(html, /data-details-key="connection" open>/);
-  assert.match(html, /role="alert"/);
-  assert.match(html, /value="not a store"/);
 });

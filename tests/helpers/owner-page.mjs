@@ -41,6 +41,8 @@ export function storeAnswer({ state = 'not_connected', sync, snapshot = null, st
  *   {type: 'click', action, id}     a button with data-action (and data-id)
  *   {type: 'change', id, value}     a select outside a form, such as the board's period picker
  *   {type: 'input', form, name, value}  typing in a field of a form
+ *   {type: 'toggle', key, open}     a click on the <summary> of the <details data-details-key=key>;
+ *                                   `open` is whether it was open before the click
  *   {type: 'tick'}                  the page's oldest pending timer fires
  * @returns {{steps: Array<{html: string, requests: object[], timers: number[], theme: string}>,
  *   html: string, timers: number[], requests: object[], assigned: string[], replaced: string[],
@@ -151,6 +153,10 @@ export function runOwnerPage({ routes = {}, search = '', pathname = '/app', acti
           closest: (selector) => (selector === 'form[data-form]' ? form : null),
         };
         listeners.input({ target: field });
+      } else if (action.type === 'toggle') {
+        const details = { dataset: { detailsKey: action.key }, open: action.open };
+        const summary = { closest: () => details };
+        listeners.click({ target: { closest: (selector) => (selector === 'summary' ? summary : null) } });
       } else {
         throw new Error('unknown action ' + action.type);
       }
