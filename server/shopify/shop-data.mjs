@@ -2,6 +2,8 @@
 // A query runner (server/shopify/admin-runner.mjs) sends them; server/metrics.mjs turns the result into a snapshot.
 
 export const API_VERSION = '2026-07';
+// ceiling: 10,000 orders per refresh (a larger store is reported as incomplete), upgrade: an
+// incremental sync that keeps orders between refreshes
 export const MAX_PAGES = 100;
 export const HISTORY_DAYS = 130;
 const MILLISECONDS_PER_DAY = 86400000;

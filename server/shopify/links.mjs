@@ -28,6 +28,8 @@ export const SHOPIFY_SCHEMA = `
     ON shopify_oauth_attempt (expires_at);
 `;
 
+// ceiling: 50 store connections waiting for Shopify's approval for the whole server (10 per
+// minute), upgrade: per-workspace caps when many owners connect at once
 export const MAX_OPEN_ATTEMPTS = 50;
 
 export function sha256Hex(text) {

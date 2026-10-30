@@ -52,6 +52,8 @@ export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 const WORKSPACE_ID_PATTERN = /^[0-9a-f-]{36}$/;
 const UPSTREAM_TIMEOUT_MS = 10_000;
 const MAX_TOKEN_RESPONSE_BYTES = 64 * 1024;
+// ceiling: 2 refreshes at once, which keeps about 60 stores fresh if each refresh takes 4 s,
+// upgrade: raise it when stores turn stale while the server is otherwise idle
 const MAX_CONCURRENT_REFRESHES = 2;
 // A logo rarely changes: check once a day, and retry sooner when a read failed.
 const LOGO_RECHECK_MS = 24 * 60 * 60 * 1000;
@@ -88,6 +90,8 @@ export function createShopifyService({
   const bindingCookieName = `${cookiePrefix}${BINDING_COOKIE_BASE}`;
   const callbackUrl = `${origin}${SHOPIFY_CALLBACK_PATH}`;
   const startLimiter = createRateLimiter(START_RATE_LIMIT);
+  // ceiling: a runtime stays in memory until its store is disconnected (about 20 KB plus a logo of
+  // up to 1 MiB), upgrade: evict idle runtimes once thousands of stores are linked
   const runtimes = new Map();
   let activeRefreshes = 0;
 

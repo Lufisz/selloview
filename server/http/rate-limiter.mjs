@@ -1,5 +1,8 @@
 // Small in-memory fixed-window limiter for the pairing routes. Memory only: a restart clears the
 // counters, while the pairing data itself (challenge lifetime, caps) is bounded in SQLite.
+//
+// ceiling: counters live in one process, so a second server instance would multiply every limit,
+// upgrade: keep the counters in a shared store before running more than one instance
 
 /**
  * @param {{limit: number, windowMs: number, maxKeys?: number}} options

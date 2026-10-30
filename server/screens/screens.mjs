@@ -11,6 +11,8 @@ import crypto from 'node:crypto';
 
 export const CHALLENGE_LIFETIME_MS = 5 * 60 * 1000;
 export const DISPLAY_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
+// ceiling: 200 pairing codes open at once for the whole server (about 40 screens pairing per
+// minute), upgrade: per-address caps when a large fleet starts at the same time
 export const MAX_OPEN_CHALLENGES = 200;
 export const MAX_SCREENS_PER_WORKSPACE = 10;
 export const MAX_SCREEN_NAME_LENGTH = 40;

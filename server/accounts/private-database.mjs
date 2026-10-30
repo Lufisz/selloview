@@ -3,6 +3,9 @@
 // The path is explicit operator configuration. Serving never creates the file, so a typo or a
 // wiped disk cannot silently start a fresh, empty (and therefore takeover-able) account store.
 // Creation is a separate operator command (`npm run admin -- init`).
+//
+// ceiling: one SQLite file used by one server process, upgrade: Postgres when a second instance is
+// needed (the SQL is confined to the accounts, screens and shopify/links modules)
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
