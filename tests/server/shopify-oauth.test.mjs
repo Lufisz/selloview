@@ -30,8 +30,8 @@ import {
 } from '../helpers/shopify-scenario.mjs';
 
 const http = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
-const FAILED = '/?shopify=failed';
-const CONNECTED = '/?shopify=connected';
+const FAILED = '/app?shopify=failed';
+const CONNECTED = '/app?shopify=connected';
 
 function sessionCookieNames(browser) {
   return [...browser.cookies.keys()].filter((name) => name.includes('session_token'));

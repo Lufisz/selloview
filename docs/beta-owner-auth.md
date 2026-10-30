@@ -150,7 +150,7 @@ response is refused).
 - The SDK's state cookies are renamed on the wire (`metrictv_beta_oauth_state[.sig]`, callback-path
   scoped) so they cannot collide with the SDK's default `shopify_app_state` cookies on the same host
   name; the callback restores the SDK names before validation. The callback answer is always a fixed
-  303 to `/?shopify=connected|failed` and clears all three cookies.
+  303 to `/app?shopify=connected|failed` and clears all three cookies.
 - Credentials: one encrypted grant file per workspace; the authenticated data binds app client id, store
   **and workspace id**, so a copied file fails to decrypt. A wrong key, corrupt file or missing file is
   `reconnect_required`, never sample data.

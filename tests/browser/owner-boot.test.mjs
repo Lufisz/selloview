@@ -77,7 +77,7 @@ function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 2
       activeElement: null,
     };
     globalThis.window = {
-      location: { search: ${JSON.stringify(search)}, hash: '', pathname: '/', origin: 'https://metrictv.example.test', assign: () => {} },
+      location: { search: ${JSON.stringify(search)}, hash: '', pathname: '/app', origin: 'https://metrictv.example.test', assign: () => {} },
       history: { replaceState: (state, title, url) => replaced.push(url) },
     };
     const timers = [];
@@ -117,7 +117,7 @@ test('a connected owner sees the board, the return notice, and the page keeps po
   });
   assert.deepEqual(result.failures, []);
   assert.deepEqual(result.requests, ['/api/session', '/api/screens', '/api/shopify']);
-  assert.deepEqual(result.replaced, ['/'], 'the result is removed from the address bar');
+  assert.deepEqual(result.replaced, ['/app'], 'the result is removed from the address bar');
   assert.match(result.html, /Synthetic Boot Shop/);
   assert.match(result.html, /Order value/);
   assert.match(result.html, /approved the connection/);

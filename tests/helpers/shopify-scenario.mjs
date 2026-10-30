@@ -118,7 +118,7 @@ export async function beginAuthorization(browser, store = SYNTHETIC_STORE) {
 export async function connectOwner(browser, store = SYNTHETIC_STORE) {
   const { state } = await beginAuthorization(browser, store);
   const callback = await browser.shopifyCallback(signedCallbackQuery({ state }));
-  if (callback.headers.get('location') !== '/?shopify=connected') {
+  if (callback.headers.get('location') !== '/app?shopify=connected') {
     throw new Error(`connection failed: ${callback.headers.get('location')}`);
   }
   return callback;

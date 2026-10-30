@@ -162,6 +162,6 @@ test(
       pathname: '/auth/beta/shopify/callback?state=x',
     });
     assert.equal(callback.status, 303);
-    assert.equal(callback.headers.get('location'), '/?shopify=failed');
+    assert.equal(callback.headers.get('location'), '/app?shopify=failed');
   },
 );

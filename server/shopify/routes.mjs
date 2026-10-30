@@ -15,8 +15,9 @@ const SHOPIFY_DISCONNECT_PATH = '/api/shopify/disconnect';
 export { SHOPIFY_CALLBACK_PATH };
 
 const MINUTE_MS = 60 * 1000;
-const CONNECTED_REDIRECT = '/?shopify=connected';
-const FAILED_REDIRECT = '/?shopify=failed';
+// The owner page, which shows the result; "/" is the marketing page and would drop it.
+const CONNECTED_REDIRECT = '/app?shopify=connected';
+const FAILED_REDIRECT = '/app?shopify=failed';
 
 // Fixed HTTP answers for the refusals the service can report on start.
 const START_DENIALS = Object.freeze({
