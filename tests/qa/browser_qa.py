@@ -83,7 +83,8 @@ def main():
             assert page.locator('.board-heading test').count() == 0
             results.append('Settings persist and editable labels are escaped')
             page.get_by_role('link', name='TV mode').click()
-            assert page.locator('.dark-board').is_visible()
+            # The route changes after the click, so wait for the board instead of asking once.
+            page.locator('.dark-board').wait_for()
             assert page.locator('.tv-shell .sample-badge').count() == 1
             assert page.locator('.tv-shell [data-action="attention"]').count() == 0
             assert page.locator('.tv-shell .tv-hint, .tv-shell .attention-footer').count() == 0
