@@ -2,7 +2,6 @@
 // SYNTHETIC and labelled as such.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSnapshot } from '../../server/metrics.mjs';
 import { projectBoardForDisplay } from '../../server/screens/display-board.mjs';
 import {
   consumeShopifyReturn,
@@ -15,47 +14,11 @@ import { renderOwner } from '../../public/owner/owner-view.js';
 import { renderStorePanel } from '../../public/owner/store-view.js';
 import { renderPaired } from '../../public/tv/tv-view.js';
 import { SYNTHETIC_STORE } from '../helpers/synthetic-shopify.mjs';
+import { syntheticSnapshot } from '../helpers/synthetic-snapshot.mjs';
 
 const OWNER = 'owner@example.test';
 
 // ---- owner page client ---------------------------------------------------------------------------
-
-function syntheticSnapshot({ shopName = 'Synthetic Shop' } = {}) {
-  const now = new Date();
-  const hour = 3600 * 1000;
-  const orders = [1, 2, 3].map((index) => ({
-    id: `gid://shopify/Order/${index}`,
-    name: `#${1000 + index}`,
-    createdAt: new Date(now.getTime() - index * 30 * hour).toISOString(),
-    cancelledAt: null,
-    test: false,
-    displayFinancialStatus: 'PAID',
-    displayFulfillmentStatus: 'UNFULFILLED',
-    currentTotalPriceSet: { shopMoney: { amount: '25.00', currencyCode: 'EUR' } },
-  }));
-  const raw = {
-    shop: {
-      name: shopName,
-      myshopifyDomain: SYNTHETIC_STORE,
-      currencyCode: 'EUR',
-      ianaTimezone: 'Europe/Stockholm',
-      plan: { publicDisplayName: 'Basic' },
-    },
-    since: new Date(now.getTime() - 130 * 24 * hour),
-    until: now,
-    orders,
-    ordersComplete: true,
-    variants: [],
-    inventoryComplete: true,
-  };
-  const sync = {
-    state: 'ok',
-    lastSuccessAt: now.toISOString(),
-    lastAttemptAt: now.toISOString(),
-    errorCode: null,
-  };
-  return { ...buildSnapshot(raw, now), sync };
-}
 
 function fakeFetch(status, body) {
   const calls = [];

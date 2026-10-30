@@ -4,52 +4,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { buildSnapshot } from '../../server/metrics.mjs';
+import { syntheticSnapshot } from '../helpers/synthetic-snapshot.mjs';
 
 const STORE = 'synthetic-boot.myshopify.com';
 const REQUEST_TIMEOUT_MS = 12000;
-
-function syntheticSnapshot() {
-  const now = new Date();
-  const hour = 3600 * 1000;
-  const orders = [1, 2, 3].map((index) => ({
-    id: `gid://shopify/Order/${index}`,
-    name: `#${7000 + index}`,
-    createdAt: new Date(now.getTime() - index * 30 * hour).toISOString(),
-    cancelledAt: null,
-    test: false,
-    displayFinancialStatus: 'PAID',
-    displayFulfillmentStatus: 'UNFULFILLED',
-    currentTotalPriceSet: { shopMoney: { amount: '12.00', currencyCode: 'EUR' } },
-  }));
-  const snapshot = buildSnapshot(
-    {
-      shop: {
-        name: 'Synthetic Boot Shop',
-        myshopifyDomain: STORE,
-        currencyCode: 'EUR',
-        ianaTimezone: 'Europe/Stockholm',
-        plan: null,
-      },
-      since: new Date(now.getTime() - 130 * 24 * hour),
-      until: now,
-      orders,
-      ordersComplete: true,
-      variants: [],
-      inventoryComplete: true,
-    },
-    now,
-  );
-  return {
-    ...snapshot,
-    sync: {
-      state: 'ok',
-      lastSuccessAt: now.toISOString(),
-      lastAttemptAt: now.toISOString(),
-      errorCode: null,
-    },
-  };
-}
 
 function runOwnerPage({ search = '', connection, snapshot = null, statusCode = 200 }) {
   const controllerUrl = new URL('../../public/owner/owner.js', import.meta.url).href;
@@ -113,7 +71,7 @@ test('a connected owner sees the board, the return notice, and the page keeps po
   const result = runOwnerPage({
     search: '?shopify=connected',
     connection: { state: 'connected', sync: { state: 'ok' } },
-    snapshot: syntheticSnapshot(),
+    snapshot: syntheticSnapshot({ shopName: 'Synthetic Boot Shop', domain: STORE }),
   });
   assert.deepEqual(result.failures, []);
   assert.deepEqual(result.requests, ['/api/session', '/api/screens', '/api/shopify']);

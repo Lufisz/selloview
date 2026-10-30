@@ -1,107 +1,33 @@
-// Run the actual TV controller with synthetic HTTP responses and an older-browser API surface.
+// Start the actual TV controller with synthetic HTTP responses and an older-browser API surface.
 // This catches startup failures that isolated renderer and API tests cannot see.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { buildSnapshot } from '../../server/metrics.mjs';
-import { projectBoardForDisplay } from '../../server/screens/display-board.mjs';
+import { syntheticDisplay, syntheticSnapshot } from '../helpers/synthetic-snapshot.mjs';
+import { runTvPage } from '../helpers/tv-page.mjs';
 
 const PUBLIC_DIRECTORY = new URL('../../public/', import.meta.url).pathname;
-const REQUEST_TIMEOUT_MS = 12000;
 
-// A display answer built from SYNTHETIC orders through the real snapshot and projection code.
 function syntheticDisplayWithBoard() {
-  const now = new Date();
-  const hour = 3600 * 1000;
-  const orders = [1, 2, 3, 4].map((index) => ({
-    id: `gid://shopify/Order/${index}`,
-    name: `#${5000 + index}`,
-    createdAt: new Date(now.getTime() - index * 26 * hour).toISOString(),
-    cancelledAt: null,
-    test: false,
-    displayFinancialStatus: 'PAID',
-    displayFulfillmentStatus: index % 2 === 0 ? 'FULFILLED' : 'UNFULFILLED',
-    currentTotalPriceSet: { shopMoney: { amount: `${10 + index}.00`, currencyCode: 'EUR' } },
-  }));
-  const snapshot = buildSnapshot(
-    {
-      shop: {
-        name: 'Synthetic Compat Shop',
-        myshopifyDomain: 'synthetic-compat.myshopify.com',
-        currencyCode: 'EUR',
-        ianaTimezone: 'Europe/Stockholm',
-        plan: null,
-      },
-      since: new Date(now.getTime() - 130 * 24 * hour),
-      until: now,
-      orders,
-      ordersComplete: true,
-      variants: [],
-      inventoryComplete: true,
-    },
-    now,
-  );
-  const sync = { state: 'ok', lastSuccessAt: now.toISOString() };
-  return {
-    screen: { name: 'Compat TV' },
-    revision: 1,
-    serverTime: now.toISOString(),
-    settings: { period: 'week', theme: 'dark' },
-    storeConnection: { state: 'connected', sync: { state: 'ok', errorCode: null } },
-    board: projectBoardForDisplay(snapshot, sync),
-  };
+  const snapshot = syntheticSnapshot({
+    shopName: 'Synthetic Compat Shop',
+    domain: 'synthetic-compat.myshopify.com',
+    orderCount: 4,
+    hoursBetweenOrders: 26,
+  });
+  return syntheticDisplay({ screenName: 'Compat TV', snapshot });
 }
 
+// The page's start-up: with no display session (it asks for a pairing code), or already paired.
 function runTvStartup({ offline = false, display = null } = {}) {
-  const controllerUrl = new URL('../../public/tv/tv.js', import.meta.url).href;
-  const script = `
-    const app = { innerHTML: '' };
-    const failures = [];
-    const requests = [];
-    globalThis.document = {
-      querySelector: () => app,
-      body: { dataset: {} },
-    };
-    Object.hasOwn = undefined;
-    String.prototype.replaceAll = undefined;
-    AbortSignal.timeout = undefined;
-    const display = ${JSON.stringify(display)};
-    const timers = [];
-    globalThis.setTimeout = (task, delay) => { timers.push(delay); return timers.length; };
-    globalThis.clearTimeout = () => {};
-    globalThis.fetch = async (url) => {
-      requests.push(url);
-      if (${JSON.stringify(offline)}) throw new Error('synthetic network failure');
-      if (display && url === '/api/display') {
-        return { status: 200, ok: true, json: async () => display };
-      }
-      const status = url === '/api/display' ? 401 : 201;
-      return {
-        status,
-        ok: status === 201,
-        json: async () => status === 401
-          ? { error: 'unauthenticated' }
-          : { code: 'ABCD-EFGH' },
+  const routes = display
+    ? { '/api/display': [{ status: 200, body: display }] }
+    : {
+        '/api/display': [{ status: 401, body: { error: 'unauthenticated' } }],
+        '/api/tv/challenge': [{ status: 201, body: { code: 'ABCD-EFGH' } }],
       };
-    };
-    process.on('unhandledRejection', error => failures.push(error.message));
-    await import(${JSON.stringify(controllerUrl)});
-    for (let turn = 0; turn < 10; turn += 1) {
-      await new Promise(resolve => setImmediate(resolve));
-    }
-    console.log(JSON.stringify({ html: app.innerHTML, failures, requests, timers }));
-  `;
-  const result = JSON.parse(
-    execFileSync(process.execPath, ['--input-type=module', '-e', script], {
-      encoding: 'utf8',
-      timeout: 5000,
-    }),
-  );
-  // Every request arms its own abort timer; what remains are the page's polling timers.
-  result.timers = result.timers.filter((delay) => delay !== REQUEST_TIMEOUT_MS);
-  return result;
+  return runTvPage({ routes, offline });
 }
 
 test('TV startup reaches a pairing code without Object.hasOwn or AbortSignal.timeout', () => {
