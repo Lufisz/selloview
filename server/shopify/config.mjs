@@ -5,7 +5,7 @@
 // The values never reach a browser, a log or a serialized config object.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ShopifyError, validateStore } from '../shopify.mjs';
+import { ShopifyError, validateStore } from './shop-data.mjs';
 import { normalizeInviteEmail } from '../accounts/accounts.mjs';
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');

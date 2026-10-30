@@ -1,11 +1,11 @@
 // Pieces of the official Shopify SDK integration: the outbound bridge, grant validation and the
-// parsers for the OAuth redirect and callback. server/beta/shopify-service.mjs wires them together.
+// parsers for the OAuth redirect and callback. server/shopify/connection-service.mjs wires them together.
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { shopifyApi, ApiVersion, LogSeverity } from '@shopify/shopify-api';
 import '@shopify/shopify-api/adapters/web-api';
 import { setAbstractFetchFunc } from '@shopify/shopify-api/runtime';
-import { ShopifyError } from './shopify.mjs';
-import { REQUIRED_SCOPES, hasExactRequiredScopes } from './shopify-token-store.mjs';
+import { ShopifyError } from './shop-data.mjs';
+import { REQUIRED_SCOPES, hasExactRequiredScopes } from './token-store.mjs';
 
 export const MAX_QUERY_VALUE_LENGTH = 512;
 // The SDK's own state cookie lives 60 s; a merchant may need longer to sign in to Shopify.

@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import path from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
-import { loadBetaShopifyConfig } from '../server/beta/shopify-config.mjs';
+import { loadBetaShopifyConfig } from '../server/shopify/config.mjs';
 import {
   MAX_OPEN_ATTEMPTS,
   claimStore,
@@ -15,7 +15,7 @@ import {
   readLink,
   removeLink,
   restoreLink,
-} from '../server/beta/shopify-links.mjs';
+} from '../server/shopify/links.mjs';
 import {
   AccountError,
   migrateDatabase,

@@ -1,6 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchShopData, HISTORY_DAYS, MAX_PAGES, validateStore } from '../../server/shopify.mjs';
+import {
+  fetchShopData,
+  HISTORY_DAYS,
+  MAX_PAGES,
+  validateStore,
+} from '../../server/shopify/shop-data.mjs';
 import { buildSnapshot } from '../../server/metrics.mjs';
 
 // Deliberately synthetic fixtures, never exported store data.

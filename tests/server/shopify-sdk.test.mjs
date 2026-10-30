@@ -8,8 +8,8 @@ import {
   MAX_QUERY_VALUE_LENGTH,
   parseAuthorizationUrl,
   parseQuery,
-} from '../../server/shopify-sdk.mjs';
-import { REQUIRED_SCOPES } from '../../server/shopify-token-store.mjs';
+} from '../../server/shopify/sdk.mjs';
+import { REQUIRED_SCOPES } from '../../server/shopify/token-store.mjs';
 
 const STORE = 'synthetic-test-store.myshopify.com';
 const CLIENT_ID = 'synthetic_client_id_0001';

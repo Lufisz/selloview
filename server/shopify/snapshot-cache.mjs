@@ -1,5 +1,5 @@
 // In-memory snapshot cache for one Shopify store, and the collector that fills it.
-import { fetchShopData, ShopifyError } from '../shopify.mjs';
+import { fetchShopData, ShopifyError } from './shop-data.mjs';
 import { buildSnapshot } from '../metrics.mjs';
 
 // Figures older than this are reported as stale.

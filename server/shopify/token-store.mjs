@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
-import { ShopifyError } from './shopify.mjs';
+import { ShopifyError } from './shop-data.mjs';
 
 /**
  * Encrypted, restart-persistent storage for the ONE offline Shopify grant of this instance.

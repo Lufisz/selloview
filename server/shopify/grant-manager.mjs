@@ -1,10 +1,10 @@
 // One Shopify offline grant: load, renew, revoke and replace it without races.
 //
 // Each linked workspace owns one of these. All ordering guarantees come from the token store's
-// epochs (see shopify-token-store.mjs): a refresh or exchange that finishes after a disconnect or
+// epochs (see token-store.mjs): a refresh or exchange that finishes after a disconnect or
 // reconnect cannot restore old credentials.
-import { ShopifyError } from './shopify.mjs';
-import { grantFromSession, runWithBoundedFetch } from './shopify-sdk.mjs';
+import { ShopifyError } from './shop-data.mjs';
+import { grantFromSession, runWithBoundedFetch } from './sdk.mjs';
 
 // Renew the 1 hour access token five minutes early so a request never races its expiry.
 const REFRESH_EARLY_MS = 5 * 60_000;
@@ -12,7 +12,7 @@ const PERMANENT_REFRESH_STATUSES = new Set([400, 401, 403, 404, 410]);
 
 /**
  * @param {object} options
- * @param {ReturnType<import('./shopify-token-store.mjs').createTokenStore>} options.tokenStore
+ * @param {ReturnType<import('./token-store.mjs').createTokenStore>} options.tokenStore
  * @param {object} options.shopify  Official SDK client from createShopifySdk.
  * @param {Function} options.boundedFetch  Transport from createShopifyFetch for this store.
  * @param {string} options.store

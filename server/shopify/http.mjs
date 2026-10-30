@@ -1,5 +1,5 @@
 // Bounded, server-only transport shared by Shopify token exchange and fixed GraphQL reads.
-import { API_VERSION, ShopifyError, validateStore } from './shopify.mjs';
+import { API_VERSION, ShopifyError, validateStore } from './shop-data.mjs';
 
 const DEFAULT_MAX_BYTES = 8 * 1024 * 1024;
 const DEFAULT_TIMEOUT_MS = 15000;

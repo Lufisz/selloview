@@ -1,5 +1,5 @@
 // Read-only Shopify data collection: the fixed GraphQL queries, store validation and cursor paging.
-// A query runner (server/shopify-admin.mjs) sends them; server/metrics.mjs turns the result into a snapshot.
+// A query runner (server/shopify/admin-runner.mjs) sends them; server/metrics.mjs turns the result into a snapshot.
 
 export const API_VERSION = '2026-07';
 export const MAX_PAGES = 100;

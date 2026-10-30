@@ -8,11 +8,11 @@
 // stays workspace-bound so lifting that restriction later does not change any isolation rule.
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { createAdminRunner } from '../shopify-admin.mjs';
-import { createShopifyFetch } from '../shopify-http.mjs';
-import { createShopSnapshotCache, REFRESH_MS } from '../shopify/snapshot-cache.mjs';
-import { createTokenStore } from '../shopify-token-store.mjs';
-import { createGrantManager } from '../shopify-grant-manager.mjs';
+import { createAdminRunner } from './admin-runner.mjs';
+import { createShopifyFetch } from './http.mjs';
+import { createShopSnapshotCache, REFRESH_MS } from './snapshot-cache.mjs';
+import { createTokenStore } from './token-store.mjs';
+import { createGrantManager } from './grant-manager.mjs';
 import {
   PENDING_ATTEMPT_TTL_MS,
   STATE_COOKIE_NAMES,
@@ -22,7 +22,7 @@ import {
   parseAuthorizationUrl,
   parseQuery,
   runWithBoundedFetch,
-} from '../shopify-sdk.mjs';
+} from './sdk.mjs';
 import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { fetchShopLogo } from './shop-logo.mjs';
@@ -41,7 +41,7 @@ import {
   setLinkState,
   sha256Hex,
   workspaceIsOwnedBy,
-} from './shopify-links.mjs';
+} from './links.mjs';
 
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 

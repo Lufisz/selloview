@@ -8,7 +8,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { curlAvailable } from './beta-helpers.mjs';
-import { createTokenStore } from '../server/shopify-token-store.mjs';
+import { createTokenStore } from '../server/shopify/token-store.mjs';
 import { isUsableSnapshot } from '../public/snapshot-validation.js';
 import { renderPaired } from '../public/tv-view.js';
 import {

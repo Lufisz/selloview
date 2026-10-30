@@ -1,6 +1,6 @@
 // Pure metric calculation. "Order value" = sum of currentTotalPriceSet, nothing more.
-// Input is RawShopData from server/shopify.mjs; output is the snapshot documented below.
-import { validateStore } from './shopify.mjs';
+// Input is RawShopData from server/shopify/shop-data.mjs; output is the snapshot documented below.
+import { validateStore } from './shopify/shop-data.mjs';
 
 /**
  * @typedef {{ valueCents: number, orders: number, averageCents: number }} PeriodTotals
@@ -454,7 +454,7 @@ function buildRecentOrders(orders, domain) {
 
 /**
  * Builds the dashboard snapshot from raw Shopify data. Throws MetricsError on any invalid input.
- * @param {import('./shopify.mjs').RawShopData} raw
+ * @param {import('./shopify/shop-data.mjs').RawShopData} raw
  * @param {Date} now
  * @returns {Snapshot}
  */

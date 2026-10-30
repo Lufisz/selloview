@@ -1,6 +1,6 @@
 // Authenticated Admin API transport. Collection still uses the same fixed queries and metric code.
-import { API_VERSION, QUERIES, ShopifyError, extractData, validateStore } from './shopify.mjs';
-import { createShopifyFetch } from './shopify-http.mjs';
+import { API_VERSION, QUERIES, ShopifyError, extractData, validateStore } from './shop-data.mjs';
+import { createShopifyFetch } from './http.mjs';
 
 export function createAdminRunner({ store, connection, fetchImpl = fetch }) {
   validateStore(store);

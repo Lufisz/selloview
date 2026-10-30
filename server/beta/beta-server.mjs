@@ -42,9 +42,9 @@ import {
   sendJson,
 } from '../http/guards.mjs';
 import { ensureWorkspace, updateWorkspaceSettings } from '../accounts/workspaces.mjs';
-import { loadBetaShopifyConfig } from './shopify-config.mjs';
-import { createBetaShopifyService } from './shopify-service.mjs';
-import { createShopifyRoutes } from './shopify-routes.mjs';
+import { loadBetaShopifyConfig } from '../shopify/config.mjs';
+import { createBetaShopifyService } from '../shopify/connection-service.mjs';
+import { createShopifyRoutes } from '../shopify/routes.mjs';
 import { BETA_PUBLIC_FILES } from '../http/public-files.mjs';
 import { createAppVersion } from '../screens/app-version.mjs';
 import { createScreenRoutes } from '../screens/screen-routes.mjs';

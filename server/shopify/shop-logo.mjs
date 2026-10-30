@@ -8,8 +8,8 @@
 // Only a PNG or JPEG from Shopify's CDN is accepted (some older TV browsers cannot show WebP),
 // and every read is bounded in time and size.
 import crypto from 'node:crypto';
-import { API_VERSION, ShopifyError, validateStore } from '../shopify.mjs';
-import { readBoundedBody } from '../shopify-http.mjs';
+import { API_VERSION, ShopifyError, validateStore } from './shop-data.mjs';
+import { readBoundedBody } from './http.mjs';
 
 const LOGO_QUERY = 'query ShopLogo { shop { brand { logo { image { url } } } } }';
 const LOGO_HOST = 'cdn.shopify.com';

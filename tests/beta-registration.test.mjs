@@ -9,7 +9,7 @@ import {
   createRegistrationPolicy,
   loadRegistrationConfig,
 } from '../server/accounts/registration.mjs';
-import { createBetaShopifyService } from '../server/beta/shopify-service.mjs';
+import { createBetaShopifyService } from '../server/shopify/connection-service.mjs';
 import {
   createBetaEnvironment,
   createBrowser,

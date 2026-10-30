@@ -2,12 +2,12 @@
 // (and, when changing anything, exact Origin, JSON and the session-bound CSRF token). The OAuth
 // callback is different: it arrives from Shopify as a cross-site navigation, so the SameSite=Strict
 // session cookie is absent by design. It is authorized by the signed SDK state, the single-use
-// pending attempt and the path-scoped binding cookie instead (see shopify-service.mjs).
-import { validateStore } from '../shopify.mjs';
+// pending attempt and the path-scoped binding cookie instead (see connection-service.mjs).
+import { validateStore } from './shop-data.mjs';
 import { RequestRejection, assertSameOriginJson, readJsonObject } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { ensureWorkspace } from '../accounts/workspaces.mjs';
-import { SHOPIFY_CALLBACK_PATH } from './shopify-service.mjs';
+import { SHOPIFY_CALLBACK_PATH } from './connection-service.mjs';
 
 export const SHOPIFY_STATUS_PATH = '/api/beta/shopify';
 export const SHOPIFY_START_PATH = '/api/beta/shopify/start';
@@ -32,7 +32,7 @@ const START_DENIALS = Object.freeze({
 
 /**
  * @param {object} dependencies
- * @param {ReturnType<import('./shopify-service.mjs').createBetaShopifyService>} dependencies.shopify
+ * @param {ReturnType<import('./connection-service.mjs').createBetaShopifyService>} dependencies.shopify
  * @param {import('node:sqlite').DatabaseSync} dependencies.database
  * @param {string} dependencies.origin
  * @param {Readonly<Record<string, string>>} dependencies.responseHeaders  Security headers.

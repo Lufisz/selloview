@@ -2,7 +2,7 @@
 // Synthetic responses only; nothing here contacts Shopify.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchShopLogo, logoDownloadUrl } from '../server/beta/shop-logo.mjs';
+import { fetchShopLogo, logoDownloadUrl } from '../server/shopify/shop-logo.mjs';
 
 const STORE = 'synthetic-logo-store.myshopify.com';
 const PNG_BYTES = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x01]);

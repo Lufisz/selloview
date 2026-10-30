@@ -6,10 +6,10 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { after, before, describe, test } from 'node:test';
-import { createGrantManager } from '../../server/shopify-grant-manager.mjs';
-import { createShopifyFetch } from '../../server/shopify-http.mjs';
-import { createShopifySdk } from '../../server/shopify-sdk.mjs';
-import { createTokenStore } from '../../server/shopify-token-store.mjs';
+import { createGrantManager } from '../../server/shopify/grant-manager.mjs';
+import { createShopifyFetch } from '../../server/shopify/http.mjs';
+import { createShopifySdk } from '../../server/shopify/sdk.mjs';
+import { createTokenStore } from '../../server/shopify/token-store.mjs';
 
 const STORE = 'synthetic-test-store.myshopify.com';
 const ORIGIN = 'https://metrictv.test.example';

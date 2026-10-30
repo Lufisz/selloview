@@ -15,7 +15,7 @@ import {
   openInitializedDatabase,
 } from '../server/accounts/accounts.mjs';
 import { createBetaServer } from '../server/beta/beta-server.mjs';
-import { createBetaShopifyService } from '../server/beta/shopify-service.mjs';
+import { createBetaShopifyService } from '../server/shopify/connection-service.mjs';
 
 /** SYNTHETIC delivery: records codes in memory so tests can complete the real sign-in flow. */
 export function createMemoryMailTransport() {
