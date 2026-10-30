@@ -63,11 +63,13 @@ npm test
 
 | Path | Purpose |
 | --- | --- |
-| `server/beta/` | Owner accounts, Shopify connections and TV sessions |
-| `server/` | Shared Shopify queries, encrypted credentials and metrics |
-| `public/` | Pages, styles and shared board renderers |
-| `scripts/admin.mjs` | Database setup, invitations and migrations |
-| `tests/` | Tests using synthetic data |
+| `server/main.mjs`, `server/app.mjs` | Start the app server; its request routes |
+| `server/accounts/`, `server/screens/`, `server/shopify/` | Owner accounts, TV pairing and display, Shopify connection and metrics inputs |
+| `server/http/`, `server/metrics.mjs` | Request guards and static files; the pure snapshot maths |
+| `server/demo.mjs` | The sample dashboard server (`npm start`) |
+| `public/` | Pages by surface: `landing/`, `demo/`, `owner/`, `tv/`, `shared/` |
+| `scripts/admin.mjs` | Database setup, invitations and migrations (`npm run admin -- ...`) |
+| `tests/` | Tests using synthetic data: `server/`, `browser/`, `helpers/` |
 
 See [contributing](CONTRIBUTING.md) for code conventions and [security](SECURITY.md) for data boundaries and reporting. Never include real store data or credentials in issues or screenshots.
 
