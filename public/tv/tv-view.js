@@ -10,6 +10,7 @@ const TV_MESSAGES = Object.freeze({
   offline: 'Cannot reach the server. Trying again shortly.',
   rate_limited: 'Too many requests from this network. Trying again shortly.',
   busy: 'Pairing is busy right now. Trying again shortly.',
+  unexpected: 'Something went wrong. Trying again shortly.',
 });
 
 // Served by MetricTV itself; the version in the address lets the TV cache the image safely.
@@ -19,7 +20,7 @@ const LOGO_VERSION_PATTERN = /^[A-Za-z0-9_-]{16}$/;
 export function messageForTvError(code) {
   return Object.prototype.hasOwnProperty.call(TV_MESSAGES, code)
     ? TV_MESSAGES[code]
-    : 'Something went wrong. Trying again shortly.';
+    : TV_MESSAGES.unexpected;
 }
 
 function tvPage(boardHtml, dark, { showTopbar = true } = {}) {

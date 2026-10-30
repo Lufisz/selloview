@@ -9,6 +9,7 @@ import { buildSnapshot } from '../../server/metrics.mjs';
 import { projectBoardForDisplay } from '../../server/screens/display-board.mjs';
 
 const PUBLIC_DIRECTORY = new URL('../../public/', import.meta.url).pathname;
+const REQUEST_TIMEOUT_MS = 12000;
 
 // A display answer built from SYNTHETIC orders through the real snapshot and projection code.
 function syntheticDisplayWithBoard() {
@@ -67,7 +68,8 @@ function runTvStartup({ offline = false, display = null } = {}) {
     String.prototype.replaceAll = undefined;
     AbortSignal.timeout = undefined;
     const display = ${JSON.stringify(display)};
-    globalThis.setTimeout = () => 1;
+    const timers = [];
+    globalThis.setTimeout = (task, delay) => { timers.push(delay); return timers.length; };
     globalThis.clearTimeout = () => {};
     globalThis.fetch = async (url) => {
       requests.push(url);
@@ -89,14 +91,17 @@ function runTvStartup({ offline = false, display = null } = {}) {
     for (let turn = 0; turn < 10; turn += 1) {
       await new Promise(resolve => setImmediate(resolve));
     }
-    console.log(JSON.stringify({ html: app.innerHTML, failures, requests }));
+    console.log(JSON.stringify({ html: app.innerHTML, failures, requests, timers }));
   `;
-  return JSON.parse(
+  const result = JSON.parse(
     execFileSync(process.execPath, ['--input-type=module', '-e', script], {
       encoding: 'utf8',
       timeout: 5000,
     }),
   );
+  // Every request arms its own abort timer; what remains are the page's polling timers.
+  result.timers = result.timers.filter((delay) => delay !== REQUEST_TIMEOUT_MS);
+  return result;
 }
 
 test('TV startup reaches a pairing code without Object.hasOwn or AbortSignal.timeout', () => {
@@ -137,6 +142,19 @@ test('a TV given figures it cannot validate shows no figures at all', () => {
   assert.deepEqual(result.failures, []);
   assert.match(result.html, /cannot show/);
   assert.doesNotMatch(result.html, /Order value/);
+});
+
+test('a surprise while showing figures puts an error on screen and tries again, not a frozen board', () => {
+  const display = { ...syntheticDisplayWithBoard(), settings: undefined };
+  const result = runTvStartup({ display });
+  assert.deepEqual(result.failures, []);
+  assert.match(result.html, /Something went wrong/);
+  assert.deepEqual(result.timers, [15000], 'the screen starts over after the retry delay');
+});
+
+test('a paired TV asks for fresh figures every ten seconds', () => {
+  const result = runTvStartup({ display: syntheticDisplayWithBoard() });
+  assert.deepEqual(result.timers, [10000]);
 });
 
 // Everything the TV page loads, found by following its import statements.

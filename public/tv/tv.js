@@ -37,7 +37,17 @@ function showHtml(html, theme = 'light') {
 
 function schedule(task, delayMs) {
   clearTimeout(timer);
-  timer = setTimeout(task, delayMs);
+  timer = setTimeout(() => runSafely(task), delayMs);
+}
+
+// An unattended screen must never stop on a surprise: say so on screen, and start over later.
+async function runSafely(task) {
+  try {
+    await task();
+  } catch {
+    showHtml(renderTvError(messageForTvError('unexpected')));
+    schedule(start, RETRY_MS);
+  }
 }
 
 function serverNow() {
@@ -92,9 +102,9 @@ async function refreshDisplay() {
   const result = await loadDisplay();
   if (result.status === 'unpaired') return beginPairing();
   if (result.status === 'error') {
-    // Keep the last appearance (no figures are ever held) but say that it may be out of date.
+    // Keep showing the last board, but say that it may be out of date.
     if (lastDisplay) {
-      const notice = 'Connection lost. This may not be the latest appearance.';
+      const notice = 'Connection lost. These figures may not be the latest.';
       const html = renderPaired({ display: lastDisplay, notice, now: serverNow() });
       showHtml(html, lastDisplay.settings.theme);
     }
@@ -109,7 +119,7 @@ async function start() {
   showHtml(renderTvLoading());
   const result = await loadDisplay();
   if (result.status === 'paired') {
-    reloadIfUpdated(result.display);
+    if (reloadIfUpdated(result.display)) return;
     showPaired(result.display);
     return schedule(refreshDisplay, DISPLAY_POLL_MS);
   }
@@ -118,4 +128,4 @@ async function start() {
   schedule(start, RETRY_MS);
 }
 
-void start();
+void runSafely(start);
