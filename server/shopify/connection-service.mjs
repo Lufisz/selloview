@@ -8,12 +8,9 @@
 // the data model stays workspace-bound so lifting that restriction later does not change any
 // isolation rule.
 import crypto from 'node:crypto';
-import path from 'node:path';
-import { createAdminRunner } from './admin-runner.mjs';
 import { createShopifyFetch } from './http.mjs';
-import { createShopSnapshotCache, REFRESH_MS, toSafeErrorCode } from './snapshot-cache.mjs';
-import { createTokenStore } from './token-store.mjs';
-import { createGrantManager } from './grant-manager.mjs';
+import { REFRESH_MS } from './snapshot-cache.mjs';
+import { createWorkspaceRuntimes } from './workspace-runtimes.mjs';
 import {
   PENDING_ATTEMPT_TTL_MS,
   STATE_COOKIE_NAMES,
@@ -40,7 +37,6 @@ import {
   readWorkspaceOwnerEmail,
   removeLink,
   restoreLink,
-  setLinkState,
   workspaceIsOwnedBy,
 } from './links.mjs';
 
@@ -48,15 +44,8 @@ import {
 // registration, so it never changes.
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';
 
-const WORKSPACE_ID_PATTERN = /^[0-9a-f-]{36}$/;
 const UPSTREAM_TIMEOUT_MS = 10_000;
 const MAX_TOKEN_RESPONSE_BYTES = 64 * 1024;
-// ceiling: 2 refreshes at once, which keeps about 60 stores fresh if each refresh takes 4 s,
-// upgrade: raise it when stores turn stale while the server is otherwise idle
-const MAX_CONCURRENT_REFRESHES = 2;
-// A logo rarely changes: check once a day, and retry sooner when a read failed.
-const LOGO_RECHECK_MS = 24 * 60 * 60 * 1000;
-const LOGO_RETRY_MS = 30 * 60 * 1000;
 const START_RATE_LIMIT = { limit: 6, windowMs: 60_000 };
 const STATES_THAT_MAY_CONNECT = new Set(['not_connected', 'connected', 'reconnect_required']);
 
@@ -89,10 +78,6 @@ export function createShopifyService({
   const bindingCookieName = `${cookiePrefix}${BINDING_COOKIE_BASE}`;
   const callbackUrl = `${origin}${SHOPIFY_CALLBACK_PATH}`;
   const startLimiter = createRateLimiter(START_RATE_LIMIT);
-  // ceiling: a runtime stays in memory until its store is disconnected (about 20 KB plus a logo of
-  // up to 1 MiB), upgrade: evict idle runtimes once thousands of stores are linked
-  const runtimes = new Map();
-  let activeRefreshes = 0;
 
   let shopify = null;
   let boundedFetch = null;
@@ -110,99 +95,19 @@ export function createShopifyService({
     });
   }
 
+  const runtimes = createWorkspaceRuntimes({
+    database,
+    config,
+    shopify,
+    boundedFetch,
+    fetchImpl,
+    now,
+    refreshIntervalMs,
+    fetchLogo,
+  });
+
   function isAllowedOwner(email) {
     return isReady && typeof email === 'string' && email.toLowerCase() === config.ownerEmail;
-  }
-
-  // ---- per-workspace runtime (grant file, grant manager, snapshot cache) ----------------------
-
-  function handleGrantChange(runtime, { state }) {
-    // Any credential change makes cached figures untrustworthy; late collector results from
-    // before the change are dropped by the cache's generation counter.
-    runtime.cache.clear();
-    runtime.lastTriggeredAt = null;
-    if (state === 'reconnect_required') {
-      setLinkState(database, {
-        workspaceId: runtime.workspaceId,
-        state: 'reconnect_required',
-        nowMs: now(),
-      });
-    }
-    if (state === 'connected') maybeRefresh(runtime);
-  }
-
-  function runtimeFor(workspaceId) {
-    if (!WORKSPACE_ID_PATTERN.test(workspaceId)) throw new Error('invalid workspace id');
-    const existing = runtimes.get(workspaceId);
-    if (existing) return existing;
-    const tokenStore = createTokenStore({
-      filePath: path.join(config.tokenDirectory, `${workspaceId}.grant.json`),
-      key: config.encryptionKey,
-      clientId: config.clientId,
-      store: config.store,
-      workspaceId,
-    });
-    const runtime = {
-      workspaceId,
-      lastTriggeredAt: null,
-      logo: { image: null, nextCheckAt: 0, inflight: false },
-    };
-    runtime.manager = createGrantManager({
-      tokenStore,
-      shopify,
-      boundedFetch,
-      store: config.store,
-      clientId: config.clientId,
-      now,
-      // Dropped first, so a refresh that fails because its credentials just vanished is ignored.
-      onDiscard: () => runtime.cache.clear(),
-      onChange: (event) => handleGrantChange(runtime, event),
-    });
-    runtime.cache = createShopSnapshotCache({
-      store: config.store,
-      run: createAdminRunner({ store: config.store, connection: runtime.manager, fetchImpl }),
-      now,
-      onFailure: (error) => {
-        logEvent('refresh_failed', {
-          workspaceId,
-          code: toSafeErrorCode(error),
-          error: error?.name ?? 'Error',
-        });
-      },
-    });
-    runtimes.set(workspaceId, runtime);
-    return runtime;
-  }
-
-  /** Background collection: one at a time per workspace, rate-spaced, globally bounded. */
-  function maybeRefresh(runtime) {
-    const isDue =
-      runtime.lastTriggeredAt === null || now() - runtime.lastTriggeredAt >= refreshIntervalMs;
-    if (!isDue || runtime.cache.inflight) return;
-    if (activeRefreshes >= MAX_CONCURRENT_REFRESHES) return;
-    runtime.lastTriggeredAt = now();
-    activeRefreshes += 1;
-    runtime.cache.refresh().finally(() => {
-      activeRefreshes -= 1;
-    });
-  }
-
-  /** Keeps the store logo current in the background. A failed read keeps the last good logo. */
-  function maybeRefreshLogo(runtime) {
-    const { logo } = runtime;
-    if (logo.inflight || now() < logo.nextCheckAt) return;
-    logo.inflight = true;
-    fetchLogo({ store: config.store, fetchImpl })
-      .then((image) => {
-        logo.image = image;
-        logo.nextCheckAt = now() + LOGO_RECHECK_MS;
-      })
-      .catch(() => {
-        logo.nextCheckAt = now() + LOGO_RETRY_MS;
-      })
-      .finally(() => {
-        logo.inflight = false;
-      });
   }
 
   // ---- reading state --------------------------------------------------------------------------
@@ -219,7 +124,7 @@ export function createShopifyService({
     if (!link) return { state: 'not_connected' };
     if (link.shop !== config.store) return { state: 'owner_not_allowed' };
     if (link.state === 'reconnect_required') return { state: 'reconnect_required' };
-    const runtime = runtimeFor(workspaceId);
+    const runtime = runtimes.forWorkspace(workspaceId);
     const grantState = await runtime.manager.currentState();
     // A missing or unreadable grant file is not "connected", whatever the table says.
     if (grantState !== 'connected') return { state: 'reconnect_required' };
@@ -236,7 +141,7 @@ export function createShopifyService({
       connection.canConnect = false;
     }
     if (runtime) {
-      maybeRefresh(runtime);
+      runtimes.maybeRefresh(runtime);
       connection.sync = runtime.cache.sync();
     }
     return connection;
@@ -333,8 +238,8 @@ export function createShopifyService({
       const resolved = await resolve(workspaceId, ownerEmail);
       const { runtime } = resolved;
       if (!runtime) return { state: resolved.state, snapshot: null, sync: null };
-      maybeRefresh(runtime);
-      maybeRefreshLogo(runtime);
+      runtimes.maybeRefresh(runtime);
+      runtimes.maybeRefreshLogo(runtime);
       const sync = runtime.cache.sync();
       const logoVersion = runtime.logo.image ? runtime.logo.image.version : null;
       return { state: resolved.state, snapshot: runtime.cache.snapshot, sync, logoVersion };
@@ -439,7 +344,7 @@ export function createShopifyService({
       if (!sdkCookieHeader) return false;
       if (!ownerStillAllowed(attempt)) return false;
 
-      const runtime = runtimeFor(attempt.workspace_id);
+      const runtime = runtimes.forWorkspace(attempt.workspace_id);
       const startingEpoch = runtime.manager.epoch;
       const sdkRequest = new Request(`${origin}${request.url}`, {
         headers: {
@@ -467,7 +372,7 @@ export function createShopifyService({
       if (!isAllowedOwner(ownerEmail)) return { status: 'owner_not_allowed' };
       discardAttemptsForWorkspace(database, workspaceId);
       removeLink(database, workspaceId);
-      const runtime = runtimeFor(workspaceId);
+      const runtime = runtimes.forWorkspace(workspaceId);
       let removalFailed = false;
       try {
         await runtime.manager.disconnect();
@@ -475,7 +380,7 @@ export function createShopifyService({
         removalFailed = true;
       }
       runtime.cache.clear();
-      runtimes.delete(workspaceId);
+      runtimes.forget(workspaceId);
       return { status: removalFailed ? 'disconnect_failed' : 'ok' };
     },
   };
