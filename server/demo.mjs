@@ -44,7 +44,8 @@ function createDemoServer(options) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const host = process.env.HOST ?? '127.0.0.1';
+  // Always loopback: HOST is a generic name that containers and shells set for their own reasons.
+  const host = '127.0.0.1';
   const port = Number(process.env.PORT ?? 4317);
   createDemoServer().listen(port, host, () =>
     console.log(`MetricTV prototype: http://${host}:${port}`),

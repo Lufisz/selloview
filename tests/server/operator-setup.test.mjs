@@ -530,6 +530,24 @@ test('the start-up lines say whether rate limits can tell visitors apart', async
   assert.equal(withHeader.includes('every visitor looks like the proxy'), false);
 });
 
+test('the sample server ignores HOST and listens on loopback only', async (t) => {
+  const port = await findFreePort();
+  const output = await startAndReadOutput(
+    t,
+    'server/demo.mjs',
+    { HOST: '0.0.0.0', PORT: String(port) },
+    'MetricTV prototype',
+  );
+  assert.match(output, new RegExp(`MetricTV prototype: http://127\\.0\\.0\\.1:${port}\\n`));
+  const externalAddresses = externalIPv4Addresses();
+  if (externalAddresses.length === 0) {
+    t.diagnostic('no non-loopback IPv4 address on this machine; all-interfaces probe skipped');
+  }
+  for (const address of externalAddresses) {
+    assert.equal(await acceptsConnection(address, port), false, `never listens on ${address}`);
+  }
+});
+
 test('server start without an initialized database fails and creates nothing', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
