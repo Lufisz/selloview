@@ -1,10 +1,12 @@
 // One owner, one workspace. The owner is always an authenticated user id taken from a verified
 // session on the server; nothing here accepts an owner or workspace id from a browser.
 import crypto from 'node:crypto';
-import { DEFAULT_SETTINGS, parseSettingsPatch } from '../live-settings.mjs';
 
 const DEFAULT_WORKSPACE_NAME = 'My MetricTV';
 const MAX_REVISION = 1_000_000_000;
+const PERIOD_VALUES = Object.freeze(['today', 'week', 'month', 'days60']);
+const THEME_VALUES = Object.freeze(['light', 'dark']);
+const DEFAULT_SETTINGS = Object.freeze({ period: 'week', theme: 'light' });
 
 const WORKSPACE_SCHEMA = `
   CREATE TABLE IF NOT EXISTS workspace (
@@ -34,6 +36,27 @@ const WORKSPACE_SELECT = `SELECT workspace.id, workspace.name, settings.period, 
     settings.revision
   FROM workspace
   JOIN workspace_settings AS settings ON settings.workspace_id = workspace.id`;
+
+function isPlainObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isValidField(name, value) {
+  if (name === 'period') return PERIOD_VALUES.includes(value);
+  if (name === 'theme') return THEME_VALUES.includes(value);
+  return false;
+}
+
+/** Non-empty subset of the known settings fields, or null. */
+function parseSettingsPatch(value) {
+  if (!isPlainObject(value)) return null;
+  const names = Object.keys(value);
+  if (names.length === 0) return null;
+  for (const name of names) {
+    if (!isValidField(name, value[name])) return null;
+  }
+  return { ...value };
+}
 
 function toWorkspace(row) {
   if (!row) return null;

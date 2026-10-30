@@ -8,8 +8,9 @@
 // stays workspace-bound so lifting that restriction later does not change any isolation rule.
 import crypto from 'node:crypto';
 import path from 'node:path';
-import { createLiveCache, REFRESH_MS } from '../live-server.mjs';
+import { createAdminRunner } from '../shopify-admin.mjs';
 import { createShopifyFetch } from '../shopify-http.mjs';
+import { createShopSnapshotCache, REFRESH_MS } from '../shopify/snapshot-cache.mjs';
 import { createTokenStore } from '../shopify-token-store.mjs';
 import { createGrantManager } from '../shopify-grant-manager.mjs';
 import {
@@ -147,10 +148,11 @@ export function createBetaShopifyService({
       now,
       onChange: (event) => handleGrantChange(runtime, event),
     });
-    runtime.cache = createLiveCache(
-      { store: config.store },
-      { connection: runtime.manager, authMode: 'oauth', fetchImpl, now },
-    );
+    runtime.cache = createShopSnapshotCache({
+      store: config.store,
+      run: createAdminRunner({ store: config.store, connection: runtime.manager, fetchImpl }),
+      now,
+    });
     runtimes.set(workspaceId, runtime);
     return runtime;
   }

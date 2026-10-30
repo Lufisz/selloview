@@ -5,16 +5,7 @@
 // The values never reach a browser, a log or a serialized config object.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { validateStore } from '../shopify.mjs';
-import {
-  CLIENT_ID_PATTERN,
-  CLIENT_SECRET_PATTERN,
-  hideSecrets,
-  invalidConfig,
-  isBlank,
-  isInside,
-  parseEncryptionKey,
-} from '../shopify-connection.mjs';
+import { ShopifyError, validateStore } from '../shopify.mjs';
 import { normalizeInviteEmail } from './accounts.mjs';
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -26,6 +17,39 @@ const SETTING_NAMES = Object.freeze([
   'BETA_SHOPIFY_ALLOWED_STORE',
   'BETA_SHOPIFY_OWNER_EMAIL',
 ]);
+
+const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
+const CLIENT_SECRET_PATTERN = /^[\x21-\x7e]{16,256}$/;
+
+function invalidConfig() {
+  return new ShopifyError('invalid_connection_config');
+}
+
+function isBlank(value) {
+  return value === undefined || value === null || value === '';
+}
+
+function parseEncryptionKey(text) {
+  if (typeof text !== 'string') throw invalidConfig();
+  const key = Buffer.from(text, 'base64');
+  const isCanonical = key.length === 32 && key.toString('base64') === text;
+  if (!isCanonical) throw invalidConfig();
+  return key;
+}
+
+function isInside(parent, child) {
+  const relative = path.relative(parent, child);
+  const escapesParent = relative === '..' || relative.startsWith(`..${path.sep}`);
+  return relative === '' || (!escapesParent && !path.isAbsolute(relative));
+}
+
+function hideSecrets(target, secrets) {
+  for (const [name, value] of Object.entries(secrets)) {
+    // Non-enumerable: console.log / JSON.stringify of the config cannot print secrets.
+    Object.defineProperty(target, name, { value, enumerable: false });
+  }
+  return Object.freeze(target);
+}
 
 function parseTokenDirectory(value, projectRoot) {
   const isAbsoluteAndClean =
