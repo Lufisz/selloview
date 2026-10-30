@@ -34,14 +34,14 @@ import {
   revokeScreen,
 } from './screens.mjs';
 
-export const TV_CHALLENGE_PATH = '/api/tv/challenge';
-export const TV_PAIRING_PATH = '/api/tv/pairing';
-export const TV_EXCHANGE_PATH = '/api/tv/pairing/exchange';
-export const DISPLAY_PATH = '/api/display';
-export const DISPLAY_LOGO_PATH = '/api/display/logo';
-export const SCREENS_PATH = '/api/screens';
-export const PAIR_SCREEN_PATH = '/api/screens/pair';
-export const REVOKE_SCREEN_PATH = '/api/screens/revoke';
+const TV_CHALLENGE_PATH = '/api/tv/challenge';
+const TV_PAIRING_PATH = '/api/tv/pairing';
+const TV_EXCHANGE_PATH = '/api/tv/pairing/exchange';
+const DISPLAY_PATH = '/api/display';
+const DISPLAY_LOGO_PATH = '/api/display/logo';
+const SCREENS_PATH = '/api/screens';
+const PAIR_SCREEN_PATH = '/api/screens/pair';
+const REVOKE_SCREEN_PATH = '/api/screens/revoke';
 
 const MINUTE_MS = 60 * 1000;
 const CHALLENGE_COOKIE = 'metrictv_tv_challenge';

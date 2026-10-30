@@ -3,7 +3,7 @@
 import { CodedError } from '../errors.mjs';
 import { createSecurityHeaders, rawHeaderValues, singleHeaderValue } from './static-files.mjs';
 
-export const MAX_JSON_BODY_BYTES = 2048;
+const MAX_JSON_BODY_BYTES = 2048;
 const JSON_CONTENT_TYPE_PATTERN = /^application\/json(?:\s*;\s*charset=utf-8)?$/i;
 const SAME_ORIGIN_FETCH_SITES = new Set(['same-origin']);
 

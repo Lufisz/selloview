@@ -10,15 +10,8 @@ import { REQUIRED_SCOPES, hasExactRequiredScopes } from './token-store.mjs';
 export const MAX_QUERY_VALUE_LENGTH = 512;
 // The SDK's own state cookie lives 60 s; a merchant may need longer to sign in to Shopify.
 export const PENDING_ATTEMPT_TTL_MS = 5 * 60_000;
-export const CALLBACK_QUERY_FIELDS = new Set([
-  'code',
-  'hmac',
-  'host',
-  'shop',
-  'state',
-  'timestamp',
-]);
-export const REQUIRED_CALLBACK_FIELDS = ['code', 'hmac', 'shop', 'state', 'timestamp'];
+const CALLBACK_QUERY_FIELDS = new Set(['code', 'hmac', 'host', 'shop', 'state', 'timestamp']);
+const REQUIRED_CALLBACK_FIELDS = ['code', 'hmac', 'shop', 'state', 'timestamp'];
 // Cookie names the SDK reads and writes. The signature covers "name=value", so a caller that
 // renames them on the wire must restore these exact names before handing the request back.
 export const STATE_COOKIE_NAMES = ['shopify_app_state', 'shopify_app_state.sig'];

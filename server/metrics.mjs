@@ -31,7 +31,7 @@ import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
 
 export class MetricsError extends CodedError {}
 
-export const METRIC_DEFINITION =
+const METRIC_DEFINITION =
   'Order value is the sum of Shopify currentTotalPriceSet (shop currency) for non-test, non-cancelled orders created in the period. It is not net sales, cash received or profit, and is not a reconciled Shopify sales report.';
 const BACKLOG_PAYMENT_STATUSES = new Set(['PAID', 'PARTIALLY_PAID', 'PARTIALLY_REFUNDED']);
 const BACKLOG_FULFILLMENT_STATUSES = new Set(['UNFULFILLED', 'PARTIALLY_FULFILLED']);
@@ -73,7 +73,7 @@ function addCents(total, cents) {
   return sum;
 }
 
-export function parseInstant(text) {
+function parseInstant(text) {
   if (typeof text !== 'string') throw new MetricsError('bad_date');
   const instant = Date.parse(text);
   if (!Number.isFinite(instant)) throw new MetricsError('bad_date');

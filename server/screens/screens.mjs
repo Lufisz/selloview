@@ -17,7 +17,7 @@ export const DISPLAY_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
 // minute), upgrade: per-address caps when a large fleet starts at the same time
 export const MAX_OPEN_CHALLENGES = 200;
 export const MAX_SCREENS_PER_WORKSPACE = 10;
-export const MAX_SCREEN_NAME_LENGTH = 40;
+const MAX_SCREEN_NAME_LENGTH = 40;
 
 const LAST_SEEN_WRITE_INTERVAL_MS = 60 * 1000;
 // A screen in use keeps its pairing: at most once a day, activity moves the expiry back to a

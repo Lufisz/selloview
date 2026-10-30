@@ -16,8 +16,8 @@ import { ShopifyError } from './shop-data.mjs';
  * disconnected therefore cannot bring the deleted credentials back.
  */
 
-export const ENVELOPE_FORMAT = 'metrictv-shopify-token-store';
-export const ENVELOPE_VERSION = 1;
+const ENVELOPE_FORMAT = 'metrictv-shopify-token-store';
+const ENVELOPE_VERSION = 1;
 export const REQUIRED_SCOPES = Object.freeze([
   'read_all_orders',
   'read_orders',
@@ -64,7 +64,7 @@ function isToken(value) {
  * Validate a decrypted or about-to-be-saved grant and return a clean copy.
  * Throws ShopifyError('invalid_grant') for anything unexpected.
  */
-export function validateGrant(grant, { clientId, store, savedAtLimit } = {}) {
+function validateGrant(grant, { clientId, store, savedAtLimit } = {}) {
   if (!isPlainObject(grant)) throw new ShopifyError('invalid_grant');
   if (grant.shop !== store || grant.clientId !== clientId) throw new ShopifyError('invalid_grant');
   if (grant.offline !== true) throw new ShopifyError('invalid_grant');

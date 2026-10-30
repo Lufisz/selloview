@@ -9,9 +9,9 @@ import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { ensureWorkspace } from '../accounts/workspaces.mjs';
 import { SHOPIFY_CALLBACK_PATH } from './connect-flow.mjs';
 
-export const SHOPIFY_STATUS_PATH = '/api/shopify';
-export const SHOPIFY_START_PATH = '/api/shopify/start';
-export const SHOPIFY_DISCONNECT_PATH = '/api/shopify/disconnect';
+const SHOPIFY_STATUS_PATH = '/api/shopify';
+const SHOPIFY_START_PATH = '/api/shopify/start';
+const SHOPIFY_DISCONNECT_PATH = '/api/shopify/disconnect';
 export { SHOPIFY_CALLBACK_PATH };
 
 const MINUTE_MS = 60 * 1000;

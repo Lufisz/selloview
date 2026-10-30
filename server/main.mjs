@@ -1,7 +1,5 @@
 // Starts the MetricTV app server from the environment (see .env.example). Loopback only: a tunnel
 // or proxy in front is the operator's separate, explicitly approved step.
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { createAuth } from './accounts/auth.mjs';
 import { openInitializedDatabase } from './accounts/accounts.mjs';
 import { createRegistrationPolicy, loadRegistrationConfig } from './accounts/registration.mjs';
@@ -53,11 +51,9 @@ function startFromEnvironment() {
   });
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  try {
-    startFromEnvironment();
-  } catch (error) {
-    console.error(`MetricTV cannot start: ${error.message}`);
-    process.exit(1);
-  }
+try {
+  startFromEnvironment();
+} catch (error) {
+  console.error(`MetricTV cannot start: ${error.message}`);
+  process.exit(1);
 }
