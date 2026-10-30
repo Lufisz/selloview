@@ -132,12 +132,14 @@ test('a TV pairs through an owner approval and then sees only its appearance', h
   assert.equal(display.status, 200);
   assert.deepEqual(Object.keys(display.json).sort(), [
     'appVersion',
+    'pollSeconds',
     'revision',
     'screen',
     'serverTime',
     'settings',
     'storeConnection',
   ]);
+  assert.equal(display.json.pollSeconds, 10, 'the server names the pace a screen polls at');
   assert.deepEqual(display.json.screen, { name: 'Office TV' });
   assert.deepEqual(display.json.settings, { period: 'week', theme: 'light' });
   assert.deepEqual(display.json.storeConnection, { state: 'setup_required' });

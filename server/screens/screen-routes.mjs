@@ -44,6 +44,11 @@ const PAIR_SCREEN_PATH = '/api/screens/pair';
 const REVOKE_SCREEN_PATH = '/api/screens/revoke';
 
 const MINUTE_MS = 60 * 1000;
+// The pace a paired screen asks for the board at. It travels with every answer, so the whole fleet
+// can be slowed down here without new page code on every screen.
+// ceiling: about 1,000 screens at this pace (100 requests a second), upgrade: raise it, then answer
+// unchanged boards from a cache
+const DISPLAY_POLL_SECONDS = 10;
 const CHALLENGE_COOKIE = 'metrictv_tv_challenge';
 const DISPLAY_COOKIE = 'metrictv_tv_display';
 const SECURE_COOKIE_PREFIX = '__Host-';
@@ -224,6 +229,7 @@ export function createScreenRoutes({
       serverTime: new Date().toISOString(),
       // The TV reloads itself when this changes, so it picks up new page code without a visit.
       appVersion: appVersion(),
+      pollSeconds: DISPLAY_POLL_SECONDS,
       storeConnection: describeDisplayConnection(view),
     };
     if (view.snapshot) {

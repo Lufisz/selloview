@@ -7,6 +7,7 @@ import {
   isNewAppVersion,
   loadDisplay,
   loadPairing,
+  pollDelayMs,
 } from './tv-client.js';
 import {
   messageForTvError,
@@ -18,8 +19,10 @@ import {
 } from './tv-view.js';
 
 const PAIRING_POLL_MS = 3000;
-const DISPLAY_POLL_MS = 10000;
 const RETRY_MS = 15000;
+// After a deploy every screen sees the new page code within one poll. Each waits a random part of
+// this long before reloading, so the screens do not all fetch the page at the same moment.
+const RELOAD_SPREAD_MS = 60 * 1000;
 
 const app = document.querySelector('#app');
 let timer = null;
@@ -55,10 +58,10 @@ function serverNow() {
   return serverClock.serverMs + (Date.now() - serverClock.receivedMs);
 }
 
-/** Reloads the page when new page code was deployed. Returns true when a reload started. */
+/** Reloads the page when new page code was deployed. Returns true when a reload is on its way. */
 function reloadIfUpdated(display) {
   if (isNewAppVersion(loadedAppVersion, display)) {
-    window.location.reload();
+    schedule(() => window.location.reload(), Math.random() * RELOAD_SPREAD_MS);
     return true;
   }
   if (loadedAppVersion === null && typeof display.appVersion === 'string') {
@@ -108,11 +111,11 @@ async function refreshDisplay() {
       const html = renderPaired({ display: lastDisplay, notice, now: serverNow() });
       showHtml(html, lastDisplay.settings.theme);
     }
-    return schedule(refreshDisplay, DISPLAY_POLL_MS);
+    return schedule(refreshDisplay, pollDelayMs(lastDisplay));
   }
   if (reloadIfUpdated(result.display)) return;
   showPaired(result.display);
-  schedule(refreshDisplay, DISPLAY_POLL_MS);
+  schedule(refreshDisplay, pollDelayMs(result.display));
 }
 
 async function start() {
@@ -121,7 +124,7 @@ async function start() {
   if (result.status === 'paired') {
     if (reloadIfUpdated(result.display)) return;
     showPaired(result.display);
-    return schedule(refreshDisplay, DISPLAY_POLL_MS);
+    return schedule(refreshDisplay, pollDelayMs(result.display));
   }
   if (result.status === 'unpaired') return beginPairing();
   showHtml(renderTvError(messageForTvError(result.error)));

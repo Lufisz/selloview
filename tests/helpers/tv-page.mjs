@@ -31,6 +31,8 @@ export function runTvPage({ routes = {}, offline = false, ticks = 0 } = {}) {
     Object.hasOwn = undefined;
     String.prototype.replaceAll = undefined;
     AbortSignal.timeout = undefined;
+    // Chance is a script too: the page's random reload delay is always half its spread.
+    Math.random = () => 0.5;
 
     const scheduled = [];
     globalThis.setTimeout = (task, delay) => {

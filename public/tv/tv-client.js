@@ -7,6 +7,10 @@ const TV_PAIRING_URL = '/api/tv/pairing';
 const TV_EXCHANGE_URL = '/api/tv/pairing/exchange';
 const DISPLAY_URL = '/api/display';
 
+const DEFAULT_POLL_MS = 10000;
+const MIN_POLL_MS = 5000;
+const MAX_POLL_MS = 5 * 60 * 1000;
+
 /** Asks for a new pairing code; any earlier challenge of this browser is replaced. */
 export function createChallenge(fetchImpl = fetch) {
   return sendRequest({ fetchImpl, url: TV_CHALLENGE_URL, body: {} });
@@ -28,6 +32,17 @@ export async function loadDisplay(fetchImpl = fetch) {
   if (result.status === 401) return { status: 'unpaired' };
   if (!result.ok) return { status: 'error', error: result.error };
   return { status: 'paired', display: result.data };
+}
+
+/**
+ * How long a paired TV waits before asking for the board again. The server names the pace in its
+ * answer, so a whole fleet can be slowed down from one place instead of with new page code on
+ * every screen. A missing or unusable pace means the default; a usable one is held within bounds.
+ */
+export function pollDelayMs(display) {
+  const seconds = display ? display.pollSeconds : undefined;
+  if (!Number.isFinite(seconds)) return DEFAULT_POLL_MS;
+  return Math.min(MAX_POLL_MS, Math.max(MIN_POLL_MS, seconds * 1000));
 }
 
 /**

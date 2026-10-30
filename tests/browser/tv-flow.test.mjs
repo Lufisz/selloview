@@ -5,10 +5,12 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { syntheticDisplay, syntheticSnapshot } from '../helpers/synthetic-snapshot.mjs';
 import { runTvPage } from '../helpers/tv-page.mjs';
+import { pollDelayMs } from '../../public/tv/tv-client.js';
 
 const PAIRING_POLL_MS = 3000;
 const DISPLAY_POLL_MS = 10000;
 const RETRY_MS = 15000;
+const RELOAD_SPREAD_MS = 60000;
 
 const display = syntheticDisplay({
   screenName: 'Flow TV',
@@ -126,6 +128,18 @@ test('after access ended, a new pairing never shows the board of the previous on
   assert.deepEqual(result.timers, [DISPLAY_POLL_MS], 'it keeps asking until the server answers');
 });
 
+test('a pairing code that cannot be created says why and is asked for again later', () => {
+  const result = runTvPage({
+    routes: {
+      '/api/display': [unpaired],
+      '/api/tv/challenge': [answer(429, { error: 'rate_limited' })],
+    },
+  });
+
+  assert.match(result.html, /Too many requests from this network/);
+  assert.deepEqual(result.timers, [RETRY_MS]);
+});
+
 test('a server that is unreachable at start-up is retried, not given up on', () => {
   const result = runTvPage({ offline: true });
 
@@ -133,26 +147,56 @@ test('a server that is unreachable at start-up is retried, not given up on', () 
   assert.deepEqual(result.timers, [RETRY_MS]);
 });
 
+const newVersionRoutes = {
+  '/api/display': [
+    answer(200, { ...display, appVersion: 'version-one' }),
+    answer(200, {
+      ...display,
+      appVersion: 'version-two',
+      screen: { name: 'Must not be drawn' },
+    }),
+  ],
+};
+
 test('newer page code reloads the page before anything is drawn from the new answer', () => {
-  const result = runTvPage({
-    routes: {
-      '/api/display': [
-        answer(200, { ...display, appVersion: 'version-one' }),
-        answer(200, {
-          ...display,
-          appVersion: 'version-two',
-          screen: { name: 'Must not be drawn' },
-        }),
-      ],
-    },
-    ticks: 1,
-  });
-  const [before, after] = result.steps;
+  const result = runTvPage({ routes: newVersionRoutes, ticks: 2 });
+  const [before, announced, replaced] = result.steps;
 
   assert.equal(result.reloads, 1);
-  assert.equal(after.html, before.html, 'the page is replaced, not redrawn');
-  assert.doesNotMatch(after.html, /Must not be drawn/);
-  assert.deepEqual(after.timers, [], 'a page that is being replaced stops polling');
+  assert.equal(announced.html, before.html, 'the page is replaced, not redrawn');
+  assert.doesNotMatch(announced.html, /Must not be drawn/);
+  assert.deepEqual(replaced.timers, [], 'a page that is being replaced stops polling');
+});
+
+test('screens spread their reload over a minute instead of all reloading at once', () => {
+  const result = runTvPage({ routes: newVersionRoutes, ticks: 1 });
+
+  assert.deepEqual(
+    result.timers,
+    [RELOAD_SPREAD_MS / 2],
+    'only the random reload delay is waiting',
+  );
+  assert.equal(result.reloads, 0, 'the reload waits for its timer');
+});
+
+test('the server sets the pace of the next poll, within bounds, and 10 s when it names none', () => {
+  assert.equal(pollDelayMs({ pollSeconds: 30 }), 30000);
+  assert.equal(pollDelayMs({ pollSeconds: 1 }), 5000, 'never faster than every 5 s');
+  assert.equal(pollDelayMs({ pollSeconds: 86400 }), 300000, 'never slower than every 5 minutes');
+  for (const unusable of [undefined, null, 'soon', NaN, Infinity]) {
+    assert.equal(pollDelayMs({ pollSeconds: unusable }), DISPLAY_POLL_MS, String(unusable));
+  }
+  assert.equal(pollDelayMs(null), DISPLAY_POLL_MS);
+});
+
+test('a paired page waits as long as the server asked between polls', () => {
+  const slower = answer(200, { ...display, pollSeconds: 30 });
+  const result = runTvPage({ routes: { '/api/display': [slower] }, ticks: 2 });
+
+  assert.deepEqual(
+    result.steps.map((step) => step.timers),
+    [[30000], [30000], [30000]],
+  );
 });
 
 test('the same page version never reloads', () => {
