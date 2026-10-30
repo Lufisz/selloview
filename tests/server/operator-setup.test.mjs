@@ -9,6 +9,8 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadServerConfig } from '../../server/config.mjs';
+import { loadRegistrationConfig } from '../../server/accounts/registration.mjs';
+import { loadShopifyConfig } from '../../server/shopify/config.mjs';
 import {
   PrivateDatabaseError,
   createPrivateDatabaseFile,
@@ -122,6 +124,27 @@ test('a leftover setting counts even when empty, all of them are listed, and unk
   );
   // A name this project never had is not a renamed setting.
   assert.equal(loadServerConfig({ ...GOOD_ENV, BETA_UNRELATED: 'x' }).port, 4330);
+});
+
+// The active "KEY=value" lines of a settings file, as an environment object.
+function parseSettingsFile(text) {
+  const env = {};
+  for (const line of text.split('\n')) {
+    const match = line.match(/^([A-Z][A-Z0-9_]*)=(.*)$/);
+    if (match) env[match[1]] = match[2];
+  }
+  return env;
+}
+
+test('an untouched copy of .env.example starts once the secret is set, with mail and Shopify not configured', async () => {
+  const env = parseSettingsFile(await fs.readFile(path.join(PROJECT_ROOT, '.env.example'), 'utf8'));
+  assert.equal(env.METRICTV_AUTH_SECRET, '', 'the operator has to generate the secret');
+  env.METRICTV_AUTH_SECRET = VALID_SECRET;
+
+  assert.doesNotThrow(() => loadServerConfig(env));
+  assert.equal(loadMailConfig(env), null);
+  assert.deepEqual(loadShopifyConfig(env), { status: 'setup_required' });
+  assert.equal(loadRegistrationConfig(env).enabled, false);
 });
 
 test('the private database is created once, private, outside the project, and never auto-created', async (t) => {

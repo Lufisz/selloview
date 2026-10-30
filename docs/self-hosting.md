@@ -93,7 +93,10 @@ sudo chmod 600 /etc/metrictv/metrictv.env
 sudo -e /etc/metrictv/metrictv.env
 ```
 
-Every setting is explained in [`.env.example`](../.env.example). Generate the two secrets with:
+Every setting is explained in [`.env.example`](../.env.example). The first group is required. The email
+and Shopify groups are commented out: uncomment and fill in the whole group you use (all of the Shopify
+group, both email lines). Left commented, the server still starts and reports email delivery or the store
+connection as not set up. Generate the two secrets with:
 
 ```sh
 openssl rand -base64 48   # METRICTV_AUTH_SECRET
