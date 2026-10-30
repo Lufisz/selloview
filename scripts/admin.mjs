@@ -7,7 +7,7 @@
 //   npm run beta:owners                     list invited owners (emails and workspace ids)
 //
 // Configuration comes from the environment: BETA_DB_PATH, BETA_AUTH_SECRET, BETA_ORIGIN.
-import { loadBetaConfig } from '../server/main.mjs';
+import { loadBetaConfig } from '../server/config.mjs';
 import {
   initializeDatabase,
   inviteOwner,

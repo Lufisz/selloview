@@ -8,7 +8,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadBetaConfig } from '../../server/main.mjs';
+import { loadBetaConfig } from '../../server/config.mjs';
 import {
   PrivateDatabaseError,
   createPrivateDatabaseFile,
