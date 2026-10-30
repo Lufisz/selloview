@@ -47,13 +47,14 @@ Rate limits are in memory, so a restart clears them. They key on the socket addr
 | What | Limit |
 | --- | --- |
 | new pairing codes | 6 a minute per address |
-| any TV request | 240 a minute per address |
+| pairing requests | 240 a minute per address |
 | pairing polls | 40 a minute per challenge |
+| failed display requests | 60 a minute per address |
 | display polls | 30 a minute per paired screen |
 | approvals | 10 a minute per owner |
 | wrong codes | 5 per 5 minutes per owner |
 
-The numbers are in `createLimiters` in `screen-routes.mjs`.
+Only failed display requests count against an address. The paired screens of one office, or of every customer behind a proxy that hides addresses, share an address, and each is already held to its own 30 a minute. The numbers are in `createLimiters` in `screen-routes.mjs`.
 
 ## Connecting a Shopify store
 

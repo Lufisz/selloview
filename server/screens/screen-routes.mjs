@@ -64,7 +64,10 @@ function describeDisplayConnection({ state, sync }) {
 function createLimiters() {
   return {
     createChallengePerAddress: createRateLimiter({ limit: 6, windowMs: MINUTE_MS }),
-    tvRequestPerAddress: createRateLimiter({ limit: 240, windowMs: MINUTE_MS }),
+    pairingRequestPerAddress: createRateLimiter({ limit: 240, windowMs: MINUTE_MS }),
+    // Only failures count: the paired screens of one office, or of every customer behind a proxy
+    // that hides addresses, share one address and must not use up each other's allowance.
+    failedDisplayRequestPerAddress: createRateLimiter({ limit: 60, windowMs: MINUTE_MS }),
     pollPerChallenge: createRateLimiter({ limit: 40, windowMs: MINUTE_MS }),
     pollPerDisplay: createRateLimiter({ limit: 30, windowMs: MINUTE_MS }),
     pairAttemptPerOwner: createRateLimiter({ limit: 10, windowMs: MINUTE_MS }),
@@ -121,11 +124,6 @@ export function createScreenRoutes({
     return true;
   }
 
-  function limitedByAddress(request, response) {
-    const verdict = limiters.tvRequestPerAddress.consume(clientAddress(request));
-    return refuseWhenLimited(response, verdict);
-  }
-
   // ---- TV: pairing --------------------------------------------------------------------------
 
   async function createTvChallenge(request, response) {
@@ -148,7 +146,8 @@ export function createScreenRoutes({
 
   // The challenge secret, not the visible code, is what identifies this TV from here on.
   function ownChallenge(request, response) {
-    if (limitedByAddress(request, response)) return null;
+    const verdict = limiters.pairingRequestPerAddress.consume(clientAddress(request));
+    if (refuseWhenLimited(response, verdict)) return null;
     const challenge = readChallenge(database, readCookie(request, challengeCookieName));
     if (!challenge) {
       reply(response, 404, { error: 'invalid_challenge' }, clearCookieHeaders(challengeCookieName));
@@ -196,10 +195,11 @@ export function createScreenRoutes({
    * Returns { session, credential }, or null after having sent the refusal.
    */
   function requireDisplaySession(request, response) {
-    if (limitedByAddress(request, response)) return null;
     const credential = readCookie(request, displayCookieName);
     const session = readDisplaySession(database, credential);
     if (!session) {
+      const verdict = limiters.failedDisplayRequestPerAddress.consume(clientAddress(request));
+      if (refuseWhenLimited(response, verdict)) return null;
       reply(response, 401, { error: 'unauthenticated' }, clearCookieHeaders(displayCookieName));
       return null;
     }

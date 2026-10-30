@@ -354,6 +354,70 @@ test('challenge creation and polling are rate limited', http, async (t) => {
   assert.equal(polls, 41, 'forty polls per minute per challenge');
 });
 
+test('pairing requests are limited per address, whoever sends them', http, async (t) => {
+  const { handle } = await setup(t, { trustedIpHeader: TRUSTED_IP_HEADER });
+  const address = { [TRUSTED_IP_HEADER]: '192.0.2.60' };
+  const stranger = createBrowser(handle.origin);
+
+  for (let batch = 0; batch < 6; batch += 1) {
+    const answers = await Promise.all(
+      Array.from({ length: 40 }, () => stranger.pairingStatus(address)),
+    );
+    for (const answer of answers) assert.equal(answer.status, 404);
+  }
+  assert.equal((await stranger.pairingStatus(address)).status, 429, '240 a minute per address');
+  const elsewhere = { [TRUSTED_IP_HEADER]: '192.0.2.61' };
+  assert.equal((await stranger.pairingStatus(elsewhere)).status, 404, 'another address is fine');
+});
+
+test(
+  'the paired screens of one office share an address without being limited by it',
+  http,
+  async (t) => {
+    const { handle, alice } = await setup(t, { trustedIpHeader: TRUSTED_IP_HEADER });
+    const screens = [];
+    for (let position = 0; position < MAX_SCREENS_PER_WORKSPACE; position += 1) {
+      const ownAddress = { [TRUSTED_IP_HEADER]: `192.0.2.${position + 1}` };
+      screens.push(await pairTv(handle, alice, `Screen ${position + 1}`, ownAddress));
+    }
+
+    // 250 polls from one address within a minute: each screen stays inside its own 30 a minute.
+    const office = { [TRUSTED_IP_HEADER]: '192.0.2.200' };
+    const statuses = new Set();
+    for (let round = 0; round < 25; round += 1) {
+      const answers = await Promise.all(screens.map((screen) => screen.loadDisplay(office)));
+      for (const answer of answers) statuses.add(answer.status);
+    }
+    assert.deepEqual([...statuses], [200]);
+  },
+);
+
+test(
+  'failed display requests are limited per address, and paired screens are never refused for them',
+  http,
+  async (t) => {
+    const { handle, alice } = await setup(t, { trustedIpHeader: TRUSTED_IP_HEADER });
+    const sharedAddress = { [TRUSTED_IP_HEADER]: '192.0.2.50' };
+    const otherAddress = { [TRUSTED_IP_HEADER]: '192.0.2.51' };
+    const pairedScreen = await pairTv(handle, alice, 'Office TV', otherAddress);
+    const stranger = createBrowser(handle.origin);
+
+    for (let failure = 0; failure < 60; failure += 1) {
+      assert.equal((await stranger.loadDisplay(sharedAddress)).status, 401);
+    }
+    const limited = await stranger.loadDisplay(sharedAddress);
+    assert.equal(limited.status, 429);
+    assert.match(limited.headers.get('retry-after'), /^\d+$/);
+
+    assert.equal((await stranger.loadDisplay(otherAddress)).status, 401, 'another address is fine');
+    assert.equal(
+      (await pairedScreen.loadDisplay(sharedAddress)).status,
+      200,
+      'a paired screen is not',
+    );
+  },
+);
+
 // Test fixture: rows that look like challenges from other TV pages.
 function insertFixtureChallenges(database, expiresAt) {
   const insert = database.prepare(
