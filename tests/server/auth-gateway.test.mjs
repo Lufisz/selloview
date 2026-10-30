@@ -10,13 +10,13 @@ const ORIGIN = 'https://metrictv.example.test';
 // Node's timers can fire a millisecond early.
 const TIMER_SLACK_MS = 2;
 
-function gatewayAnswering(authStatus) {
+function gatewayAnswering(authStatus, registrationOverrides = {}) {
   const replies = [];
   const serve = createAuthGateway({
     auth: { handler: async () => new Response('{}', { status: authStatus }) },
     origin: ORIGIN,
     mailTransport: { configured: true },
-    registration: { enabled: false, runExclusive: (work) => work() },
+    registration: { enabled: false, runExclusive: (work) => work(), ...registrationOverrides },
     reply: (response, status, body) => replies.push({ status, body, at: performance.now() }),
     requireCsrfSession: async () => ({}),
     clientAddress: () => '203.0.113.7',
@@ -63,6 +63,27 @@ test('a sign-in answer takes at least the minimum time, however quick the work b
     assert.ok(
       tookMs >= MIN_ANSWER_MS - TIMER_SLACK_MS,
       `${authPath} (${authStatus}) answered after ${tookMs.toFixed(1)} ms`,
+    );
+  }
+});
+
+test('registration refusals keep the minimum answer time, including a full beta', async () => {
+  for (const hasRoom of [false, true]) {
+    const { serve, replies } = gatewayAnswering(200, {
+      enabled: true,
+      emailHasAccount: () => false,
+      hasRoom: () => hasRoom,
+      consumeNewAddressCode: () => ({ allowed: false, retryAfterSeconds: 60 }),
+    });
+    const startedAt = performance.now();
+    await serve(jsonPost({ email: 'new@example.test', type: 'sign-in' }), {}, SEND_CODE_PATH);
+    assert.equal(replies.length, 1);
+    assert.equal(replies[0].status, hasRoom ? 429 : 200);
+    assert.deepEqual(replies[0].body, hasRoom ? { error: 'rate_limited' } : { ok: true });
+    const tookMs = replies[0].at - startedAt;
+    assert.ok(
+      tookMs >= MIN_ANSWER_MS - TIMER_SLACK_MS,
+      `registration refusal answered after ${tookMs.toFixed(1)} ms`,
     );
   }
 });

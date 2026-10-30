@@ -46,6 +46,8 @@ Security checks at distinct trust boundaries are intentional. Do not remove serv
 
 ## Honest failure handling
 
+The owner page validates session, screen-list and settings replies before using them, including settings returned after a revision conflict. Missing or malformed fields show an error instead of becoming a signed-in session, an empty screen list or saved settings. Registration refusals use the same minimum response time as other valid sign-in requests, including when the beta is full.
+
 An unavailable API is not a zero-sales day. The last good snapshot is kept only with a visible stale warning, and an incomplete order or inventory read is reported as incomplete. Figures are cleared when Shopify access is denied, revoked or disconnected. Source, reporting window, currency, coverage and last-success time stay available.
 
 Shopify access tokens expire after about an hour and MetricTV renews them with the stored refresh token. A rejected or revoked grant means the owner must reconnect. The app fails closed rather than broadening scopes, opening a public endpoint, asking for credentials in the page or substituting sample data. Disconnect clears cached figures and invalidates in-flight results, so late refresh work cannot restore deleted credentials or a replaced grant.

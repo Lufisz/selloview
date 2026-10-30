@@ -19,6 +19,7 @@ export function ownerSession({ settings = { period: 'week', theme: 'light' }, re
     owner: { email: 'owner@example.test' },
     sessionExpiresAt: '2099-01-01T00:00:00.000Z',
     workspace: { name: 'My MetricTV', revision, settings },
+    storeConnection: { state: 'setup_required', canConnect: false },
     csrfToken: 'owner-csrf-token',
   });
 }

@@ -67,10 +67,19 @@ test('screen requests are same-origin JSON with the CSRF header and no URL secre
   assert.equal(revoked.calls[0].url, '/api/screens/revoke');
   assert.deepEqual(JSON.parse(revoked.calls[0].options.body), { id: 'abc' });
 
-  const listed = fakeFetchReturning(200, { screens: [{ id: 'a', name: 'Hall' }] });
+  const screens = [
+    {
+      id: 'a',
+      name: 'Hall',
+      pairedAt: '2026-10-01T12:00:00.000Z',
+      expiresAt: '2026-11-01T12:00:00.000Z',
+      lastSeenAt: null,
+    },
+  ];
+  const listed = fakeFetchReturning(200, { screens });
   assert.deepEqual(await loadScreens(listed.fetchImpl), {
     ok: true,
-    screens: [{ id: 'a', name: 'Hall' }],
+    screens,
   });
   assert.equal(listed.calls[0].options.method, 'GET');
   assert.equal(listed.calls[0].options.headers['X-CSRF-Token'], undefined);

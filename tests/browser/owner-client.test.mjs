@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import {
   ERROR_MESSAGES,
   loadOwnerSession,
+  loadScreens,
   messageForError,
   parseCode,
   parseEmail,
@@ -95,9 +96,7 @@ test('session loading separates signed-out from failure', async () => {
     fakeFetchReturning(500, { error: 'server_error' }).fetchImpl,
   );
   assert.equal(failure.status, 'error');
-  const ok = await loadOwnerSession(
-    fakeFetchReturning(200, { owner: { email: 'a@example.test' } }).fetchImpl,
-  );
+  const ok = await loadOwnerSession(fakeFetchReturning(200, SESSION_VIEW).fetchImpl);
   assert.equal(ok.status, 'signed-in');
 });
 
@@ -107,6 +106,89 @@ const SESSION_VIEW = {
   storeConnection: { state: 'setup_required', canConnect: false },
   csrfToken: 'abc',
 };
+
+test('malformed successful session replies never become signed-in sessions', async () => {
+  const malformed = [
+    null,
+    {},
+    [],
+    'signed-in',
+    { ...SESSION_VIEW, owner: null },
+    { ...SESSION_VIEW, owner: { email: 5 } },
+    { ...SESSION_VIEW, workspace: null },
+    { ...SESSION_VIEW, workspace: { ...SESSION_VIEW.workspace, settings: {} } },
+    { ...SESSION_VIEW, workspace: { ...SESSION_VIEW.workspace, revision: -1 } },
+    { ...SESSION_VIEW, csrfToken: '' },
+    { ...SESSION_VIEW, storeConnection: null },
+  ];
+  for (const body of malformed) {
+    assert.deepEqual(await loadOwnerSession(fakeFetchReturning(200, body).fetchImpl), {
+      status: 'error',
+      error: 'malformed',
+    });
+  }
+  const unreadableJson = async () => ({
+    ok: true,
+    status: 200,
+    json: async () => {
+      throw new SyntaxError();
+    },
+  });
+  assert.equal((await loadOwnerSession(unreadableJson)).status, 'error');
+});
+
+const SCREEN = {
+  id: 'screen-a',
+  name: 'Office',
+  pairedAt: '2026-10-01T12:00:00.000Z',
+  lastSeenAt: null,
+  expiresAt: '2026-11-01T12:00:00.000Z',
+};
+
+test('screen loading rejects malformed lists and entries without throwing', async () => {
+  for (const body of [
+    null,
+    {},
+    [],
+    { screens: null },
+    { screens: {} },
+    { screens: [null] },
+    { screens: [{}] },
+    { screens: [{ ...SCREEN, expiresAt: 'invalid' }] },
+  ]) {
+    assert.deepEqual(await loadScreens(fakeFetchReturning(200, body).fetchImpl), {
+      ok: false,
+      error: 'malformed',
+    });
+  }
+  for (const screens of [[], [SCREEN]]) {
+    assert.deepEqual(await loadScreens(fakeFetchReturning(200, { screens }).fetchImpl), {
+      ok: true,
+      screens,
+    });
+  }
+});
+
+test('settings replies need valid settings and a revision, including conflicts', async () => {
+  const input = { csrfToken: 'abc', settings: { theme: 'dark' }, revision: 0 };
+  for (const status of [200, 409]) {
+    for (const body of [
+      null,
+      {},
+      { settings: {}, revision: 1 },
+      { settings: { theme: 'dark', period: 'week' }, revision: -1 },
+    ]) {
+      const result = await saveWorkspaceSettings(input, fakeFetchReturning(status, body).fetchImpl);
+      assert.equal(result.ok, false);
+      assert.equal(result.error, 'malformed');
+      assert.notEqual(result.status, 409, 'malformed conflicts must not be adopted by the page');
+    }
+    const body = { settings: { theme: 'dark', period: 'week' }, revision: 1 };
+    const result = await saveWorkspaceSettings(input, fakeFetchReturning(status, body).fetchImpl);
+    assert.equal(result.status, status);
+    assert.deepEqual(result.data, body);
+  }
+});
 
 test('sign-in view escapes input and never shows a fake success', () => {
   const emailStep = renderSignIn({

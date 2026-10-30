@@ -2,6 +2,8 @@
 // The CSRF token returned by the session endpoint stays in memory; nothing is put in storage.
 import { sendRequest } from '../shared/api-client.js';
 import { hasOwn } from '../shared/format.js';
+import { PERIODS } from '../shared/periods.js';
+import { parseConnection } from './shopify-client.js';
 
 const SESSION_URL = '/api/session';
 const REGISTRATION_URL = '/api/registration';
@@ -30,6 +32,7 @@ export const ERROR_MESSAGES = Object.freeze({
   unauthenticated: 'You are signed out. Sign in again.',
   conflict: 'Settings were changed elsewhere. Showing the saved choices.',
   offline: 'Could not reach the server. Check your connection and try again.',
+  malformed: 'The server returned an unexpected response. Reload the page and try again.',
   invalid_email: 'Enter the email address your invitation was issued for.',
   registration_closed: 'New accounts are not available yet. Existing owners can still sign in.',
   registration_full: 'The beta is at capacity. Existing owners can still sign in.',
@@ -97,22 +100,85 @@ export function signOut(csrfToken, fetchImpl = fetch) {
   return sendRequest({ fetchImpl, url: SIGN_OUT_URL, body: {}, csrfToken });
 }
 
+function isObject(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function hasWorkspaceSettings(value) {
+  return (
+    isObject(value) &&
+    Number.isSafeInteger(value.revision) &&
+    value.revision >= 0 &&
+    isObject(value.settings) &&
+    hasOwn(PERIODS, value.settings.period) &&
+    ['light', 'dark'].includes(value.settings.theme)
+  );
+}
+
+function isOwnerSession(value) {
+  return (
+    isObject(value) &&
+    isObject(value.owner) &&
+    parseEmail(value.owner.email) !== null &&
+    hasWorkspaceSettings(value.workspace) &&
+    typeof value.workspace.name === 'string' &&
+    typeof value.csrfToken === 'string' &&
+    value.csrfToken.length > 0 &&
+    parseConnection(value.storeConnection) !== null
+  );
+}
+
+function isTimestamp(value) {
+  return typeof value === 'string' && Number.isFinite(Date.parse(value));
+}
+
+function isScreen(value) {
+  return (
+    isObject(value) &&
+    typeof value.id === 'string' &&
+    value.id.length > 0 &&
+    typeof value.name === 'string' &&
+    value.name.length > 0 &&
+    isTimestamp(value.pairedAt) &&
+    isTimestamp(value.expiresAt) &&
+    (value.lastSeenAt === null || isTimestamp(value.lastSeenAt))
+  );
+}
+
 /** Resolves to {status:'signed-in', session} | {status:'signed-out'} | {status:'error', error}. */
 export async function loadOwnerSession(fetchImpl = fetch) {
   const result = await sendRequest({ fetchImpl, url: SESSION_URL, method: 'GET' });
   if (result.status === 401) return { status: 'signed-out' };
   if (!result.ok) return { status: 'error', error: result.error };
+  if (!isOwnerSession(result.data)) return { status: 'error', error: 'malformed' };
   return { status: 'signed-in', session: result.data };
 }
 
-export function saveWorkspaceSettings({ csrfToken, settings, revision }, fetchImpl = fetch) {
-  return sendRequest({ fetchImpl, url: SETTINGS_URL, body: { settings, revision }, csrfToken });
+export async function saveWorkspaceSettings({ csrfToken, settings, revision }, fetchImpl = fetch) {
+  const result = await sendRequest({
+    fetchImpl,
+    url: SETTINGS_URL,
+    body: { settings, revision },
+    csrfToken,
+  });
+  // Conflicts also contain saved choices that the page adopts; validate both paths.
+  if ((result.ok || result.status === 409) && !hasWorkspaceSettings(result.data)) {
+    return { ok: false, error: 'malformed' };
+  }
+  return result;
 }
 
 /** Resolves to {ok: true, screens} or {ok: false, error}. */
 export async function loadScreens(fetchImpl = fetch) {
   const result = await sendRequest({ fetchImpl, url: SCREENS_URL, method: 'GET' });
   if (!result.ok) return { ok: false, error: result.error };
+  if (
+    !isObject(result.data) ||
+    !Array.isArray(result.data.screens) ||
+    !result.data.screens.every(isScreen)
+  ) {
+    return { ok: false, error: 'malformed' };
+  }
   return { ok: true, screens: result.data.screens };
 }
 

@@ -122,12 +122,15 @@ export function createAuthGateway({
 
     const body = await readJsonObject(request, endpoint.keys);
     if (!endpoint.isValid(body)) throw new RequestRejection(400, 'invalid_request');
+    const minimumAnswerTime = pause(MIN_ANSWER_MS);
     if (authPath === SEND_CODE_PATH && registration.enabled) {
       const refusal = checkNewAddressRequest(request, body.email);
-      if (refusal) return respondToRegistrationRefusal(response, refusal);
+      if (refusal) {
+        await minimumAnswerTime;
+        return respondToRegistrationRefusal(response, refusal);
+      }
     }
     const authRequest = forwardedAuthRequest(request, authPath, JSON.stringify(body));
-    const minimumAnswerTime = pause(MIN_ANSWER_MS);
     const forwardToAuth = () => auth.handler(authRequest);
     // Verification can create an account, so it queues behind other verifications.
     const authResponse =
