@@ -53,6 +53,19 @@ test('Shopify transport confines all requests to the configured store and fixed 
   assert.equal(calls, 2);
 });
 
+test('Shopify transport refuses text that is not an address, without calling out', async () => {
+  let calls = 0;
+  const run = createShopifyFetch({
+    store: STORE,
+    fetchImpl: async () => {
+      calls++;
+      return jsonResponse({});
+    },
+  });
+  await assert.rejects(run('not an address', { method: 'POST' }), { code: 'invalid_store' });
+  assert.equal(calls, 0);
+});
+
 test('Shopify transport forbids redirects and omits ambient credentials', async () => {
   const run = createShopifyFetch({
     store: STORE,
@@ -92,6 +105,28 @@ test('Shopify transport times out stalled streams and cancels the read', async (
   });
   await assert.rejects(run(TOKEN_URL, { method: 'POST' }), { code: 'api_timeout' });
   assert.equal(cancelled, true);
+});
+
+test('Shopify transport cancels the body of a response that arrives after the timeout', async () => {
+  let bodyCancelled = false;
+  const run = createShopifyFetch({
+    store: STORE,
+    timeoutMs: 10,
+    // Ignores the abort signal, as a misbehaving fetch could, and answers late.
+    fetchImpl: async () => {
+      await new Promise((resolve) => setTimeout(resolve, 40));
+      return new Response(
+        new ReadableStream({
+          cancel() {
+            bodyCancelled = true;
+          },
+        }),
+      );
+    },
+  });
+  await assert.rejects(run(TOKEN_URL, { method: 'POST' }), { code: 'api_timeout' });
+  await new Promise((resolve) => setTimeout(resolve, 60));
+  assert.equal(bodyCancelled, true);
 });
 
 test('Shopify transport hides raw network errors and strips decoded-body headers', async () => {

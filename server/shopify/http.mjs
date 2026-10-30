@@ -47,24 +47,59 @@ export function createShopifyFetch({
   const origin = `https://${store}`;
   const paths = new Set(['/admin/oauth/access_token', `/admin/api/${API_VERSION}/graphql.json`]);
 
-  return async function shopifyFetch(input, options = {}) {
+  // The only requests this transport makes: a POST to one of two fixed endpoints of this store,
+  // with no credentials, query or fragment in the address. Returns the parsed address.
+  function requireAllowedRequest(input, options) {
     let url;
     try {
       url = new URL(input);
     } catch {
       throw new ShopifyError('invalid_store');
     }
-    if (
-      url.origin !== origin ||
-      url.username ||
-      url.password ||
-      url.search ||
-      url.hash ||
-      !paths.has(url.pathname) ||
-      options.method !== 'POST'
-    ) {
-      throw new ShopifyError('invalid_store');
+    const isAllowed =
+      url.origin === origin &&
+      !url.username &&
+      !url.password &&
+      !url.search &&
+      !url.hash &&
+      paths.has(url.pathname) &&
+      options.method === 'POST';
+    if (!isAllowed) throw new ShopifyError('invalid_store');
+    return url;
+  }
+
+  // One request: no redirects or cookies, a bounded body, and an answer without the headers that
+  // no longer describe its decoded body.
+  async function fetchBounded(url, options, signal) {
+    const response = await fetchImpl(url.href, {
+      ...options,
+      signal,
+      redirect: 'error',
+      credentials: 'omit',
+    });
+    if (response.redirected || (response.status >= 300 && response.status < 400)) {
+      await response.body?.cancel();
+      throw new ShopifyError('api_error');
     }
+    if (signal.aborted) {
+      await response.body?.cancel();
+      throw new ShopifyError('api_timeout');
+    }
+    const body = await readBoundedBody(response, maxBytes, signal);
+    const headers = new Headers(response.headers);
+    // The fetch implementation has already decoded any HTTP content encoding.
+    headers.delete('content-encoding');
+    headers.delete('content-length');
+    headers.delete('set-cookie');
+    return new Response(body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+
+  return async function shopifyFetch(input, options = {}) {
+    const url = requireAllowedRequest(input, options);
 
     const controller = new AbortController();
     const signal = options.signal
@@ -78,34 +113,7 @@ export function createShopifyFetch({
     });
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const operation = async () => {
-        const response = await fetchImpl(url.href, {
-          ...options,
-          signal,
-          redirect: 'error',
-          credentials: 'omit',
-        });
-        if (response.redirected || (response.status >= 300 && response.status < 400)) {
-          await response.body?.cancel();
-          throw new ShopifyError('api_error');
-        }
-        if (signal.aborted) {
-          await response.body?.cancel();
-          throw new ShopifyError('api_timeout');
-        }
-        const body = await readBoundedBody(response, maxBytes, signal);
-        const headers = new Headers(response.headers);
-        // The fetch implementation has already decoded any HTTP content encoding.
-        headers.delete('content-encoding');
-        headers.delete('content-length');
-        headers.delete('set-cookie');
-        return new Response(body, {
-          status: response.status,
-          statusText: response.statusText,
-          headers,
-        });
-      };
-      return await Promise.race([operation(), aborted]);
+      return await Promise.race([fetchBounded(url, options, signal), aborted]);
     } catch (error) {
       controller.abort();
       throw error instanceof ShopifyError ? error : new ShopifyError('api_error');

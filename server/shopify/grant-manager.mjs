@@ -114,55 +114,68 @@ export function createGrantManager({
     }
   }
 
-  /** One refresh at a time; persist the rotated refresh token BEFORE anyone can use the result. */
-  function refreshGrant(startingGrant) {
-    if (refreshFlight) return refreshFlight;
-    const startingEpoch = tokenStore.epoch;
-    const flight = (async () => {
-      if (!isRefreshTokenUsable(startingGrant)) {
+  // Asks Shopify for a new token pair. A status that says the grant is dead flags it for
+  // reconnection (unless a disconnect or reconnect has already replaced it); anything else that
+  // goes wrong may pass, so it only reports that renewing is unavailable.
+  async function requestNewSession(startingGrant, startingEpoch) {
+    let upstreamStatus = null;
+    try {
+      return await runWithBoundedFetch(boundedFetch, async (context) => {
+        try {
+          const result = await shopify.auth.refreshToken({
+            shop: store,
+            refreshToken: startingGrant.refreshToken,
+          });
+          return result.session;
+        } finally {
+          upstreamStatus = context.lastStatus;
+        }
+      });
+    } catch {
+      if (PERMANENT_REFRESH_STATUSES.has(upstreamStatus) && startingEpoch === tokenStore.epoch) {
         await markReauthorizationRequired();
         throw new ShopifyError('reauthorization_required');
       }
-      let session;
-      let upstreamStatus = null;
-      try {
-        session = await runWithBoundedFetch(boundedFetch, async (context) => {
-          try {
-            const result = await shopify.auth.refreshToken({
-              shop: store,
-              refreshToken: startingGrant.refreshToken,
-            });
-            return result.session;
-          } finally {
-            upstreamStatus = context.lastStatus;
-          }
-        });
-      } catch {
-        if (PERMANENT_REFRESH_STATUSES.has(upstreamStatus) && startingEpoch === tokenStore.epoch) {
-          await markReauthorizationRequired();
-          throw new ShopifyError('reauthorization_required');
-        }
-        throw new ShopifyError('refresh_unavailable');
+      throw new ShopifyError('refresh_unavailable');
+    }
+  }
+
+  // A write that lost against a disconnect or reconnect is not an outage: the credentials it would
+  // have restored are gone, so the owner has to connect again.
+  async function saveRotatedGrant(refreshed, startingEpoch) {
+    try {
+      const savedEpoch = await tokenStore.save(refreshed, startingEpoch);
+      if (savedEpoch !== tokenStore.epoch) throw new ShopifyError('stale_write');
+    } catch (error) {
+      if (error instanceof ShopifyError && error.code === 'stale_write') {
+        throw new ShopifyError('reauthorization_required');
       }
-      if (startingEpoch !== tokenStore.epoch) throw new ShopifyError('reauthorization_required');
-      let refreshed;
-      try {
-        refreshed = grantFromSession(session, { store, clientId, now });
-      } catch {
-        throw new ShopifyError('refresh_unavailable');
-      }
-      try {
-        const savedEpoch = await tokenStore.save(refreshed, startingEpoch);
-        if (savedEpoch !== tokenStore.epoch) throw new ShopifyError('stale_write');
-      } catch (error) {
-        if (error instanceof ShopifyError && error.code === 'stale_write') {
-          throw new ShopifyError('reauthorization_required');
-        }
-        throw new ShopifyError('refresh_unavailable');
-      }
-      grant = refreshed;
-      return refreshed;
-    })();
+      throw new ShopifyError('refresh_unavailable');
+    }
+  }
+
+  async function renewGrant(startingGrant, startingEpoch) {
+    if (!isRefreshTokenUsable(startingGrant)) {
+      await markReauthorizationRequired();
+      throw new ShopifyError('reauthorization_required');
+    }
+    const session = await requestNewSession(startingGrant, startingEpoch);
+    if (startingEpoch !== tokenStore.epoch) throw new ShopifyError('reauthorization_required');
+    let refreshed;
+    try {
+      refreshed = grantFromSession(session, { store, clientId, now });
+    } catch {
+      throw new ShopifyError('refresh_unavailable');
+    }
+    await saveRotatedGrant(refreshed, startingEpoch);
+    grant = refreshed;
+    return refreshed;
+  }
+
+  /** One refresh at a time; persist the rotated refresh token BEFORE anyone can use the result. */
+  function refreshGrant(startingGrant) {
+    if (refreshFlight) return refreshFlight;
+    const flight = renewGrant(startingGrant, tokenStore.epoch);
     refreshFlight = flight;
     const clear = () => {
       if (refreshFlight === flight) refreshFlight = null;

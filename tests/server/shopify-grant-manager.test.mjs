@@ -111,8 +111,9 @@ async function createHarness({ respond = () => ({ json: tokenResponse() }), dire
   const clock = { value: Date.now() };
   const events = [];
 
-  // A second manager on the same file is a server restart.
-  function startManager({ onChange } = {}) {
+  // A second manager on the same file is a server restart. `wrapTokenStore` lets a test put its own
+  // behaviour around the real store.
+  function startManager({ onChange, wrapTokenStore = (realStore) => realStore } = {}) {
     const tokenStore = createTokenStore({
       filePath: tokenFile,
       key: key ?? KEY,
@@ -120,7 +121,7 @@ async function createHarness({ respond = () => ({ json: tokenResponse() }), dire
       store: STORE,
     });
     return createGrantManager({
-      tokenStore,
+      tokenStore: wrapTokenStore(tokenStore),
       shopify,
       boundedFetch,
       store: STORE,
@@ -275,9 +276,85 @@ describe('access tokens and refresh', () => {
     assert.equal(await manager.getAccessToken(), 'synthetic_access_1');
     assert.equal(await tokenFileExists(), true);
   });
+
+  test('a renewed grant that cannot be written is unavailable, and the old grant stays in place', async (t) => {
+    const { manager, tokenFileExists, connect } = await createHarness({
+      respond: rotatingUpstream(),
+    });
+    await connect();
+
+    // Fault injection: the disk refuses the atomic write of the renewed grant.
+    t.mock.method(fs, 'rename', async () => {
+      throw new Error('synthetic disk failure');
+    });
+    await assert.rejects(manager.getAccessToken({ forceRefresh: true }), {
+      code: 'refresh_unavailable',
+    });
+
+    assert.equal(await manager.getAccessToken(), 'synthetic_access_1');
+    assert.equal(await tokenFileExists(), true);
+  });
 });
 
 describe('disconnecting and reconnecting during slow work', () => {
+  test('a renewed grant is not published when a removal lands right after its write', async () => {
+    const { startManager, connect } = await createHarness({ respond: rotatingUpstream() });
+    // The manager does not rely on the store alone: a removal can land between the store
+    // finishing its write and the manager looking at the epoch.
+    const manager = startManager({
+      wrapTokenStore: (realStore) => ({
+        get epoch() {
+          return realStore.epoch;
+        },
+        load: () => realStore.load(),
+        replace: (grant, epoch) => realStore.replace(grant, epoch),
+        remove: () => realStore.remove(),
+        save: async (grant, epoch) => {
+          const savedEpoch = await realStore.save(grant, epoch);
+          realStore.remove().catch(() => {});
+          return savedEpoch;
+        },
+      }),
+    });
+    await connect(offlineSession(), manager);
+
+    await assert.rejects(manager.getAccessToken({ forceRefresh: true }), {
+      code: 'reauthorization_required',
+    });
+    assert.equal(await manager.getAccessToken(), 'synthetic_access_1', 'the renewal was not kept');
+  });
+
+  test('a disconnect while the renewed grant is being written cannot be undone by the write', async (t) => {
+    const { manager, tokenFileExists, connect } = await createHarness({
+      respond: rotatingUpstream(),
+    });
+    await connect();
+
+    // Fault injection: hold the atomic write of the renewed grant.
+    const realRename = fs.rename;
+    const writeStarted = Promise.withResolvers();
+    const writeReleased = Promise.withResolvers();
+    t.mock.method(fs, 'rename', async (from, to) => {
+      writeStarted.resolve();
+      await writeReleased.promise;
+      return realRename(from, to);
+    });
+    const outcome = assert.rejects(manager.getAccessToken({ forceRefresh: true }), {
+      code: 'reauthorization_required',
+    });
+    await writeStarted.promise;
+
+    // The removal waits for the held write, so release it before waiting for the disconnect.
+    const disconnecting = manager.disconnect();
+    writeReleased.resolve();
+    await disconnecting;
+    await outcome;
+
+    assert.equal(await tokenFileExists(), false);
+    assert.equal(await manager.currentState(), 'not_connected');
+    await assert.rejects(manager.getAccessToken(), { code: 'reauthorization_required' });
+  });
+
   test('a disconnect during an in-flight refresh cannot restore credentials', async () => {
     const gate = gatedUpstream(() => ({ json: tokenResponse({ access_token: 'late_access' }) }));
     const { manager, startManager, tokenFileExists, connect } = await createHarness({
