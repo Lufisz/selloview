@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoHandler, DEMO_HEADERS } from '../../server.mjs';
+import { createDemoHandler, DEMO_HEADERS } from '../../server/demo.mjs';
 import { ATTACK_PATHS, makePublicDirectory } from '../helpers/public-directory.mjs';
 
 // Calls the handler with just the parts of a request it reads, and collects the response.

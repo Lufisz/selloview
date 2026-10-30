@@ -4,7 +4,7 @@
 // up a clearly labelled fixture (capacity limits).
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoHandler } from '../server.mjs';
+import { createDemoHandler } from '../server/demo.mjs';
 import {
   AccountError,
   migrateDatabase,

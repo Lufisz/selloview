@@ -744,12 +744,9 @@ test(
       BETA_ORIGIN: `http://127.0.0.1:${port}`,
       BETA_PORT: String(port),
     };
-    const init = await runNode(
-      [path.join(PROJECT_ROOT, 'scripts', 'beta-admin.mjs'), 'init'],
-      base,
-    );
+    const init = await runNode([path.join(PROJECT_ROOT, 'scripts', 'admin.mjs'), 'init'], base);
     assert.equal(init.code, 0, init.output);
-    const server = path.join(PROJECT_ROOT, 'server', 'beta', 'beta-server.mjs');
+    const server = path.join(PROJECT_ROOT, 'server', 'main.mjs');
 
     const partial = await runNode([server], {
       ...base,

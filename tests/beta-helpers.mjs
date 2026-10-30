@@ -14,7 +14,7 @@ import {
   inviteOwner,
   openInitializedDatabase,
 } from '../server/accounts/accounts.mjs';
-import { createBetaServer } from '../server/beta/beta-server.mjs';
+import { createBetaServer } from '../server/main.mjs';
 import { createBetaShopifyService } from '../server/shopify/connection-service.mjs';
 
 /** SYNTHETIC delivery: records codes in memory so tests can complete the real sign-in flow. */

@@ -1,4 +1,4 @@
-// Operator-side account administration. Used by scripts/beta-admin.mjs and tests; never
+// Operator-side account administration. Used by scripts/admin.mjs and tests; never
 // reachable from HTTP.
 import { getMigrations } from 'better-auth/db/migration';
 import { createAuth, createAuthOptions } from './auth.mjs';

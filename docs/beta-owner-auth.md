@@ -1,7 +1,7 @@
 # MetricTV invite-only beta: owner login and workspaces
 
 Status: implemented foundation, loopback only. It is a separate entry point from the fictional demo
-(`server.mjs`), which does not serve the beta page files.
+(`server/demo.mjs`), which does not serve the beta page files.
 
 Added since: a workspace-scoped, read-only Shopify store connection restricted to one pilot owner
 and one exact store (see "Shopify store connection" below). Not implemented: account deletion,

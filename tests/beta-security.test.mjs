@@ -2,7 +2,7 @@
 // persistence and separation from the demo server. Real HTTP via curl.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createDemoHandler } from '../server.mjs';
+import { createDemoHandler } from '../server/demo.mjs';
 import {
   createBetaEnvironment,
   createBrowser,

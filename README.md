@@ -66,7 +66,7 @@ npm test
 | `server/beta/` | Owner accounts, Shopify connections and TV sessions |
 | `server/` | Shared Shopify queries, encrypted credentials and metrics |
 | `public/` | Pages, styles and shared board renderers |
-| `scripts/beta-admin.mjs` | Database setup, invitations and migrations |
+| `scripts/admin.mjs` | Database setup, invitations and migrations |
 | `tests/` | Tests using synthetic data |
 
 See [contributing](CONTRIBUTING.md) for code conventions and [security](SECURITY.md) for data boundaries and reporting. Never include real store data or credentials in issues or screenshots.

@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createAuth } from '../server/accounts/auth.mjs';
 import { openInitializedDatabase } from '../server/accounts/accounts.mjs';
-import { createBetaServer } from '../server/beta/beta-server.mjs';
+import { createBetaServer } from '../server/main.mjs';
 import {
   createRegistrationPolicy,
   loadRegistrationConfig,

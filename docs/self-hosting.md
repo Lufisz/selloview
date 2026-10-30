@@ -86,8 +86,8 @@ missing or malformed value and names the setting, never its value.
 
 ```sh
 cd /opt/metrictv
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs init
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs invite you@example.com
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs init
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs invite you@example.com
 ```
 
 Invite the same address as `BETA_SHOPIFY_OWNER_EMAIL`. Inviting sends nothing; you request a code on
@@ -153,7 +153,7 @@ sudo systemctl stop metrictv
 # back up first (see above)
 sudo git pull
 sudo npm ci --omit=dev --ignore-scripts
-sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/beta-admin.mjs migrate
+sudo -u metrictv node --env-file=/etc/metrictv/metrictv.env scripts/admin.mjs migrate
 sudo systemctl start metrictv
 ```
 

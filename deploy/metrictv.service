@@ -15,7 +15,7 @@ Group=metrictv
 WorkingDirectory=/opt/metrictv
 EnvironmentFile=/etc/metrictv/metrictv.env
 # Use the path printed by `command -v node` if Node.js is installed elsewhere.
-ExecStart=/usr/bin/node server/beta/beta-server.mjs
+ExecStart=/usr/bin/node server/main.mjs
 Restart=on-failure
 RestartSec=5
 

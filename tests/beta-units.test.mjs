@@ -8,7 +8,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadBetaConfig } from '../server/beta/beta-server.mjs';
+import { loadBetaConfig } from '../server/main.mjs';
 import {
   PrivateDatabaseError,
   createPrivateDatabaseFile,
@@ -216,7 +216,7 @@ function runCli(args, env) {
   return new Promise((resolve) => {
     execFile(
       process.execPath,
-      [path.join(PROJECT_ROOT, 'scripts', 'beta-admin.mjs'), ...args],
+      [path.join(PROJECT_ROOT, 'scripts', 'admin.mjs'), ...args],
       { env: { PATH: process.env.PATH, ...env }, timeout: 30_000 },
       (error, stdout, stderr) => resolve({ code: error ? (error.code ?? 1) : 0, stdout, stderr }),
     );
@@ -314,14 +314,10 @@ test(
     assert.equal(init.code, 0, init.stderr);
     assert.equal((await runCli(['invite', 'owner@example.test'], env)).code, 0);
 
-    const child = spawn(
-      process.execPath,
-      [path.join(PROJECT_ROOT, 'server', 'beta', 'beta-server.mjs')],
-      {
-        env,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      },
-    );
+    const child = spawn(process.execPath, [path.join(PROJECT_ROOT, 'server', 'main.mjs')], {
+      env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
     t.after(() => child.kill('SIGKILL'));
     let output = '';
     child.stdout.on('data', (chunk) => (output += chunk));
@@ -366,7 +362,7 @@ test('server start without an initialized database fails and creates nothing', a
   const result = await new Promise((resolve) => {
     execFile(
       process.execPath,
-      [path.join(PROJECT_ROOT, 'server', 'beta', 'beta-server.mjs')],
+      [path.join(PROJECT_ROOT, 'server', 'main.mjs')],
       {
         env: {
           PATH: process.env.PATH,

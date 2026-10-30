@@ -20,19 +20,19 @@ import {
   SIGN_OUT_PATH,
   createAuth,
   trackCodeDelivery,
-} from '../accounts/auth.mjs';
-import { openInitializedDatabase } from '../accounts/accounts.mjs';
+} from './accounts/auth.mjs';
+import { openInitializedDatabase } from './accounts/accounts.mjs';
 import {
   closedRegistration,
   createRegistrationPolicy,
   loadRegistrationConfig,
-} from '../accounts/registration.mjs';
-import { parseDatabasePath } from '../accounts/private-database.mjs';
+} from './accounts/registration.mjs';
+import { parseDatabasePath } from './accounts/private-database.mjs';
 import {
   createResendTransport,
   loadMailConfig,
   unconfiguredTransport,
-} from '../accounts/mail-transport.mjs';
+} from './accounts/mail-transport.mjs';
 import {
   RequestRejection,
   assertExpectedHost,
@@ -40,14 +40,14 @@ import {
   createResponseHeaders,
   readJsonObject,
   sendJson,
-} from '../http/guards.mjs';
-import { ensureWorkspace, updateWorkspaceSettings } from '../accounts/workspaces.mjs';
-import { loadBetaShopifyConfig } from '../shopify/config.mjs';
-import { createBetaShopifyService } from '../shopify/connection-service.mjs';
-import { createShopifyRoutes } from '../shopify/routes.mjs';
-import { BETA_PUBLIC_FILES } from '../http/public-files.mjs';
-import { createAppVersion } from '../screens/app-version.mjs';
-import { createScreenRoutes } from '../screens/screen-routes.mjs';
+} from './http/guards.mjs';
+import { ensureWorkspace, updateWorkspaceSettings } from './accounts/workspaces.mjs';
+import { loadBetaShopifyConfig } from './shopify/config.mjs';
+import { createBetaShopifyService } from './shopify/connection-service.mjs';
+import { createShopifyRoutes } from './shopify/routes.mjs';
+import { BETA_PUBLIC_FILES } from './http/public-files.mjs';
+import { createAppVersion } from './screens/app-version.mjs';
+import { createScreenRoutes } from './screens/screen-routes.mjs';
 import {
   SERVER_OPTIONS,
   applyServerLimits,
@@ -55,11 +55,10 @@ import {
   isReadMethod,
   parseRequestPath,
   singleHeaderValue,
-} from '../http/static-files.mjs';
+} from './http/static-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  '..',
   '..',
   'public',
 );
