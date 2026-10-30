@@ -49,7 +49,7 @@ Follow the **[self-hosting guide](docs/self-hosting.md)**. You need:
 
 The guide covers configuration, owner invitations, Shopify authorization, TV pairing and backups. Example configuration is in [`.env.example`](.env.example); deployment examples are in [`deploy/`](deploy/).
 
-**Not ready yet:** public merchant onboarding, account deletion, uninstall/privacy webhooks, billing and custom board layouts. Google Analytics is not implemented. A clean-server installation and restore still need end-to-end verification before a supported release.
+**Current limits:** public merchant onboarding, self-service account deletion, uninstall/privacy webhooks and custom layouts are not ready. Operators can remove accounts through the admin command. A clean-server installation and restore still need verification before a supported release.
 
 ## Development
 
@@ -61,18 +61,9 @@ npm run check
 npm test
 ```
 
-| Path | Purpose |
-| --- | --- |
-| `server/main.mjs`, `server/app.mjs` | Start the app server; its request routes |
-| `server/accounts/`, `server/screens/`, `server/shopify/` | Owner accounts, TV pairing and display, Shopify connection and metrics inputs |
-| `server/http/`, `server/metrics.mjs` | Request guards and static files; the pure snapshot maths |
-| `server/demo.mjs` | The sample dashboard server (`npm start`) |
-| `public/` | Pages by surface: `landing/`, `demo/`, `owner/`, `tv/`, `shared/` |
-| `scripts/admin.mjs` | Database setup, invitations, owner removal and migrations (`npm run admin -- ...`) |
-| `tests/` | Tests using synthetic data: `server/`, `browser/`, `helpers/`, `qa/` |
-| `docs/` | Architecture, testing, gotchas, sign-in and pairing, self-hosting |
+See [Architecture](docs/architecture.md) for the code structure, [Testing](docs/testing.md) for test guidance, and [Contributing](CONTRIBUTING.md) before opening a pull request.
 
-Start with the [documentation index](docs/README.md): [architecture](docs/architecture.md) follows a request and the store figures through the code and says where a change belongs, and [testing](docs/testing.md) lists the test helpers. See [contributing](CONTRIBUTING.md) for code conventions and [security](SECURITY.md) for data boundaries and reporting. Never include real store data or credentials in issues or screenshots.
+Report vulnerabilities privately as described in [Security](SECURITY.md). Never include real store data or credentials in issues or screenshots.
 
 ## Licence
 
