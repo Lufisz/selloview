@@ -271,20 +271,12 @@ test('expired challenges cannot be polled, approved or exchanged', http, async (
   assert.equal(count(handle.database, 'display_session'), 0);
 });
 
-test(
-  "a new challenge replaces the same TV page's earlier one and expired rows are purged",
-  http,
-  async (t) => {
-    const { handle } = await setup(t);
-    const { tv } = await newTv(handle);
-    await tv.createTvChallenge();
-    assert.equal(count(handle.database, 'pairing_challenge'), 1);
-
-    handle.database.prepare('UPDATE pairing_challenge SET expires_at = ?').run(LONG_AGO);
-    await newTv(handle);
-    assert.equal(count(handle.database, 'pairing_challenge'), 1, 'expired rows do not accumulate');
-  },
-);
+test("a new challenge replaces the same TV page's earlier one", http, async (t) => {
+  const { handle } = await setup(t);
+  const { tv } = await newTv(handle);
+  await tv.createTvChallenge();
+  assert.equal(count(handle.database, 'pairing_challenge'), 1);
+});
 
 test('wrong, expired and used codes answer identically and reveal no owner', http, async (t) => {
   const { handle, alice, bob } = await setup(t);
@@ -360,50 +352,65 @@ test('challenge creation and polling are rate limited', http, async (t) => {
   assert.equal(polls, 41, 'forty polls per minute per challenge');
 });
 
-test('open challenges are capped so anonymous pages cannot fill the database', http, async (t) => {
-  const { handle } = await setup(t);
-  const insert = handle.database.prepare(
+// Test fixture: rows that look like challenges from other TV pages.
+function insertFixtureChallenges(database, expiresAt) {
+  const insert = database.prepare(
     `INSERT INTO pairing_challenge (id, secret_hash, code_hash, state, created_at, expires_at)
      VALUES (?, ?, ?, 'pending', ?, ?)`,
   );
-  const farFuture = Date.now() + 60_000;
-  // Test fixture: rows that look like open challenges from other pages.
   for (let index = 0; index < MAX_OPEN_CHALLENGES; index += 1) {
-    insert.run(`fixture-${index}`, 'a'.repeat(64), `fixture-code-${index}`, Date.now(), farFuture);
+    insert.run(`fixture-${index}`, 'a'.repeat(64), `fixture-code-${index}`, Date.now(), expiresAt);
   }
+}
+
+test('open challenges are capped so anonymous pages cannot fill the database', http, async (t) => {
+  const { handle } = await setup(t);
+  insertFixtureChallenges(handle.database, Date.now() + 60_000);
   const refused = await createBrowser(handle.origin).createTvChallenge();
   assert.equal(refused.status, 503);
   assert.equal(refused.json.error, 'busy');
   assert.equal(count(handle.database, 'pairing_challenge'), MAX_OPEN_CHALLENGES);
 });
 
-test('a workspace cannot hold more than the maximum number of screens', http, async (t) => {
-  const { handle, alice } = await setup(t);
-  const workspaceId = handle.database
+test('expired challenges do not count towards the open-challenge cap', http, async (t) => {
+  const { handle } = await setup(t);
+  insertFixtureChallenges(handle.database, LONG_AGO);
+  const created = await createBrowser(handle.origin).createTvChallenge();
+  assert.equal(created.status, 201);
+});
+
+// Test fixture: sessions for other (unpaired, credential-less) TVs of Alice's workspace.
+function insertFixtureScreens(database, expiresAt) {
+  const workspaceId = database
     .prepare(
       'SELECT workspace.id AS id FROM workspace JOIN "user" ON "user".id = owner_user_id WHERE email = ?',
     )
     .get(ALICE).id;
-  // Test fixture: sessions for other (unpaired, credential-less) TVs of the same workspace.
   for (let index = 0; index < MAX_SCREENS_PER_WORKSPACE; index += 1) {
-    handle.database
+    database
       .prepare(
         `INSERT INTO display_session (id, secret_hash, workspace_id, name, created_at, expires_at)
          VALUES (?, ?, ?, ?, ?, ?)`,
       )
-      .run(
-        `fixture-${index}`,
-        'b'.repeat(64),
-        workspaceId,
-        `TV ${index}`,
-        Date.now(),
-        Date.now() + 60_000,
-      );
+      .run(`fixture-${index}`, 'b'.repeat(64), workspaceId, `TV ${index}`, Date.now(), expiresAt);
   }
+}
+
+test('a workspace cannot hold more than the maximum number of screens', http, async (t) => {
+  const { handle, alice } = await setup(t);
+  insertFixtureScreens(handle.database, Date.now() + 60_000);
   const { code } = await newTv(handle);
   const refused = await alice.pairScreen(code, 'One too many');
   assert.equal(refused.status, 409);
   assert.equal(refused.json.error, 'screen_limit');
+});
+
+test('expired screens do not count towards the workspace limit', http, async (t) => {
+  const { handle, alice } = await setup(t);
+  insertFixtureScreens(handle.database, LONG_AGO);
+  const { code } = await newTv(handle);
+  const approved = await alice.pairScreen(code, 'Room for it');
+  assert.equal(approved.status, 200);
 });
 
 // ---- Concurrency ----------------------------------------------------------------------------

@@ -12,6 +12,7 @@ import {
 } from './accounts/mail-transport.mjs';
 import { createAppServer } from './app.mjs';
 import { loadServerConfig } from './config.mjs';
+import { startHousekeeping } from './housekeeping.mjs';
 import { loadShopifyConfig } from './shopify/config.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 
@@ -36,6 +37,7 @@ function startFromEnvironment() {
     origin: config.origin,
   });
   const server = createAppServer({ auth, database, config, mailTransport, registration, shopify });
+  startHousekeeping(database);
   server.listen(config.port, config.host, () => {
     const delivery = mailTransport.configured
       ? 'configured'

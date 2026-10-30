@@ -181,3 +181,16 @@ export function createAuthOptions({
 export function createAuth(options) {
   return betterAuth(createAuthOptions(options));
 }
+
+/**
+ * Deletes what can no longer be used: expired sessions and sign-in codes, and rate-limit rows
+ * older than their window (Better Auth starts a fresh count for those anyway).
+ */
+export function purgeExpiredSignInRows(database, nowMs = Date.now()) {
+  // Better Auth stores expiry times as ISO text, which sorts like the instants it names.
+  const nowIso = new Date(nowMs).toISOString();
+  database.prepare('DELETE FROM session WHERE expiresAt <= ?').run(nowIso);
+  database.prepare('DELETE FROM verification WHERE expiresAt <= ?').run(nowIso);
+  const windowStart = nowMs - RATE_LIMIT_WINDOW_SECONDS * 1000;
+  database.prepare('DELETE FROM rateLimit WHERE lastRequest <= ?').run(windowStart);
+}

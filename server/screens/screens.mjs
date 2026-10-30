@@ -124,7 +124,8 @@ export function isScreenId(value) {
 
 // ---- Challenges -----------------------------------------------------------------------------
 
-export function purgeExpired(database, nowMs = Date.now()) {
+/** Deletes expired challenges and display sessions. Every read already ignores them. */
+export function purgeExpiredScreens(database, nowMs = Date.now()) {
   database.prepare('DELETE FROM pairing_challenge WHERE expires_at <= ?').run(nowMs);
   database.prepare('DELETE FROM display_session WHERE expires_at <= ?').run(nowMs);
 }
@@ -135,8 +136,9 @@ export function purgeExpired(database, nowMs = Date.now()) {
  */
 export function createChallenge(database) {
   const nowMs = Date.now();
-  purgeExpired(database, nowMs);
-  const open = database.prepare('SELECT COUNT(*) AS total FROM pairing_challenge').get().total;
+  const open = database
+    .prepare('SELECT COUNT(*) AS total FROM pairing_challenge WHERE expires_at > ?')
+    .get(nowMs).total;
   if (open >= MAX_OPEN_CHALLENGES) return null;
 
   const credential = newCredential();
@@ -196,11 +198,12 @@ export function approveChallenge(database, { workspaceId, code, screenName }) {
     const counts = database
       .prepare(
         `SELECT
-           (SELECT COUNT(*) FROM display_session WHERE workspace_id = ?) +
+           (SELECT COUNT(*) FROM display_session
+              WHERE workspace_id = ? AND expires_at > ?) +
            (SELECT COUNT(*) FROM pairing_challenge
               WHERE workspace_id = ? AND expires_at > ?) AS total`,
       )
-      .get(workspaceId, workspaceId, nowMs);
+      .get(workspaceId, nowMs, workspaceId, nowMs);
     if (counts.total >= MAX_SCREENS_PER_WORKSPACE) return 'screen_limit';
     const approved = database
       .prepare(
