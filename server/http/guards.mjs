@@ -106,9 +106,19 @@ export function readCookie(request, name, valuePattern = COOKIE_VALUE_PATTERN) {
   return values.length === 1 && valuePattern.test(values[0]) ? values[0] : null;
 }
 
-/** Set-Cookie text for a host-only, HttpOnly, SameSite=Strict cookie; empty value clears it. */
-export function buildCookie({ name, value, maxAgeSeconds, secure }) {
-  const parts = [`${name}=${value}`, 'Path=/', 'HttpOnly', 'SameSite=Strict'];
+/**
+ * Set-Cookie text for a host-only, HttpOnly cookie; an empty value clears it. SameSite=Strict
+ * unless the cookie has to come back with a cross-site navigation (the Shopify callback).
+ */
+export function buildCookie({
+  name,
+  value,
+  maxAgeSeconds,
+  secure,
+  path = '/',
+  sameSite = 'Strict',
+}) {
+  const parts = [`${name}=${value}`, `Path=${path}`, 'HttpOnly', `SameSite=${sameSite}`];
   parts.push(value === '' ? 'Max-Age=0' : `Max-Age=${maxAgeSeconds}`);
   if (secure) parts.push('Secure');
   return parts.join('; ');

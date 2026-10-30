@@ -15,7 +15,7 @@ import {
   parseQuery,
   runWithBoundedFetch,
 } from './sdk.mjs';
-import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
+import { SIGNED_COOKIE_VALUE_PATTERN, buildCookie, readCookie } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
 import { constantTimeEqual, sha256Hex } from '../hashing.mjs';
 import { logEvent } from '../log.mjs';
@@ -89,11 +89,17 @@ export function createConnectFlow({
   const callbackUrl = `${origin}${SHOPIFY_CALLBACK_PATH}`;
   const startLimiter = createRateLimiter(START_RATE_LIMIT);
 
+  // Only sent back to the callback path, and with SameSite=Lax: Shopify's redirect is a cross-site
+  // navigation, which a Strict cookie would not survive.
   function callbackCookie(name, value) {
-    const parts = [`${name}=${value}`, `Path=${SHOPIFY_CALLBACK_PATH}`, 'HttpOnly', 'SameSite=Lax'];
-    parts.push(value === '' ? 'Max-Age=0' : `Max-Age=${PENDING_ATTEMPT_TTL_MS / 1000}`);
-    if (isSecure) parts.push('Secure');
-    return parts.join('; ');
+    return buildCookie({
+      name,
+      value,
+      maxAgeSeconds: PENDING_ATTEMPT_TTL_MS / 1000,
+      secure: isSecure,
+      path: SHOPIFY_CALLBACK_PATH,
+      sameSite: 'Lax',
+    });
   }
 
   /** Restores the SDK's own cookie names; its signature covers "name=value". */
