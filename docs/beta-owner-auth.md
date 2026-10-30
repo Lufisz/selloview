@@ -1,9 +1,7 @@
 # MetricTV invite-only beta: owner login and workspaces
 
-Status: implemented foundation, loopback only. It is a separate opt-in entry point; the private
-single-store live backend (`server/live-server.mjs`) and the fictional demo (`server.mjs`) behave as
-before and do not serve the beta page files. Their Shopify OAuth internals were moved into shared
-modules (same tests, same behaviour); a running private service only picks that up on restart.
+Status: implemented foundation, loopback only. It is a separate entry point from the fictional demo
+(`server.mjs`), which does not serve the beta page files.
 
 Added since: a workspace-scoped, read-only Shopify store connection restricted to one pilot owner
 and one exact store (see "Shopify store connection" below). Not implemented: account deletion,
@@ -21,8 +19,7 @@ exposing it needs a separately approved tunnel or proxy, a domain and an email p
 - One owner, one workspace (UNIQUE owner column), created at invite time and stable across restarts.
   The workspace is always derived from the server-side session, never from the request.
 - Per-workspace appearance settings (period, theme, revision) live in the same database, behind the
-  session, exact `Origin`, JSON content type and a session-bound CSRF token. They do not reuse
-  `LIVE_SETTINGS_PATH`.
+  session, exact `Origin`, JSON content type and a session-bound CSRF token.
 - Only three Better Auth endpoints are reachable: send code, sign in with code, sign out. All others
   (sign-up, password, social/linking, email change, session listing, `/get-session`) return 404, both in
   the HTTP layer and inside the library (`disabledPaths` plus a `hooks.before` allowlist).
@@ -111,17 +108,16 @@ synthetic and lives only under `tests/`.
 Code: `server/beta/shopify-config.mjs` (settings), `shopify-links.mjs` (SQLite store links and
 pending attempts), `shopify-service.mjs` (OAuth, grants, per-workspace cache), `shopify-routes.mjs`
 (HTTP), `display-board.mjs` (TV projection). The OAuth protocol, grant renewal and encrypted grant
-files are the same official-SDK code the private live backend uses
-(`server/shopify-sdk.mjs`, `shopify-grant-manager.mjs`, `shopify-token-store.mjs`,
-`shopify-http.mjs`, `shopify-admin.mjs`), as are the fixed 2026-07 queries, the 130-day collector and
-the metric code. The private single-store backend, its credentials and its callback are not involved.
+files are handled by the official-SDK modules `server/shopify-sdk.mjs`, `shopify-grant-manager.mjs`,
+`shopify-token-store.mjs`, `shopify-http.mjs` and `shopify-admin.mjs`; the fixed 2026-07 queries and
+the 130-day collector are in `server/shopify.mjs`, the metric code in `server/metrics.mjs`.
 
 ### Configuration (all six names, or none)
 
 | Variable                                               | Meaning                                                                                                                                  |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `BETA_SHOPIFY_CLIENT_ID`, `BETA_SHOPIFY_CLIENT_SECRET` | The Shopify app's credentials, server-only.                                                                                              |
-| `BETA_SHOPIFY_ENCRYPTION_KEY`                          | Canonical base64 of 32 random bytes. A new key for the beta; never reuse the app secret or the private key.                              |
+| `BETA_SHOPIFY_ENCRYPTION_KEY`                          | Canonical base64 of 32 random bytes. A new key for the beta; never reuse the app secret.                                                 |
 | `BETA_SHOPIFY_TOKEN_DIR`                               | Absolute directory outside the project for per-workspace encrypted grant files (`<workspace-id>.grant.json`, mode 0600, directory 0700). |
 | `BETA_SHOPIFY_ALLOWED_STORE`                           | The one exact `*.myshopify.com` host that may be connected.                                                                              |
 | `BETA_SHOPIFY_OWNER_EMAIL`                             | The one owner address that may connect it.                                                                                               |
@@ -150,12 +146,12 @@ response is refused).
   the pilot owner who owns that workspace. Sign-out, `beta:revoke` or expiry while pending, including
   during the code exchange, cancels the finish. A repeated start replaces the earlier attempt.
 - The SDK's state cookies are renamed on the wire (`metrictv_beta_oauth_state[.sig]`, callback-path
-  scoped) so they cannot collide with the private flow's `shopify_app_state` cookies on the same host
+  scoped) so they cannot collide with the SDK's default `shopify_app_state` cookies on the same host
   name; the callback restores the SDK names before validation. The callback answer is always a fixed
   303 to `/?shopify=connected|failed` and clears all three cookies.
 - Credentials: one encrypted grant file per workspace; the authenticated data binds app client id, store
   **and workspace id**, so a copied file fails to decrypt. A wrong key, corrupt file or missing file is
-  `reconnect_required`, never CLI or sample data.
+  `reconnect_required`, never sample data.
 - Data: one snapshot cache per workspace, shared by all of its screens and the owner page; singleflight,
   at most two collections in flight overall, at most one per 2 minutes per workspace, started lazily by
   an authorized owner or display poll (no timers, no fetch without a linked authorized workspace).

@@ -1,5 +1,5 @@
-// Files only the beta server should serve (owner page and TV page); the demo and live servers
-// block them.
+// Files only the beta server should serve (landing, owner and TV pages); the demo server blocks
+// them.
 export const BETA_ONLY_PATHS = new Set([
   '/landing.html',
   '/landing.css',
@@ -31,8 +31,7 @@ export const BETA_PUBLIC_FILES = new Set([
   '/mark.svg',
   '/model.js',
   '/ui.js',
-  // Board presentation shared with the private live page. The live controller, its fetch
-  // module (live-client.js), the demo fixtures and live.html are deliberately absent.
+  // Board presentation shared by the owner page and the TV page.
   '/board.js',
   '/live-board-model.js',
   '/snapshot-validation.js',

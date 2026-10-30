@@ -1,5 +1,5 @@
-// Read-only Shopify adapter that runs fixed queries through the cached Shopify CLI.
-import { execFile as nodeExecFile } from 'node:child_process';
+// Read-only Shopify data collection: the fixed GraphQL queries, store validation and cursor paging.
+// A query runner (server/shopify-admin.mjs) sends them; server/metrics.mjs turns the result into a snapshot.
 
 export const API_VERSION = '2026-07';
 export const MAX_PAGES = 100;
@@ -75,96 +75,12 @@ function isPlainObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-// CLI output: JSONL progress events followed by pretty JSON. Take the first
-// line-start "{" whose remaining text parses as one JSON document.
-export function parseCliOutput(text) {
-  if (typeof text !== 'string' || !text.trim()) throw new ShopifyError('bad_output');
-  try {
-    return JSON.parse(text);
-  } catch {
-    // Not a single JSON document: fall through to the line scan.
-  }
-  const lines = text.split('\n');
-  for (let index = 0; index < lines.length; index++) {
-    if (!lines[index].startsWith('{')) continue;
-    try {
-      return JSON.parse(lines.slice(index).join('\n'));
-    } catch {
-      // Keep scanning for a later start line.
-    }
-  }
-  throw new ShopifyError('bad_output');
-}
-
 export function extractData(parsed) {
   if (!isPlainObject(parsed)) throw new ShopifyError('bad_output');
   if (parsed.errors || parsed.error) throw new ShopifyError('api_error');
   const data = isPlainObject(parsed.data) ? parsed.data : parsed;
   if (data.errors) throw new ShopifyError('api_error');
   return data;
-}
-
-function buildCliArguments({ store, query, variables }) {
-  return [
-    '--offline',
-    '--yes',
-    '--package=@shopify/cli@4.9.4',
-    'shopify',
-    'store',
-    'execute',
-    '--store',
-    store,
-    '--query',
-    query,
-    '--variables',
-    JSON.stringify(variables),
-    '--version',
-    API_VERSION,
-    '--no-input',
-    '--json',
-  ];
-}
-
-// Returns async (queryName, variables) => data. Only the fixed QUERIES can run.
-// Errors carry a short code only: CLI stdout/stderr and messages are never copied into them.
-export function createCliRunner({
-  store = process.env.SHOPIFY_STORE,
-  execFile = nodeExecFile,
-  timeoutMs = 60000,
-} = {}) {
-  validateStore(store);
-  return function run(name, variables = {}) {
-    // Own-property check: names such as "constructor" or "__proto__" must not resolve.
-    if (typeof name !== 'string' || !Object.hasOwn(QUERIES, name)) {
-      return Promise.reject(new ShopifyError('unknown_query'));
-    }
-    const args = buildCliArguments({ store, query: QUERIES[name], variables });
-    const env = {
-      ...process.env,
-      SHOPIFY_CLI_AGENT_INFO: 'n:hermes-agent|v:none|p:openai-codex|m:gpt-6.1-sol',
-      SHOPIFY_CLI_AGENT_IDS: '',
-    };
-    const options = {
-      env,
-      timeout: timeoutMs,
-      maxBuffer: 8 * 1024 * 1024,
-      shell: false,
-      windowsHide: true,
-    };
-    return new Promise((resolve, reject) => {
-      execFile('npx', args, options, (error, stdout) => {
-        if (error) {
-          const timedOut = error.killed || error.signal;
-          return reject(new ShopifyError(timedOut ? 'cli_timeout' : 'cli_failed'));
-        }
-        try {
-          resolve(extractData(parseCliOutput(String(stdout))));
-        } catch (parseError) {
-          reject(parseError instanceof ShopifyError ? parseError : new ShopifyError('bad_output'));
-        }
-      });
-    });
-  };
 }
 
 // Validates one GraphQL connection. hasNextPage must be a real boolean: a malformed

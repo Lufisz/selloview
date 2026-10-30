@@ -1,6 +1,5 @@
-// Shared pieces of the official Shopify SDK integration. The private live connection and the
-// invite-only beta both use these, so the OAuth protocol, grant validation and outbound bridge
-// exist exactly once.
+// Pieces of the official Shopify SDK integration: the outbound bridge, grant validation and the
+// parsers for the OAuth redirect and callback. server/beta/shopify-service.mjs wires them together.
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { shopifyApi, ApiVersion, LogSeverity } from '@shopify/shopify-api';
 import '@shopify/shopify-api/adapters/web-api';
@@ -151,12 +150,6 @@ export function hasExactCallbackFields(query) {
   return true;
 }
 
-/** Lengthen the SDK's 60 s cookie lifetime to the attempt lifetime; the signature is unaffected. */
-export function extendCookieLifetime(setCookie, nowMs) {
-  const expires = new Date(nowMs + PENDING_ATTEMPT_TTL_MS).toUTCString();
-  return setCookie.replace(/expires=[^;]+/i, `expires=${expires}`);
-}
-
 /** Copy only the named headers; the SDK's bot filter reads the real User-Agent. */
 export function forwardedHeaders(request, names) {
   const headers = {};
@@ -164,12 +157,4 @@ export function forwardedHeaders(request, names) {
     if (typeof request.headers[name] === 'string') headers[name] = request.headers[name];
   }
   return headers;
-}
-
-export function countCookie(cookieHeader, name) {
-  let count = 0;
-  for (const part of String(cookieHeader ?? '').split(';')) {
-    if (part.trim().startsWith(`${name}=`)) count += 1;
-  }
-  return count;
 }

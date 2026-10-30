@@ -1,4 +1,4 @@
-// Shared UI primitives for the demo and the live board.
+// Shared UI primitives for the demo, the owner page and the TV page.
 // Pure string helpers first, then small DOM controllers. Nothing here imports
 // data, fetches anything or touches the DOM at import time.
 import { escapeHtml, normaliseStore } from './model.js';

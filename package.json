@@ -7,7 +7,6 @@
   "description": "A dependency-light business wallboard with a fictional demo and private read-only Shopify connections.",
   "scripts": {
     "start": "node server.mjs",
-    "start:live": "node server/live-server.mjs",
     "start:beta": "node server/beta/beta-server.mjs",
     "beta:init": "node scripts/beta-admin.mjs init",
     "beta:migrate": "node scripts/beta-admin.mjs migrate",

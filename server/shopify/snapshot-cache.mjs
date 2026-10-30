@@ -2,7 +2,9 @@
 import { fetchShopData, ShopifyError } from '../shopify.mjs';
 import { buildSnapshot } from '../metrics.mjs';
 
+// Figures older than this are reported as stale.
 export const STALE_MS = 5 * 60 * 1000;
+// How often a connected workspace's figures are refreshed in the background.
 export const REFRESH_MS = 120 * 1000;
 
 // Only these error codes are ever shown to clients; anything else becomes 'refresh_failed'.
@@ -11,8 +13,6 @@ const SAFE_ERROR_CODES = new Set([
   'bad_output',
   'api_error',
   'unknown_query',
-  'cli_timeout',
-  'cli_failed',
   'bad_shape',
   'bad_amount',
   'bad_date',
@@ -46,7 +46,6 @@ export function createSnapshotCache({ fetchSnapshot, now = () => Date.now() }) {
     lastAttemptAt: null,
     errorCode: null,
     inflight: null,
-    timer: null,
     generation: 0,
   };
 
@@ -98,17 +97,6 @@ export function createSnapshotCache({ fetchSnapshot, now = () => Date.now() }) {
     cache.lastAttemptAt = null;
     cache.errorCode = null;
     cache.inflight = null;
-  };
-
-  cache.start = (intervalMs = REFRESH_MS) => {
-    cache.refresh();
-    cache.timer = setInterval(() => cache.refresh(), intervalMs);
-    cache.timer.unref();
-  };
-
-  cache.stop = () => {
-    clearInterval(cache.timer);
-    cache.timer = null;
   };
 
   return cache;

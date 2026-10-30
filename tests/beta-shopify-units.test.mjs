@@ -620,7 +620,6 @@ test('the owner board shows real-shaped figures with no demo, live-page or TV co
   assert.match(html, /Order value is the sum of Shopify currentTotalPriceSet/);
   assert.match(html, /<select id="period"/);
   assert.equal(html.includes('owner-csrf-token'), false);
-  assert.equal(html.includes('live.html'), false);
 
   const disconnected = renderOwner({
     ...state,

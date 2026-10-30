@@ -1,8 +1,8 @@
 // One Shopify offline grant: load, renew, revoke and replace it without races.
 //
-// The private live connection owns exactly one of these; the beta owns one per workspace. All
-// ordering guarantees come from the token store's epochs (see shopify-token-store.mjs): a refresh
-// or exchange that finishes after a disconnect or reconnect cannot restore old credentials.
+// Each linked workspace owns one of these. All ordering guarantees come from the token store's
+// epochs (see shopify-token-store.mjs): a refresh or exchange that finishes after a disconnect or
+// reconnect cannot restore old credentials.
 import { ShopifyError } from './shopify.mjs';
 import { grantFromSession, runWithBoundedFetch } from './shopify-sdk.mjs';
 
@@ -50,7 +50,7 @@ export function createGrantManager({
       storeUnreadable = false;
       return epochBeforeLoad === tokenStore.epoch ? grant : null;
     } catch {
-      // Corrupt file or wrong key: fail closed, never fall back to the CLI.
+      // Corrupt file or wrong key: fail closed.
       storeUnreadable = true;
       return null;
     }

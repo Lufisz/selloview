@@ -69,8 +69,6 @@ npm test
 | `scripts/beta-admin.mjs` | Database setup, invitations and migrations |
 | `tests/` | Tests using synthetic data |
 
-`server/live-server.mjs` is the older private pilot, not the self-hosting entry point.
-
 See [contributing](CONTRIBUTING.md) for code conventions and [security](SECURITY.md) for data boundaries and reporting. Never include real store data or credentials in issues or screenshots.
 
 ## Licence

@@ -1,5 +1,5 @@
 // Beta HTTP boundaries: origin and CSRF checks, bounded input, owner isolation, restart
-// persistence and separation from the demo and private live servers. Real HTTP via curl.
+// persistence and separation from the demo server. Real HTTP via curl.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDemoHandler } from '../server.mjs';
@@ -311,7 +311,7 @@ test('an expired session is refused', http, async (t) => {
 });
 
 test(
-  'the beta serves onboarding and a fictional demo, never private live data',
+  'the beta serves onboarding and a fictional demo, and answers nothing outside its allowlist',
   http,
   async (t) => {
     const environment = await createBetaEnvironment(t, { invites: [ALICE] });
@@ -346,10 +346,10 @@ test(
       (await browser.request('/fonts/archivo-latin.woff2/../../package.json')).status,
       404,
     );
+    // Routes of the removed single-store server stay unanswered, next to the usual attack paths.
     for (const denied of [
       '/live.html',
       '/live.js',
-
       '/api/snapshot',
       '/api/settings',
       '/api/connection/status',
@@ -361,8 +361,6 @@ test(
       const result = await browser.request(denied);
       assert.ok([400, 404].includes(result.status), `${denied} -> ${result.status}`);
     }
-    const page = (await browser.request('/beta.html')).text;
-    assert.equal(page.includes('live.js'), false);
     const landing = (await browser.request('/')).text;
     assert.match(landing, /Your Shopify store,<br\s*\/>on the big screen\./);
     assert.match(landing, /href="\/register"/);
@@ -372,7 +370,7 @@ test(
   },
 );
 
-test('the demo server and the live static surface do not present beta files', async () => {
+test('the demo server does not present the beta files', async () => {
   const handler = createDemoHandler();
   for (const betaPath of ['/beta.html', '/beta.js', '/beta-client.js', '/beta.css']) {
     let status;

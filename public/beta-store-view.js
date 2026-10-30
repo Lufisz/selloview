@@ -221,7 +221,7 @@ export function renderOwnerBoard({ store, session, now, userChoices }) {
     unavailableMessage: '',
     now,
   });
-  // The definition dialog belongs to the private live page; the metric definition is printed below.
+  // The demo opens the metric definition in a dialog; here it is printed below the board instead.
   const metrics = model.metrics.map((metric) => ({ ...metric, help: undefined }));
   const boardHtml = renderBoard({ ...model, metrics }, { tvLink: false });
   return `<div class="beta-board">

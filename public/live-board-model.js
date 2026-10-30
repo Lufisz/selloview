@@ -1,7 +1,6 @@
-// Pure board view model for a Shopify snapshot, shared by the private live page and the beta
-// (owner dashboard and paired TV). No fetching, no globals, no live-client import: the TV loads
-// this module on old browsers, so it must stay free of newer built-ins such as Object.hasOwn,
-// String.prototype.replaceAll and AbortSignal.timeout.
+// Pure board view model for a Shopify snapshot, shared by the owner dashboard and the paired TV.
+// No fetching and no globals: the TV loads this module on old browsers, so it must stay free of
+// newer built-ins such as Object.hasOwn, String.prototype.replaceAll and AbortSignal.timeout.
 import { normaliseStore, money, formatTime, formatDateTime } from './model.js';
 import { safeShopifyAdminUrl } from './ui.js';
 

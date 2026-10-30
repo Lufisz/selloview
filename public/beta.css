@@ -107,8 +107,7 @@ body[data-theme='dark'] {
   color: var(--ink);
 }
 
-/* Owner board and TV board reuse the shared board styles; these rules mirror the few live-only
-   ones they need without loading the private live stylesheet. */
+/* Owner board and TV board reuse the shared board styles; these rules add what they need on top. */
 .beta-main-wide .beta-card {
   margin-bottom: 24px;
 }

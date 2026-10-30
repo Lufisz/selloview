@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildSnapshot } from '../server/metrics.mjs';
 import { createSecurityHeaders, findPublicFile } from '../server/static-files.mjs';
-import { fetchSnapshot, MESSAGES } from '../public/live-client.js';
 import { isUsableSnapshot } from '../public/snapshot-validation.js';
 import { formatPeriodLabel } from '../public/live-board-model.js';
 import { safeShopifyAdminUrl } from '../public/ui.js';
@@ -164,20 +163,6 @@ for (const [description, mutate] of malformedSnapshots) {
   });
 }
 
-test('malformed snapshot responses expose no metrics or raw upstream details', async () => {
-  const snapshot = syntheticSnapshot();
-  snapshot.recentOrders = [null];
-  snapshot.error = 'untrusted upstream detail';
-  const outcome = await fetchSnapshot({
-    fetchImpl: async () => ({
-      ok: true,
-      status: 200,
-      json: async () => snapshot,
-    }),
-  });
-  assert.deepEqual(outcome, { status: 'error', message: MESSAGES.error });
-});
-
 test('Shopify links must belong to the configured merchant on the standard HTTPS port', () => {
   const domain = 'validation.myshopify.com';
   for (const url of [
@@ -202,14 +187,14 @@ test('symlinks cannot disguise hidden files, forbidden types or blocked entry po
   context.after(() => rm(directory, { recursive: true, force: true }));
   const publicDirectory = join(directory, 'public');
   await mkdir(publicDirectory);
-  for (const name of ['.hidden-source.js', 'private.txt', 'live.html', 'styles.css']) {
+  for (const name of ['.hidden-source.js', 'private.txt', 'blocked.html', 'styles.css']) {
     await writeFile(join(publicDirectory, name), 'Synthetic test fixture only.');
   }
-  const options = { indexFile: 'index.html', blockedPaths: new Set(['/live.html']) };
+  const options = { indexFile: 'index.html', blockedPaths: new Set(['/blocked.html']) };
   const hiddenTargets = [
     ['hidden-alias.js', '.hidden-source.js'],
     ['type-alias.js', 'private.txt'],
-    ['entry-alias.js', 'live.html'],
+    ['entry-alias.js', 'blocked.html'],
   ];
   for (const [alias, target] of hiddenTargets) {
     await symlink(target, join(publicDirectory, alias));
@@ -220,12 +205,12 @@ test('symlinks cannot disguise hidden files, forbidden types or blocked entry po
   assert.equal(safeFile.contentType, 'text/css; charset=utf-8');
 });
 
-test('both servers reuse security headers while retaining distinct network permissions', () => {
+test('the demo and the app reuse security headers while retaining distinct network permissions', () => {
   const demo = createSecurityHeaders();
-  const live = createSecurityHeaders({ allowApiRequests: true });
+  const app = createSecurityHeaders({ allowApiRequests: true });
   assert.match(demo['Content-Security-Policy'], /connect-src 'none'/);
-  assert.match(live['Content-Security-Policy'], /connect-src 'self'/);
-  for (const headers of [demo, live]) {
+  assert.match(app['Content-Security-Policy'], /connect-src 'self'/);
+  for (const headers of [demo, app]) {
     assert.match(headers['Content-Security-Policy'], /form-action 'none'/);
     assert.equal(headers['Referrer-Policy'], 'no-referrer');
     assert.equal(headers['Cache-Control'], 'no-store');

@@ -752,37 +752,33 @@ test('screen names are bounded and plain', http, async (t) => {
 
 // ---- Pages, https cookies, schema ------------------------------------------------------------
 
-test(
-  'the beta server serves /tv and its scripts; demo and live servers do not',
-  http,
-  async (t) => {
-    const { handle } = await setup(t);
-    const browser = createBrowser(handle.origin);
-    for (const pathname of ['/tv', '/tv.html', '/tv.js', '/tv-client.js', '/tv-view.js']) {
-      const result = await browser.request(pathname);
-      assert.equal(result.status, 200, pathname);
-      assert.match(result.headers.get('content-security-policy'), /script-src 'self'/);
-    }
-    const page = (await browser.request('/tv')).text;
-    assert.match(page, /\/tv\.js/);
-    assert.equal(/localStorage|sessionStorage/.test((await browser.request('/tv.js')).text), false);
+test('the beta server serves /tv and its scripts; the demo server does not', http, async (t) => {
+  const { handle } = await setup(t);
+  const browser = createBrowser(handle.origin);
+  for (const pathname of ['/tv', '/tv.html', '/tv.js', '/tv-client.js', '/tv-view.js']) {
+    const result = await browser.request(pathname);
+    assert.equal(result.status, 200, pathname);
+    assert.match(result.headers.get('content-security-policy'), /script-src 'self'/);
+  }
+  const page = (await browser.request('/tv')).text;
+  assert.match(page, /\/tv\.js/);
+  assert.equal(/localStorage|sessionStorage/.test((await browser.request('/tv.js')).text), false);
 
-    const demo = createDemoHandler();
-    for (const pathname of ['/tv.html', '/tv.js', '/tv-client.js', '/tv-view.js']) {
-      let status;
-      await demo(
-        { method: 'GET', url: pathname },
-        {
-          writeHead(code) {
-            status = code;
-          },
-          end() {},
+  const demo = createDemoHandler();
+  for (const pathname of ['/tv.html', '/tv.js', '/tv-client.js', '/tv-view.js']) {
+    let status;
+    await demo(
+      { method: 'GET', url: pathname },
+      {
+        writeHead(code) {
+          status = code;
         },
-      );
-      assert.equal(status, 404, pathname);
-    }
-  },
-);
+        end() {},
+      },
+    );
+    assert.equal(status, 404, pathname);
+  }
+});
 
 test(
   'an https origin gives __Host- prefixed Secure cookies for both TV credentials',

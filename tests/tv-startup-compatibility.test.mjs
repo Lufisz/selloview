@@ -164,15 +164,8 @@ function withoutComments(source) {
 test('no module the TV loads uses a built-in that older TV browsers lack', () => {
   const modules = tvModuleClosure();
   assert.ok(modules.includes('board.js') && modules.includes('live-board-model.js'));
-  // The owner page, the live fetch module and the legacy controller are not part of the TV.
-  for (const owner of [
-    'beta.js',
-    'beta-view.js',
-    'beta-store-view.js',
-    'beta-shopify-client.js',
-    'live-client.js',
-    'live.js',
-  ]) {
+  // The owner page modules are not part of the TV.
+  for (const owner of ['beta.js', 'beta-view.js', 'beta-store-view.js', 'beta-shopify-client.js']) {
     assert.equal(modules.includes(owner), false, `${owner} must not load on the TV`);
   }
   const banned = [

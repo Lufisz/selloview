@@ -15,9 +15,6 @@ import { BETA_ONLY_PATHS } from './server/beta/public-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = resolve(dirname(fileURLToPath(import.meta.url)), 'public');
 
-// The private live dashboard has its own entry files; the demo must not present them.
-const LIVE_ONLY_PATHS = new Set(['/live.html', '/live.js', '/live.css', ...BETA_ONLY_PATHS]);
-
 export const DEMO_HEADERS = createSecurityHeaders();
 
 export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
@@ -36,7 +33,7 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
 
     const file = await findPublicFile(publicDir, parsed.pathname, {
       indexFile: 'index.html',
-      blockedPaths: LIVE_ONLY_PATHS,
+      blockedPaths: BETA_ONLY_PATHS,
     });
     if (!file) return sendText(response, 404, 'Not found');
     try {

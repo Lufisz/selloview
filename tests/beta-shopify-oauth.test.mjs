@@ -511,7 +511,7 @@ test(
 );
 
 test(
-  'the private callback, live pages and the legacy controller are not served',
+  'the removed single-store routes are not served, while the modules the beta pages import are',
   http,
   async (t) => {
     const scenario = await createScenario(t);
@@ -519,11 +519,6 @@ test(
     for (const forbidden of [
       '/live.html',
       '/live.js',
-      '/live.css',
-      '/live-client.js',
-      '/live-view.js',
-      '/live-settings-client.js',
-
       '/auth/shopify/callback',
       '/auth/shopify/start',
       '/api/snapshot',

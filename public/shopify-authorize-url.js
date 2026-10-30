@@ -1,5 +1,5 @@
-// The only Shopify address a page may navigate to when connecting a store. Shared by the private
-// live page and the beta owner page; pure, no fetching.
+// The only Shopify address a page may navigate to when connecting a store. Used by the owner
+// page; pure, no fetching.
 import { normaliseStore } from './model.js';
 
 export const AUTHORIZE_PATH = '/admin/oauth/authorize';

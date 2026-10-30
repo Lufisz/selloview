@@ -1,4 +1,4 @@
-// Shared board renderers used by both the sample demo and the private live board.
+// Shared board renderers used by the sample demo, the owner board and the TV board.
 //
 // Contract: every function takes an explicit, already-normalised view model and
 // returns an HTML string. This module never imports fixtures, never fetches and
