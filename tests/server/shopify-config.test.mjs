@@ -39,7 +39,7 @@ test('no Shopify settings at all is a safe setup-required state', () => {
   );
 });
 
-test('complete settings load; partial or malformed settings fail closed without details', () => {
+test('complete settings load; partial or malformed settings fail closed, naming the setting and never a value', () => {
   const directory = path.join(path.sep, 'var', 'lib', 'metrictv-test-grants');
   const config = loadShopifyConfig(validEnvironment(directory));
   assert.equal(config.status, 'ready');
@@ -75,13 +75,45 @@ test('complete settings load; partial or malformed settings fail closed without 
     { ...good, METRICTV_SHOPIFY_OWNER_EMAIL: 'not an email' },
   );
   for (const env of bad) {
+    const changedSetting = Object.keys(good).find((name) => env[name] !== good[name]);
+    const suppliedValues = Object.values(env)
+      .map(String)
+      .filter((value) => value !== '');
     assert.throws(
       () => loadShopifyConfig(env),
       (error) =>
         error.code === 'invalid_connection_config' &&
-        !String(error.message).includes(SYNTHETIC_CLIENT_SECRET),
+        error.message.includes(changedSetting) &&
+        !suppliedValues.some((value) => error.message.includes(value)),
+      `${changedSetting} is named, and no value is printed`,
     );
   }
+});
+
+test('a partly filled group names every setting that is still missing', () => {
+  const good = validEnvironment(path.join(path.sep, 'var', 'lib', 'metrictv-test-grants'));
+  const partial = {
+    METRICTV_SHOPIFY_CLIENT_ID: good.METRICTV_SHOPIFY_CLIENT_ID,
+    METRICTV_SHOPIFY_CLIENT_SECRET: good.METRICTV_SHOPIFY_CLIENT_SECRET,
+    METRICTV_SHOPIFY_TOKEN_DIR: '',
+  };
+  assert.throws(
+    () => loadShopifyConfig(partial),
+    (error) => {
+      const namesEverythingMissing = [
+        'METRICTV_SHOPIFY_ENCRYPTION_KEY',
+        'METRICTV_SHOPIFY_TOKEN_DIR',
+        'METRICTV_SHOPIFY_ALLOWED_STORE',
+        'METRICTV_SHOPIFY_OWNER_EMAIL',
+      ].every((name) => error.message.includes(name));
+      const namesNothingPresent =
+        !error.message.includes('METRICTV_SHOPIFY_CLIENT_ID') &&
+        !error.message.includes('METRICTV_SHOPIFY_CLIENT_SECRET');
+      return (
+        error.code === 'invalid_connection_config' && namesEverythingMissing && namesNothingPresent
+      );
+    },
+  );
 });
 
 // ---- the real process ----------------------------------------------------------------------------
@@ -137,6 +169,11 @@ test(
     });
     assert.equal(partial.code, 1, 'incomplete settings stop the server');
     assert.match(partial.output, /invalid_connection_config/);
+    assert.match(
+      partial.output,
+      /METRICTV_SHOPIFY_ENCRYPTION_KEY/,
+      'the operator is told what is missing',
+    );
     assert.equal(partial.output.includes(SYNTHETIC_CLIENT_SECRET), false);
     assert.equal(partial.output.includes('synthetic_client_id_0001'), false);
 
