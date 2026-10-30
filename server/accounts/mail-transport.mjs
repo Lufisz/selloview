@@ -3,6 +3,8 @@
 // A transport is injected into the auth layer. The only production transport is Resend over
 // HTTPS, enabled solely by operator configuration. Without it, delivery fails closed: nothing is
 // pretended, logged or returned to the browser.
+import { CodedError } from '../errors.mjs';
+
 const RESEND_ENDPOINT = 'https://api.resend.com/emails';
 const REQUEST_TIMEOUT_MS = 8000;
 const MAX_SENDER_LENGTH = 200;
@@ -10,13 +12,7 @@ const SENDER_PATTERN = /^(?:[^<>\r\n"]{1,100} )?<?[^\s<>@"]{1,64}@[^\s<>@"]{1,19
 const API_KEY_PATTERN = /^[A-Za-z0-9_-]{16,200}$/;
 
 /** Stable, secret-free failure reason for logs and the sign-in page. */
-export class DeliveryError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'DeliveryError';
-    this.code = code;
-  }
-}
+export class DeliveryError extends CodedError {}
 
 /** Transport used when the operator configured no provider. */
 export const unconfiguredTransport = Object.freeze({

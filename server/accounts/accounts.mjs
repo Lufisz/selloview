@@ -7,6 +7,7 @@ import { SCREEN_SCHEMA } from '../screens/screens.mjs';
 import { SHOPIFY_SCHEMA } from '../shopify/links.mjs';
 import { createPrivateDatabaseFile, openPrivateDatabase } from './private-database.mjs';
 import { unconfiguredTransport } from './mail-transport.mjs';
+import { CodedError } from '../errors.mjs';
 
 const MAX_EMAIL_LENGTH = 254;
 // 1: accounts + workspaces. 2: adds TV pairing challenges and display sessions.
@@ -15,13 +16,7 @@ const SCHEMA_VERSION = 3;
 const EMAIL_PATTERN = /^[^\s@<>"',;()]{1,64}@[A-Za-z0-9](?:[A-Za-z0-9.-]{0,251}[A-Za-z0-9])?$/;
 
 /** Failure with a stable code for the operator CLI. */
-export class AccountError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'AccountError';
-    this.code = code;
-  }
-}
+export class AccountError extends CodedError {}
 
 /** Better Auth lowercases emails, so the invited address is stored the same way. */
 export function normalizeInviteEmail(rawEmail) {

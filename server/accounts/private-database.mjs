@@ -10,6 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import { CodedError } from '../errors.mjs';
 
 const PRIVATE_DIRECTORY_MODE = 0o700;
 const PRIVATE_FILE_MODE = 0o600;
@@ -18,13 +19,7 @@ const BUSY_TIMEOUT_MS = 5000;
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** Failure with a stable code; messages never contain file content. */
-export class PrivateDatabaseError extends Error {
-  constructor(code, message) {
-    super(message ?? code);
-    this.name = 'PrivateDatabaseError';
-    this.code = code;
-  }
-}
+export class PrivateDatabaseError extends CodedError {}
 
 function isInside(directory, candidate) {
   return candidate === directory || candidate.startsWith(directory + path.sep);

@@ -1,5 +1,6 @@
 // Request guards shared by the app routes: exact-origin checks, bounded JSON bodies, JSON
 // responses. Duplicate or comma-joined security headers are rejected, never merged.
+import { CodedError } from '../errors.mjs';
 import { createSecurityHeaders, rawHeaderValues, singleHeaderValue } from './static-files.mjs';
 
 export const MAX_JSON_BODY_BYTES = 2048;
@@ -7,12 +8,10 @@ const JSON_CONTENT_TYPE_PATTERN = /^application\/json(?:\s*;\s*charset=utf-8)?$/
 const SAME_ORIGIN_FETCH_SITES = new Set(['same-origin']);
 
 /** Rejection with the HTTP status and stable error code to return. */
-export class RequestRejection extends Error {
+export class RequestRejection extends CodedError {
   constructor(status, code) {
     super(code);
-    this.name = 'RequestRejection';
     this.status = status;
-    this.code = code;
   }
 }
 

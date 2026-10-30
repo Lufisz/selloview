@@ -1,5 +1,6 @@
 // Read-only Shopify data collection: the fixed GraphQL queries, store validation and cursor paging.
 // A query runner (server/shopify/admin-runner.mjs) sends them; server/metrics.mjs turns the result into a snapshot.
+import { CodedError } from '../errors.mjs';
 
 export const API_VERSION = '2026-07';
 // ceiling: 10,000 orders per refresh (a larger store is reported as incomplete), upgrade: an
@@ -37,13 +38,7 @@ const STORE_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,60}[a-z0-9])?\.myshopify\.com$/;
  * @property {{ tracked: boolean }} inventoryItem
  */
 
-export class ShopifyError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'ShopifyError';
-    this.code = code;
-  }
-}
+export class ShopifyError extends CodedError {}
 
 export const QUERIES = Object.freeze({
   shop: `query DashboardShop {

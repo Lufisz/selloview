@@ -1,5 +1,6 @@
 // Pure metric calculation. "Order value" = sum of currentTotalPriceSet, nothing more.
 // Input is RawShopData from server/shopify/shop-data.mjs; output is the snapshot documented below.
+import { CodedError } from './errors.mjs';
 import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
 
 /**
@@ -28,13 +29,7 @@ import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
  * @typedef {{ order: object, at: number, cents: number }} PreparedOrder
  */
 
-export class MetricsError extends Error {
-  constructor(code) {
-    super(code);
-    this.name = 'MetricsError';
-    this.code = code;
-  }
-}
+export class MetricsError extends CodedError {}
 
 export const METRIC_DEFINITION =
   'Order value is the sum of Shopify currentTotalPriceSet (shop currency) for non-test, non-cancelled orders created in the period. It is not net sales, cash received or profit, and is not a reconciled Shopify sales report.';
