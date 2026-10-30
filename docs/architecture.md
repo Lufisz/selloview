@@ -103,6 +103,7 @@ Browser: `escapeHtml`, `hasOwn`, `money`, `percentChange`, `normaliseStore` (`sh
 | Stores held in memory (`workspace-runtimes.mjs`) | about 20 KB each plus a logo up to 1 MiB | thousands of stores are linked: evict idle ones |
 | Open pairing codes (`MAX_OPEN_CHALLENGES`, `screens.mjs`) | 200, about 40 screens pairing a minute | a large fleet starts at once: per-address caps |
 | Open store connections (`MAX_OPEN_ATTEMPTS`, `links.mjs`) | 50 | many owners connect at once: per-workspace caps |
+| The hourly purge (`housekeeping.mjs`) | one synchronous pass: about 15 ms to scan 500,000 live rows, 0.4 s to delete 500,000 expired ones | the pause shows up: delete in batches |
 | One SQLite file, one process (`private-database.mjs`) | one instance | a second instance is needed: Postgres |
 | Rate limiter counters (`rate-limiter.mjs`) | in process | a second instance is needed: a shared counter store |
 
@@ -128,5 +129,7 @@ A TV runs the page code it loaded until its own reload logic replaces it, so a g
 - It spreads that reload over a minute (`RELOAD_SPREAD_MS`).
 - It polls at the pace the server names (`pollDelayMs`, kept between 5 seconds and 5 minutes).
 - It never stops on a surprise: an error shows on screen and the page starts over after 15 seconds.
+
+What the server sends may change shape in the same release as the page that reads it. A screen compares `appVersion` before it draws, so old page code reloads instead of drawing an answer it cannot read (`tests/browser/tv-flow.test.mjs`: "newer page code reloads the page before anything is drawn from the new answer"). Keep that order in `tv.js`: version first, then draw.
 
 TVs also have old browsers. Every module a TV loads (everything in `tv/` plus the `shared/` modules it imports) must avoid `Object.hasOwn`, `replaceAll`, `.at()`, `AbortSignal.timeout` and `AbortSignal.any`, `structuredClone`, `findLast`, `toSorted` and `Object.groupBy`. Use `hasOwn` from `shared/format.js` instead of `Object.hasOwn`. `tests/browser/tv-startup.test.mjs` fails on any of them, and on a TV module that imports from `owner/` or `demo/`.

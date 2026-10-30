@@ -172,8 +172,9 @@ sudo systemctl start metrictv
 ```
 
 The server refuses to start on a database from a different schema version until you run `migrate`.
-Paired TVs notice the new version on their next poll and reload themselves at a random moment within
-the following minute, so they do not all fetch the page at once.
+Paired TVs notice the new version on their next poll and reload themselves. A screen already on this
+version or later waits a random moment within the following minute, so they do not all fetch the page
+at once; a screen still on an older page reloads at once.
 
 ## Coming from the earlier `BETA_` settings
 
