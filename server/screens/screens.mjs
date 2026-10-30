@@ -8,6 +8,7 @@
 // Credentials look like `<id>.<secret>`. Only a SHA-256 hash of the secret is stored, and it is
 // compared in constant time. Nothing here reads an owner or workspace id from a browser.
 import crypto from 'node:crypto';
+import { constantTimeEqual, sha256Hex } from '../hashing.mjs';
 
 export const CHALLENGE_LIFETIME_MS = 5 * 60 * 1000;
 export const DISPLAY_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000;
@@ -56,20 +57,14 @@ export const SCREEN_SCHEMA = `
   CREATE INDEX IF NOT EXISTS display_session_workspace ON display_session (workspace_id);
 `;
 
-function hashSecret(secret) {
-  return crypto.createHash('sha256').update(secret).digest('hex');
-}
-
 function secretMatches(secret, storedHash) {
-  const received = Buffer.from(hashSecret(secret), 'hex');
-  const expected = Buffer.from(storedHash, 'hex');
-  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+  return constantTimeEqual(sha256Hex(secret), storedHash);
 }
 
 function newCredential() {
   const id = crypto.randomBytes(ID_BYTES).toString('base64url');
   const secret = crypto.randomBytes(SECRET_BYTES).toString('base64url');
-  return { id, secret, text: `${id}.${secret}`, secretHash: hashSecret(secret) };
+  return { id, secret, text: `${id}.${secret}`, secretHash: sha256Hex(secret) };
 }
 
 function parseCredential(text) {
@@ -156,7 +151,7 @@ export function createChallenge(database) {
         .run(
           credential.id,
           credential.secretHash,
-          hashSecret(code),
+          sha256Hex(code),
           nowMs,
           nowMs + CHALLENGE_LIFETIME_MS,
         );
@@ -194,7 +189,7 @@ export function discardChallenge(database, credentialText) {
  * @returns {'ok' | 'invalid_code' | 'screen_limit'}
  */
 export function approveChallenge(database, { workspaceId, code, screenName }) {
-  const codeHash = hashSecret(code);
+  const codeHash = sha256Hex(code);
   const nowMs = Date.now();
   return inTransaction(database, () => {
     const counts = database

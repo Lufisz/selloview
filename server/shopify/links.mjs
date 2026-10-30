@@ -4,6 +4,7 @@
 // both), which is what stops a second owner from ever reading the first owner's figures.
 // Credentials are NOT here: they live in encrypted per-workspace grant files (connection-service).
 import crypto from 'node:crypto';
+import { sha256Hex } from '../hashing.mjs';
 
 export const SHOPIFY_SCHEMA = `
   CREATE TABLE IF NOT EXISTS workspace_store (
@@ -31,16 +32,6 @@ export const SHOPIFY_SCHEMA = `
 // ceiling: 50 store connections waiting for Shopify's approval for the whole server (10 per
 // minute), upgrade: per-workspace caps when many owners connect at once
 export const MAX_OPEN_ATTEMPTS = 50;
-
-export function sha256Hex(text) {
-  return crypto.createHash('sha256').update(text).digest('hex');
-}
-
-export function hashesMatch(firstHex, secondHex) {
-  const first = Buffer.from(firstHex, 'hex');
-  const second = Buffer.from(secondHex, 'hex');
-  return first.length === second.length && crypto.timingSafeEqual(first, second);
-}
 
 // ---- store links -----------------------------------------------------------------------------
 

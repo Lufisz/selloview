@@ -26,6 +26,7 @@ import {
 } from './sdk.mjs';
 import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
+import { constantTimeEqual, sha256Hex } from '../hashing.mjs';
 import { logEvent } from '../log.mjs';
 import { fetchShopLogo } from './shop-logo.mjs';
 import {
@@ -33,7 +34,6 @@ import {
   consumeAttempt,
   createAttempt,
   discardAttemptsForWorkspace,
-  hashesMatch,
   readLink,
   readLinkByShop,
   readLiveSession,
@@ -41,7 +41,6 @@ import {
   removeLink,
   restoreLink,
   setLinkState,
-  sha256Hex,
   workspaceIsOwnedBy,
 } from './links.mjs';
 
@@ -433,7 +432,7 @@ export function createShopifyService({
       // The owner's SameSite=Strict cookie is not sent on this cross-site navigation, so the
       // browser proves itself with the short-lived binding cookie instead.
       const bindingSecret = readCookie(request, bindingCookieName);
-      if (!bindingSecret || !hashesMatch(sha256Hex(bindingSecret), attempt.binding_hash)) {
+      if (!bindingSecret || !constantTimeEqual(sha256Hex(bindingSecret), attempt.binding_hash)) {
         return false;
       }
       const sdkCookieHeader = buildSdkCookieHeader(request);

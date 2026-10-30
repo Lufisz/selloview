@@ -28,6 +28,7 @@ import {
   sendJson,
 } from './http/guards.mjs';
 import { ensureWorkspace, updateWorkspaceSettings } from './accounts/workspaces.mjs';
+import { constantTimeEqual } from './hashing.mjs';
 import { logEvent } from './log.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 import { createShopifyRoutes } from './shopify/routes.mjs';
@@ -67,10 +68,7 @@ function csrfTokenFor(secret, sessionId) {
 
 function isValidCsrf(request, secret, sessionId) {
   const supplied = singleHeaderValue(request.rawHeaders, 'x-csrf-token');
-  if (supplied === null) return false;
-  const expected = Buffer.from(csrfTokenFor(secret, sessionId));
-  const received = Buffer.from(supplied);
-  return received.length === expected.length && crypto.timingSafeEqual(received, expected);
+  return supplied !== null && constantTimeEqual(supplied, csrfTokenFor(secret, sessionId));
 }
 
 function clientAddress(request, trustedIpHeader) {
