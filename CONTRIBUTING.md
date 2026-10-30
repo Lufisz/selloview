@@ -9,6 +9,8 @@ this in one read?" more than "is this clever?".
   solve. A short discussion saves a rejected pull request.
 - Read [AGENTS.md](AGENTS.md) for coding conventions and [SECURITY.md](SECURITY.md) for the trust
   boundaries. Both apply to human and AI-assisted contributions alike.
+- [docs/architecture.md](docs/architecture.md) shows how the code fits together and where a change
+  belongs; [docs/README.md](docs/README.md) indexes the rest.
 
 ## Set up
 
@@ -28,12 +30,14 @@ To run the full app locally (`npm run start:server`), follow [docs/self-hosting.
 
 - One change, explained in a sentence or two: what was wrong, what you changed, how you checked it.
 - Plain code: descriptive names, ordinary loops and branches, readable multi-line templates.
-  Reuse the existing helpers in `public/shared/ui.js`, `public/shared/board.js` and the CSS tokens at the top of
-  `public/shared/styles.css` instead of adding near-copies.
+  Reuse the existing helpers in `public/shared/ui.js`, `public/shared/board.js`, the CSS tokens at the top of
+  `public/shared/styles.css` and the board styles in `public/shared/board.css` instead of adding
+  near-copies.
 - No new dependency, framework or build step unless the issue agreed on it.
 - Tests with **synthetic data only**. Never paste real store data, screenshots of a real store or
   credentials into code, tests or issues.
-- `npm run format`, `npm run check` and `npm test` pass.
+- `npm run format`, `npm run check` and `npm test` pass, and the checklist "Before calling a change
+  done" in [AGENTS.md](AGENTS.md) holds.
 - For visual changes, a before and after screenshot at desktop and phone width, using the sample
   dashboard.
 

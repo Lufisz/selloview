@@ -6,28 +6,6 @@ your own Shopify app, your own email sender. Expect about an hour the first time
 > Status: early. The self-hosted path uses the same code as the hosted service, which is still
 > invite-only. Nothing here is a supported release yet.
 
-## Upgrading from the `BETA_` settings
-
-Settings that started with `BETA_` now start with `METRICTV_`, and the rest of each name is
-unchanged: `BETA_DB_PATH` is now `METRICTV_DB_PATH`, `BETA_SHOPIFY_TOKEN_DIR` is now
-`METRICTV_SHOPIFY_TOKEN_DIR`, and so on for all fifteen. Rename them in your environment file before
-you restart. The server and `npm run admin` refuse to start while an old name is still set, and the
-error lists each old name with its replacement (never a value).
-
-| Before | Now |
-| --- | --- |
-| `npm run start:beta` | `npm run start:server` |
-| `npm run beta:init`, `beta:migrate`, `beta:owners` | `npm run admin -- init`, `migrate`, `owners` |
-| `npm run beta:invite -- <email>`, `beta:revoke -- <email>` | `npm run admin -- invite <email>`, `revoke <email>` |
-| `ExecStart=… server/beta/beta-server.mjs` | `ExecStart=… server/main.mjs` |
-
-The owner API moved from `/api/beta/…` to `/api/…`, and nothing answers under the old prefix. A
-browser tab that was open during the upgrade shows an error until it is reloaded, and a reverse
-proxy rule that matched `/api/beta/` needs the new prefix. Paired TVs reload themselves.
-
-Your database, the encrypted Shopify credentials, the Shopify redirect URL and paired TVs are not
-otherwise affected.
-
 ## What you get
 
 - A sign-in page for you (email code, no password).
@@ -44,7 +22,7 @@ MetricTV only reads data. It requests `read_orders`, `read_all_orders`, `read_pr
 
 | Requirement | Why |
 | --- | --- |
-| A Linux server (1 vCPU, 512 MB RAM is enough) | Runs one Node.js process and a SQLite file. |
+| A Linux server (1 vCPU, 512 MB RAM is enough) | Runs one Node.js process and a SQLite file. [architecture.md](architecture.md#capacity-and-growth) says what one server carries. |
 | Node.js 22.13 or later | Uses the built-in `node:sqlite`. No other runtime. |
 | A domain name pointing at the server | Shopify and secure cookies need HTTPS. |
 | A reverse proxy with HTTPS, e.g. [Caddy](https://caddyserver.com) | MetricTV only listens on `127.0.0.1`. |
@@ -106,6 +84,9 @@ openssl rand -base64 32   # METRICTV_SHOPIFY_ENCRYPTION_KEY
 Use a new value for each; never reuse the Shopify client secret. The server refuses to start on a
 missing or malformed value and names the setting, never its value.
 
+Self-service registration (`METRICTV_SELF_REGISTRATION`) is off and not needed for one owner; it is
+described in [auth-and-pairing.md](auth-and-pairing.md#self-service-registration-optional).
+
 ## 4. Create the database and invite yourself
 
 ```sh
@@ -134,6 +115,15 @@ Then put HTTPS in front of it. With Caddy, adapt [`deploy/Caddyfile`](../deploy/
 `/etc/caddy/Caddyfile` and run `sudo systemctl reload caddy`. If you use Caddy's `X-Real-IP` line,
 also set `METRICTV_TRUSTED_IP_HEADER=x-real-ip` and restart MetricTV, so rate limits see real visitor
 addresses instead of the proxy.
+
+Check that it is up. `/healthz` answers `{"status":"ok"}`, or `503` when the database cannot be read,
+and is what an uptime monitor should poll. The server only answers the host in `METRICTV_ORIGIN`, so
+from the server itself send that host:
+
+```sh
+curl -s https://metrictv.example.com/healthz
+curl -s -H 'Host: metrictv.example.com' http://127.0.0.1:4330/healthz   # before HTTPS is set up
+```
 
 ## 6. First use
 
@@ -182,7 +172,29 @@ sudo systemctl start metrictv
 ```
 
 The server refuses to start on a database from a different schema version until you run `migrate`.
-Paired TVs reload themselves to the new version within a minute.
+Paired TVs notice the new version on their next poll and reload themselves at a random moment within
+the following minute, so they do not all fetch the page at once.
+
+## Coming from the earlier `BETA_` settings
+
+Only for an instance that ran before the settings were renamed. Settings that started with `BETA_` now
+start with `METRICTV_`, and the rest of each name is unchanged: `BETA_DB_PATH` is now
+`METRICTV_DB_PATH`, `BETA_SHOPIFY_TOKEN_DIR` is now `METRICTV_SHOPIFY_TOKEN_DIR`, and so on for all
+fifteen. Rename them in your environment file before you restart. The server and `npm run admin`
+refuse to start while an old name is still set, and the error lists each old name with its
+replacement (never a value).
+
+| Before | Now |
+| --- | --- |
+| `npm run start:beta` | `npm run start:server` |
+| `npm run beta:init`, `beta:migrate`, `beta:owners` | `npm run admin -- init`, `migrate`, `owners` |
+| `npm run beta:invite -- <email>`, `beta:revoke -- <email>` | `npm run admin -- invite <email>`, `revoke <email>` |
+| `ExecStart=… server/beta/beta-server.mjs` | `ExecStart=… server/main.mjs` |
+
+The owner API moved from `/api/beta/…` to `/api/…`, and nothing answers under the old prefix. A
+browser tab that was open during the upgrade shows an error until it is reloaded, and a reverse
+proxy rule that matched `/api/beta/` needs the new prefix. Your database, the encrypted Shopify
+credentials, the Shopify redirect URL and paired TVs are not otherwise affected.
 
 ## Removing MetricTV
 
@@ -195,6 +207,7 @@ Paired TVs reload themselves to the new version within a minute.
 | Symptom | Check |
 | --- | --- |
 | Service exits at start | `journalctl -u metrictv`. The message names the setting that is missing or malformed. |
+| Every page answers `400 bad_host` | The proxy must pass the original `Host` header, and it must equal the host in `METRICTV_ORIGIN`. |
 | "Email delivery is not set up" | Both `METRICTV_RESEND_API_KEY` and `METRICTV_MAIL_FROM` must be set. |
 | "The code email could not be sent" | The Resend key, and that `METRICTV_MAIL_FROM` uses a domain verified in Resend. |
 | Shopify shows a redirect error | The redirect URL in the app version must equal `METRICTV_ORIGIN` + `/auth/beta/shopify/callback` exactly. |
