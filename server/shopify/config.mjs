@@ -4,11 +4,10 @@
 // Some but not all, or any malformed value: startup fails (fail closed) with a code only.
 // The values never reach a browser, a log or a serialized config object.
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { ShopifyError, validateStore } from './shop-data.mjs';
 import { normalizeInviteEmail } from '../accounts/accounts.mjs';
+import { PROJECT_ROOT, isCleanAbsolutePath, isInside } from '../private-files.mjs';
 
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SETTING_NAMES = Object.freeze([
   'METRICTV_SHOPIFY_CLIENT_ID',
   'METRICTV_SHOPIFY_CLIENT_SECRET',
@@ -37,12 +36,6 @@ function parseEncryptionKey(text) {
   return key;
 }
 
-function isInside(parent, child) {
-  const relative = path.relative(parent, child);
-  const escapesParent = relative === '..' || relative.startsWith(`..${path.sep}`);
-  return relative === '' || (!escapesParent && !path.isAbsolute(relative));
-}
-
 function hideSecrets(target, secrets) {
   for (const [name, value] of Object.entries(secrets)) {
     // Non-enumerable: console.log / JSON.stringify of the config cannot print secrets.
@@ -52,14 +45,9 @@ function hideSecrets(target, secrets) {
 }
 
 function parseTokenDirectory(value, projectRoot) {
-  const isAbsoluteAndClean =
-    typeof value === 'string' &&
-    !value.includes('\0') &&
-    path.isAbsolute(value) &&
-    path.normalize(value) === value &&
-    !value.endsWith(path.sep) &&
-    value !== path.parse(value).root;
-  if (!isAbsoluteAndClean) throw invalidConfig();
+  const isUsableDirectory =
+    isCleanAbsolutePath(value) && !value.endsWith(path.sep) && value !== path.parse(value).root;
+  if (!isUsableDirectory) throw invalidConfig();
   // The project root contains public/, so this also keeps credentials out of anything served.
   if (isInside(projectRoot, value)) throw invalidConfig();
   return value;

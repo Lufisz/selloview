@@ -3,6 +3,12 @@ import fs from 'node:fs/promises';
 import { constants as fsConstants } from 'node:fs';
 import path from 'node:path';
 import { ShopifyError } from './shop-data.mjs';
+import {
+  PRIVATE_DIRECTORY_MODE,
+  PRIVATE_FILE_MODE,
+  isCleanAbsolutePath,
+  isPrivate,
+} from '../private-files.mjs';
 
 /**
  * Encrypted, restart-persistent storage for the ONE offline Shopify grant of this instance.
@@ -31,9 +37,6 @@ const MAX_ACCESS_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 const MAX_REFRESH_LIFETIME_MS = 400 * 24 * 60 * 60 * 1000;
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
-const PRIVATE_DIRECTORY_MODE = 0o700;
-const PRIVATE_FILE_MODE = 0o600;
-const GROUP_AND_OTHER_BITS = 0o077;
 const TOKEN_PATTERN = /^[\x21-\x7e]+$/;
 
 /** True only for exactly the approved read-only scope set, in any order. */
@@ -151,24 +154,12 @@ function decryptGrant(envelope, { key, clientId, store, workspaceId }) {
   }
 }
 
-function currentUserId() {
-  return typeof process.getuid === 'function' ? process.getuid() : undefined;
-}
-
-function isOwnedByUs(stats) {
-  const uid = currentUserId();
-  return uid === undefined || stats.uid === uid;
-}
-
 /**
  * Create the store for one fixed app client and store.
  * `key` must be a 32 byte Buffer. No I/O happens until a method is called.
  */
 export function createTokenStore({ filePath, key, clientId, store, workspaceId }) {
-  if (typeof filePath !== 'string' || !path.isAbsolute(filePath) || filePath.includes('\0')) {
-    throw new ShopifyError('token_store');
-  }
-  if (path.normalize(filePath) !== filePath) throw new ShopifyError('token_store');
+  if (!isCleanAbsolutePath(filePath)) throw new ShopifyError('token_store');
   if (!Buffer.isBuffer(key) || key.length !== 32) throw new ShopifyError('token_store');
   if (typeof clientId !== 'string' || typeof store !== 'string') {
     throw new ShopifyError('token_store');
@@ -199,8 +190,7 @@ export function createTokenStore({ filePath, key, clientId, store, workspaceId }
       stats = await fs.lstat(directory);
     }
     if (!stats.isDirectory() || stats.isSymbolicLink()) throw new ShopifyError('token_store');
-    if (!isOwnedByUs(stats)) throw new ShopifyError('token_store');
-    if ((stats.mode & GROUP_AND_OTHER_BITS) !== 0) throw new ShopifyError('token_store');
+    if (!isPrivate(stats)) throw new ShopifyError('token_store');
     // A symlinked ancestor would let another path alias the private directory.
     const resolved = await fs.realpath(directory);
     if (resolved !== directory) throw new ShopifyError('token_store');
@@ -221,11 +211,7 @@ export function createTokenStore({ filePath, key, clientId, store, workspaceId }
     try {
       const stats = await handle.stat();
       const isSafeFile =
-        stats.isFile() &&
-        stats.nlink === 1 &&
-        isOwnedByUs(stats) &&
-        (stats.mode & GROUP_AND_OTHER_BITS) === 0 &&
-        stats.size <= MAX_FILE_BYTES;
+        stats.isFile() && stats.nlink === 1 && isPrivate(stats) && stats.size <= MAX_FILE_BYTES;
       if (!isSafeFile) throw new ShopifyError('token_store');
       const buffer = Buffer.alloc(stats.size);
       const { bytesRead } = await handle.read(buffer, 0, stats.size, 0);

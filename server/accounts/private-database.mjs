@@ -8,32 +8,25 @@
 // needed (the SQL is confined to the accounts, screens and shopify/links modules)
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
 import { CodedError } from '../errors.mjs';
+import {
+  PRIVATE_DIRECTORY_MODE,
+  PRIVATE_FILE_MODE,
+  PROJECT_ROOT,
+  isCleanAbsolutePath,
+  isInside,
+  isPrivate,
+} from '../private-files.mjs';
 
-const PRIVATE_DIRECTORY_MODE = 0o700;
-const PRIVATE_FILE_MODE = 0o600;
-const GROUP_AND_OTHER_BITS = 0o077;
 const BUSY_TIMEOUT_MS = 5000;
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
 /** Failure with a stable code; messages never contain file content. */
 export class PrivateDatabaseError extends CodedError {}
 
-function isInside(directory, candidate) {
-  return candidate === directory || candidate.startsWith(directory + path.sep);
-}
-
 /** Validates METRICTV_DB_PATH. Throws instead of falling back to a default location. */
 export function parseDatabasePath(configured, projectRoot = PROJECT_ROOT) {
-  const isSafePath =
-    typeof configured === 'string' &&
-    configured !== '' &&
-    !configured.includes('\0') &&
-    path.isAbsolute(configured) &&
-    path.normalize(configured) === configured &&
-    configured.endsWith('.sqlite');
+  const isSafePath = isCleanAbsolutePath(configured) && configured.endsWith('.sqlite');
   if (!isSafePath) {
     throw new PrivateDatabaseError(
       'invalid_path',
@@ -49,26 +42,14 @@ export function parseDatabasePath(configured, projectRoot = PROJECT_ROOT) {
   return configured;
 }
 
-function currentUserId() {
-  return typeof process.getuid === 'function' ? process.getuid() : undefined;
-}
-
-function assertPrivate(stats, code) {
-  const uid = currentUserId();
-  if (uid !== undefined && stats.uid !== uid) throw new PrivateDatabaseError(code);
-  if ((stats.mode & GROUP_AND_OTHER_BITS) !== 0) throw new PrivateDatabaseError(code);
-}
-
 function assertPrivateDirectory(directory) {
   const stats = fs.lstatSync(directory);
-  if (!stats.isDirectory()) throw new PrivateDatabaseError('unsafe_directory');
-  assertPrivate(stats, 'unsafe_directory');
+  if (!stats.isDirectory() || !isPrivate(stats)) throw new PrivateDatabaseError('unsafe_directory');
 }
 
 function assertPrivateFile(filePath) {
   const stats = fs.lstatSync(filePath);
-  if (!stats.isFile()) throw new PrivateDatabaseError('unsafe_file');
-  assertPrivate(stats, 'unsafe_file');
+  if (!stats.isFile() || !isPrivate(stats)) throw new PrivateDatabaseError('unsafe_file');
 }
 
 function configureConnection(database) {
