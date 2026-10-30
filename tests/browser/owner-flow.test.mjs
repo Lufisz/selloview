@@ -149,6 +149,53 @@ test('signing out sends the CSRF token, stops the polling and says so', () => {
   assert.doesNotMatch(signedOut.html, /Flow Shop/);
 });
 
+test('a page that could not load offers "Try again", and trying again loads it', () => {
+  const noSession = runOwnerPage({
+    routes: {
+      '/api/session': [answer(500, { error: 'request_failed' }), ownerSession()],
+      '/api/screens': [NO_SCREENS],
+      '/api/shopify': [storeAnswer()],
+    },
+    actions: [{ type: 'click', action: 'retry' }],
+  });
+  const noStore = runOwnerPage({
+    routes: {
+      '/api/session': [ownerSession()],
+      '/api/screens': [NO_SCREENS],
+      '/api/shopify': [storeAnswer({ status: 500 }), storeAnswer()],
+    },
+    actions: [{ type: 'click', action: 'refresh-store' }],
+  });
+
+  assert.match(noSession.steps[0].html, /Could not load your session/);
+  assert.match(noSession.html, /data-action="sign-out"/);
+  assert.match(noStore.steps[0].html, /data-action="refresh-store"/);
+  assert.doesNotMatch(noStore.html, /data-action="refresh-store"/);
+  assert.match(noStore.html, /data-form="connect-shopify"/);
+});
+
+test('a button the page does not know, even one named like an object built-in, does nothing', () => {
+  const result = runOwnerPage({
+    routes: {
+      '/api/session': [ownerSession()],
+      '/api/screens': [NO_SCREENS],
+      '/api/shopify': [storeAnswer()],
+    },
+    actions: [
+      { type: 'click', action: 'definition' },
+      { type: 'click', action: 'constructor' },
+      { type: 'click', action: 'toString' },
+    ],
+  });
+  const [start, ...afterClicks] = result.steps;
+
+  assert.deepEqual(result.failures, []);
+  for (const step of afterClicks) {
+    assert.deepEqual(step.requests, []);
+    assert.equal(step.html, start.html);
+  }
+});
+
 test('the sign-up page loads the registration status and says when it is not open', () => {
   const closed = runOwnerPage({
     pathname: '/register',

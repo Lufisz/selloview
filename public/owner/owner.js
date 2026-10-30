@@ -282,6 +282,11 @@ async function handleVerifyCode(form) {
   await refreshSession();
 }
 
+function adoptWorkspaceSettings({ settings, revision }) {
+  state.session.workspace.settings = settings;
+  state.session.workspace.revision = revision;
+}
+
 async function handleSettings(form) {
   const formData = new FormData(form);
   const settings = { period: formData.get('period'), theme: formData.get('theme') };
@@ -292,13 +297,11 @@ async function handleSettings(form) {
     revision: state.session.workspace.revision,
   });
   if (result.ok) {
-    state.session.workspace.settings = result.data.settings;
-    state.session.workspace.revision = result.data.revision;
+    adoptWorkspaceSettings(result.data);
     state.settingsDraft = {};
     setMessage('Saved for this workspace.', 'info');
   } else if (result.status === 409) {
-    state.session.workspace.settings = result.data.settings;
-    state.session.workspace.revision = result.data.revision;
+    adoptWorkspaceSettings(result.data);
     state.settingsDraft = {};
     setMessage(messageForError('conflict'));
   } else {
@@ -365,8 +368,7 @@ async function handleBoardPeriod(period) {
     revision: state.session.workspace.revision,
   });
   if (result.ok || result.status === 409) {
-    state.session.workspace.settings = result.data.settings;
-    state.session.workspace.revision = result.data.revision;
+    adoptWorkspaceSettings(result.data);
     delete state.settingsDraft.period;
   } else {
     setMessage(messageForError(result.error));
@@ -493,8 +495,9 @@ app.addEventListener('input', (event) => {
 
 app.addEventListener('change', (event) => {
   // The board's own period picker saves the same workspace setting as the Appearance form.
-  if (event.target.id === 'period')
+  if (event.target.id === 'period') {
     void runExclusively(() => handleBoardPeriod(event.target.value));
+  }
 });
 
 // Clicking a <summary> toggles its <details>; remember the new state as the owner's choice.
@@ -503,49 +506,63 @@ function rememberDetailsChoice(target) {
   if (details) state.userChoices.set(details.dataset.detailsKey, !details.open);
 }
 
+async function refreshScreensAndRender() {
+  await refreshScreens();
+  render();
+}
+
+function askToRevokeScreen(id) {
+  state.confirmRevokeId = id;
+  render();
+  focusAction('cancel-revoke');
+}
+
+function cancelRevokeScreen() {
+  const revokedId = state.confirmRevokeId;
+  state.confirmRevokeId = '';
+  render();
+  focusAction('revoke-screen', revokedId);
+}
+
+function askToDisconnectShopify() {
+  state.confirmDisconnect = true;
+  render();
+  focusAction('disconnect-shopify-cancel');
+}
+
+function cancelDisconnectShopify() {
+  state.confirmDisconnect = false;
+  render();
+  focusAction('disconnect-shopify-ask');
+}
+
+function showEmailStep() {
+  state.step = 'email';
+  setMessage('', 'info');
+  render();
+}
+
+// What each button with a data-action does. Whatever talks to the server runs exclusively, so a
+// double click cannot send a request twice; asking for a confirmation only redraws the page.
+const CLICK_ACTIONS = Object.freeze({
+  'sign-out': () => runExclusively(handleSignOut),
+  retry: () => runExclusively(refreshSession),
+  'refresh-store': () => runExclusively(refreshSession),
+  'refresh-screens': () => runExclusively(refreshScreensAndRender),
+  'revoke-screen': (button) => askToRevokeScreen(button.dataset.id),
+  'cancel-revoke': cancelRevokeScreen,
+  'confirm-revoke': (button) => runExclusively(() => handleRevokeScreen(button.dataset.id)),
+  'disconnect-shopify-ask': askToDisconnectShopify,
+  'disconnect-shopify-cancel': cancelDisconnectShopify,
+  'disconnect-shopify-confirm': () => runExclusively(handleDisconnectShopify),
+  'change-email': showEmailStep,
+});
+
 app.addEventListener('click', (event) => {
   rememberDetailsChoice(event.target);
   const button = event.target.closest('[data-action]');
-  if (!button) return;
-  const action = button.dataset.action;
-  if (action === 'sign-out') void runExclusively(handleSignOut);
-  if (action === 'retry') void runExclusively(refreshSession);
-  if (action === 'refresh-screens') {
-    void runExclusively(async () => {
-      await refreshScreens();
-      render();
-    });
-  }
-  if (action === 'revoke-screen') {
-    state.confirmRevokeId = button.dataset.id;
-    render();
-    focusAction('cancel-revoke');
-  }
-  if (action === 'cancel-revoke') {
-    const revokedId = state.confirmRevokeId;
-    state.confirmRevokeId = '';
-    render();
-    focusAction('revoke-screen', revokedId);
-  }
-  if (action === 'confirm-revoke') {
-    void runExclusively(() => handleRevokeScreen(button.dataset.id));
-  }
-  if (action === 'refresh-store') void runExclusively(refreshSession);
-  if (action === 'disconnect-shopify-ask') {
-    state.confirmDisconnect = true;
-    render();
-    focusAction('disconnect-shopify-cancel');
-  }
-  if (action === 'disconnect-shopify-cancel') {
-    state.confirmDisconnect = false;
-    render();
-    focusAction('disconnect-shopify-ask');
-  }
-  if (action === 'disconnect-shopify-confirm') void runExclusively(handleDisconnectShopify);
-  if (action === 'change-email') {
-    state.step = 'email';
-    setMessage('', 'info');
-    render();
+  if (button && hasOwn(CLICK_ACTIONS, button.dataset.action)) {
+    void CLICK_ACTIONS[button.dataset.action](button);
   }
 });
 
