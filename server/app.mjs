@@ -5,7 +5,6 @@
 // separate, explicitly approved step.
 //
 // This file only routes: checks the Host, then hands the request to the module that owns the path.
-import net from 'node:net';
 import { createServer } from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,6 +13,7 @@ import { createAuthGateway } from './accounts/auth-gateway.mjs';
 import { createOwnerRoutes } from './accounts/owner-routes.mjs';
 import { createOwnerSession } from './accounts/owner-session.mjs';
 import { closedRegistration } from './accounts/registration.mjs';
+import { createClientAddress } from './http/client-address.mjs';
 import {
   RequestRejection,
   assertExpectedHost,
@@ -33,7 +33,6 @@ import {
   isReadMethod,
   parseRequestPath,
   sendPublicFile,
-  singleHeaderValue,
 } from './http/static-files.mjs';
 
 const DEFAULT_PUBLIC_DIR = path.resolve(
@@ -42,16 +41,6 @@ const DEFAULT_PUBLIC_DIR = path.resolve(
   'public',
 );
 const HEALTH_PATH = '/healthz';
-
-// ceiling: a limit counts one full address, so a client that controls a whole IPv6 range can rotate
-// addresses past it, upgrade: count IPv6 addresses by their /64 once someone does
-function clientAddress(request, trustedIpHeader) {
-  if (trustedIpHeader !== '') {
-    const forwarded = singleHeaderValue(request.rawHeaders, trustedIpHeader);
-    if (forwarded !== null && net.isIP(forwarded) !== 0) return forwarded;
-  }
-  return request.socket.remoteAddress ?? '';
-}
 
 /**
  * @param {object} dependencies
@@ -79,6 +68,7 @@ function createAppHandler({
 }) {
   const { origin, secret, trustedIpHeader = '' } = config;
   const responseHeaders = createResponseHeaders(origin);
+  const clientAddress = createClientAddress({ trustedIpHeader });
 
   function reply(response, status, body, extraHeaders) {
     return sendJson(response, responseHeaders, status, body, extraHeaders);
@@ -120,7 +110,7 @@ function createAppHandler({
     lookupSession,
     requireCsrfSession,
     csrfTokenFor,
-    clientAddress: (request) => clientAddress(request, trustedIpHeader),
+    clientAddress,
   };
 
   const serveAuthRoute = createAuthGateway({ ...routeContext, auth, mailTransport });

@@ -42,7 +42,7 @@ Code: `server/screens/screens.mjs` (storage), `screen-routes.mjs` (HTTP), `app-v
 
 Display cookies are not accepted by any owner route, and session cookies are not accepted by any TV route. On https the TV cookies are `__Host-` prefixed and `Secure`.
 
-Rate limits are in memory, so a restart clears them. They key on the socket address, or on the header named by `METRICTV_TRUSTED_IP_HEADER`:
+Rate limits are in memory, so a restart clears them. They count a visitor by the address in the header named by `METRICTV_TRUSTED_IP_HEADER` (on in `.env.example`, matching the Caddyfile that overwrites it), or by the socket address when none is trusted. An IPv6 visitor is counted by /64. The numbers:
 
 | What | Limit |
 | --- | --- |

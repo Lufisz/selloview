@@ -74,8 +74,9 @@ sudo -e /etc/metrictv/metrictv.env
 Every setting is explained in [`.env.example`](../.env.example). The first group is required. The email
 and Shopify groups are commented out: uncomment and fill in the whole group you use (all of the Shopify
 group, both email lines). Left commented, the server still starts and reports email delivery or the store
-connection as not set up. With the Caddyfile from step 5, also uncomment `METRICTV_TRUSTED_IP_HEADER` in
-the optional group, or every visitor shares one set of rate limits. Generate the two secrets with:
+connection as not set up. `METRICTV_TRUSTED_IP_HEADER` is already on: it matches the Caddyfile in step 5,
+which always overwrites that header. With another proxy, keep it only if that proxy does the same. Generate
+the two secrets with:
 
 ```sh
 openssl rand -base64 48   # METRICTV_AUTH_SECRET
@@ -110,14 +111,15 @@ journalctl -u metrictv -n 20
 ```
 
 The log should report the origin, `Email delivery: configured`, `Shopify store connection:
-configured` and, with the Caddyfile below, `Client address for rate limits: the x-real-ip header`. Node
-prints a warning that `node:sqlite` is experimental; that is expected.
+configured` and `Client address for rate limits: the x-real-ip header`. Node prints a warning that
+`node:sqlite` is experimental; that is expected.
 
 Then put HTTPS in front of it. With Caddy, adapt [`deploy/Caddyfile`](../deploy/Caddyfile), copy it to
-`/etc/caddy/Caddyfile` and run `sudo systemctl reload caddy`. That file sets `X-Real-IP`, so also set
-`METRICTV_TRUSTED_IP_HEADER=x-real-ip` (step 3) and restart MetricTV. Without it every visitor shares one
-set of rate limits, and anyone can use up the owner's sign-in allowance. With another proxy, name a
-header only if that proxy always overwrites it.
+`/etc/caddy/Caddyfile` and run `sudo systemctl reload caddy`. That file sets `X-Real-IP`, which
+`.env.example` already trusts (step 3): the two go together. Without a trusted header every visitor shares
+one set of rate limits, and anyone can use up the owner's sign-in allowance. With another proxy, trust a
+header only if that proxy always overwrites it. If the journal shows `proxy_header_not_trusted`, the proxy
+sends a header MetricTV is not reading.
 
 Check that it is up. `/healthz` answers `{"status":"ok"}`, or `503` when the database cannot be read,
 and is what an uptime monitor should poll. The server only answers the host in `METRICTV_ORIGIN`, so
@@ -217,7 +219,7 @@ credentials, the Shopify redirect URL and paired TVs are not otherwise affected.
 | Shopify shows a redirect error | The redirect URL in the app version must equal `METRICTV_ORIGIN` + `/auth/beta/shopify/callback` exactly. |
 | "...can connect only one specific store" or "Store connection is not available for this account" | The store must equal `METRICTV_SHOPIFY_ALLOWED_STORE` and you must be signed in as `METRICTV_SHOPIFY_OWNER_EMAIL`. |
 | Board says data is out of date | Shopify could not be reached or the app was uninstalled. The last good figures stay visible with a warning; nothing is replaced by zeros. |
-| Everyone gets rate-limited together | Configure `METRICTV_TRUSTED_IP_HEADER` with a proxy that overwrites that header. The start-up log says `Client address for rate limits: the connection` while it is not set. |
+| Everyone gets rate-limited together | The start-up log says `Client address for rate limits: the connection` when no header is trusted, and the journal has a `proxy_header_not_trusted` line when a proxy sends one that is not read. Set `METRICTV_TRUSTED_IP_HEADER` to a header the proxy always overwrites. |
 
 ## Limits of the self-hosted version today
 

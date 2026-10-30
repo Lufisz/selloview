@@ -281,6 +281,26 @@ test('code requests are rate limited and the limit survives a restart', http, as
   assert.equal(handle.mailTransport.messages.length, 0);
 });
 
+test('code requests from one IPv6 /64 share one allowance', http, async (t) => {
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment, { trustedIpHeader: 'x-test-client-ip' });
+  const browser = createBrowser(handle.origin);
+  const requestCodeFrom = (address) =>
+    browser.request('/api/auth/email-otp/send-verification-otp', {
+      method: 'POST',
+      body: { email: ALICE, type: 'sign-in' },
+      headers: { 'x-test-client-ip': address },
+    });
+
+  // Three code requests a minute per visitor, and three different hosts of one /64 are one visitor.
+  const statuses = [];
+  for (const host of [1, 2, 3, 4]) {
+    statuses.push((await requestCodeFrom(`2001:db8:abcd:12::${host}`)).status);
+  }
+  assert.deepEqual(statuses, [200, 200, 200, 429]);
+  assert.equal((await requestCodeFrom('2001:db8:abcd:13::1')).status, 200, 'the next /64');
+});
+
 test('delivery failures are reported honestly and never as success', http, async (t) => {
   const environment = await createAppEnvironment(t, { invites: [ALICE] });
 

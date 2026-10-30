@@ -354,6 +354,21 @@ test('challenge creation and polling are rate limited', http, async (t) => {
   assert.equal(polls, 41, 'forty polls per minute per challenge');
 });
 
+test('every address of one IPv6 /64 counts as one visitor', http, async (t) => {
+  const { handle } = await setup(t, { trustedIpHeader: TRUSTED_IP_HEADER });
+  const tv = createBrowser(handle.origin);
+
+  // Six new codes a minute per visitor: six hosts of one /64 use that allowance up together.
+  for (let host = 1; host <= 6; host += 1) {
+    const address = { [TRUSTED_IP_HEADER]: `2001:db8:abcd:12::${host}` };
+    assert.equal((await tv.createTvChallenge(address)).status, 201);
+  }
+  const sameNetwork = { [TRUSTED_IP_HEADER]: '2001:db8:abcd:12:ffff:eeee:dddd:cccc' };
+  assert.equal((await tv.createTvChallenge(sameNetwork)).status, 429, 'a seventh host of it');
+  const otherNetwork = { [TRUSTED_IP_HEADER]: '2001:db8:abcd:13::1' };
+  assert.equal((await tv.createTvChallenge(otherNetwork)).status, 201, 'the next /64 is fine');
+});
+
 test('pairing requests are limited per address, whoever sends them', http, async (t) => {
   const { handle } = await setup(t, { trustedIpHeader: TRUSTED_IP_HEADER });
   const address = { [TRUSTED_IP_HEADER]: '192.0.2.60' };

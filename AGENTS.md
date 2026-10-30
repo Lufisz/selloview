@@ -19,7 +19,7 @@ Needs Node 22.16 or later. The database is the built-in `node:sqlite`.
 | Folder | What lives there |
 | --- | --- |
 | `server/` | `main.mjs` starts the app, `app.mjs` routes requests, `config.mjs` reads the settings, `metrics.mjs` is the pure snapshot maths, `demo.mjs` serves the sample |
-| `server/http/` | host, origin and body guards, static files, which files each server may serve, the rate limiter |
+| `server/http/` | host, origin and body guards, static files, which files each server may serve, the rate limiter, who a visitor is for it (`client-address.mjs`) |
 | `server/accounts/` | owner sign-in (Better Auth), sessions, workspaces, the SQLite file |
 | `server/screens/` | TV pairing and display sessions, what a TV may see |
 | `server/shopify/` | the store connection: OAuth, encrypted grants, queries, the per-store cache |

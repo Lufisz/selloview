@@ -51,7 +51,7 @@ Shopify Admin API → shop-data.mjs → metrics.mjs → snapshot cache → owner
 | Folder | Responsibility |
 | --- | --- |
 | `server/` | `main.mjs` starts, `app.mjs` routes, `config.mjs` reads settings, `metrics.mjs` computes snapshots, `housekeeping.mjs` purges expired rows hourly, `demo.mjs` serves the sample |
-| `server/http/` | `guards.mjs` (host, origin, JSON bodies, cookies), `static-files.mjs` (safe file serving, security headers), `public-files.mjs` (which files each server may serve), `rate-limiter.mjs` |
+| `server/http/` | `guards.mjs` (host, origin, JSON bodies, cookies), `static-files.mjs` (safe file serving, security headers), `public-files.mjs` (which files each server may serve), `rate-limiter.mjs`, `client-address.mjs` (the network a visitor is counted under, and the trusted proxy header) |
 | `server/accounts/` | `auth.mjs` and `auth-gateway.mjs` (Better Auth, invite-only), `owner-session.mjs` (session and CSRF), `owner-routes.mjs`, `workspaces.mjs`, `registration.mjs`, `mail-transport.mjs`, `private-database.mjs`, `accounts.mjs` (what `npm run admin` calls) |
 | `server/screens/` | `screens.mjs` (pairing and display sessions in SQLite), `screen-routes.mjs`, `display-board.mjs` (what a TV may see), `app-version.mjs` |
 | `server/shopify/` | `config.mjs`, `connect-flow.mjs` (OAuth), `connection-service.mjs` (the facade the routes use), `workspace-runtimes.mjs` (per-store grant, cache, logo, refresh), `snapshot-cache.mjs`, `shop-data.mjs` (queries and paging), `grant-manager.mjs`, `token-store.mjs`, `sdk.mjs`, `http.mjs`, `admin-runner.mjs`, `links.mjs`, `shop-logo.mjs`, `routes.mjs` |
@@ -106,7 +106,7 @@ Browser: `escapeHtml`, `hasOwn`, `money`, `percentChange`, `normaliseStore` (`sh
 | The hourly purge (`housekeeping.mjs`) | one synchronous pass: about 15 ms to scan 500,000 live rows, 0.4 s to delete 500,000 expired ones | the pause shows up: delete in batches |
 | One SQLite file, one process (`private-database.mjs`) | one instance | a second instance is needed: Postgres |
 | Rate limiter counters (`rate-limiter.mjs`) | in process | a second instance is needed: a shared counter store |
-| What a limit counts (`clientAddress`, `app.mjs`) | one full address | a client rotates IPv6 addresses past a limit: count IPv6 by /64 |
+| What a limit counts (`networkOf`, `http/client-address.mjs`) | an IPv4 address or an IPv6 /64 | a client with a larger IPv6 block rotates past a limit: count a shorter prefix |
 
 **Order of moves when it grows.** Measure first (`/healthz`, the journal, whether stores turn stale). Then the cheap knobs: the concurrency and pace constants above, a bigger server. Then incremental sync for very large stores. A second instance is the one real step: it needs Postgres and shared limiters, and each instance would keep its own figures in memory, which doubles Shopify reads until that cache is shared. Everything before it fits in one process.
 

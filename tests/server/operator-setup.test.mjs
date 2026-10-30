@@ -163,6 +163,22 @@ test('an untouched copy of .env.example starts once the secret is set, with mail
   assert.equal(loadRegistrationConfig(env).enabled, false);
 });
 
+test('.env.example trusts the header that deploy/Caddyfile overwrites, so the two ship as a pair', async () => {
+  const env = parseSettingsFile(await fs.readFile(path.join(PROJECT_ROOT, '.env.example'), 'utf8'));
+  const caddyfile = await fs.readFile(path.join(PROJECT_ROOT, 'deploy', 'Caddyfile'), 'utf8');
+  const overwrittenHeaders = [...caddyfile.matchAll(/^\s*header_up\s+(\S+)\s/gim)].map((match) =>
+    match[1].toLowerCase(),
+  );
+  assert.ok(
+    env.METRICTV_TRUSTED_IP_HEADER,
+    'on by default: behind the proxy every visitor looks the same without it',
+  );
+  assert.ok(
+    overwrittenHeaders.includes(env.METRICTV_TRUSTED_IP_HEADER),
+    `the Caddyfile overwrites ${overwrittenHeaders.join(', ')}, not ${env.METRICTV_TRUSTED_IP_HEADER}`,
+  );
+});
+
 test('the private database is created once, private, outside the project, and never auto-created', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const databasePath = path.join(directory, 'nested', 'metrictv.sqlite');
