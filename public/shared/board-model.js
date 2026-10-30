@@ -156,6 +156,35 @@ function buildChartModel(snapshot, period, currency) {
   };
 }
 
+function buildMetrics(snapshot, selected) {
+  const { current, previous } = selected;
+  const formatCents = (cents) => money(cents, false, snapshot.shop.currency);
+  const { count, overdueCount } = snapshot.backlog;
+  return [
+    {
+      label: 'Order value',
+      value: formatCents(current.valueCents),
+      help: { action: 'definition', label: 'How order value is defined' },
+      change: { current: current.valueCents, previous: previous.valueCents },
+    },
+    {
+      label: 'Orders',
+      value: String(current.orders),
+      change: { current: current.orders, previous: previous.orders },
+    },
+    {
+      label: 'Average order',
+      value: formatCents(current.averageCents),
+      change: { current: current.averageCents, previous: previous.averageCents },
+    },
+    {
+      label: 'To fulfill',
+      value: String(count),
+      note: `${overdueCount} over 24h · Last ${snapshot.coverage.historyDays} days`,
+    },
+  ];
+}
+
 /**
  * Builds the shared board view model from a server snapshot. Order value, not net sales.
  * `compact` drops the payment column from latest orders for the TV.
@@ -169,11 +198,7 @@ export function buildStoreBoardModel({
 }) {
   const { currency, timeZone } = snapshot.shop;
   const selected = snapshot.periods[period];
-  const { current, previous } = selected;
-  const toPoint = (day) => ({ label: day.label, value: day.valueCents });
-  const formatCents = (cents) => money(cents, false, currency);
   const warning = buildSyncWarning(snapshot, unavailableMessage, now);
-  const days = snapshot.coverage.historyDays;
 
   return {
     title: snapshot.shop.name,
@@ -183,29 +208,7 @@ export function buildStoreBoardModel({
     selectedPeriod: period,
     banner: warning ? { message: warning } : null,
     changeStyle: 'signs',
-    metrics: [
-      {
-        label: 'Order value',
-        value: formatCents(current.valueCents),
-        help: { action: 'definition', label: 'How order value is defined' },
-        change: { current: current.valueCents, previous: previous.valueCents },
-      },
-      {
-        label: 'Orders',
-        value: String(current.orders),
-        change: { current: current.orders, previous: previous.orders },
-      },
-      {
-        label: 'Average order',
-        value: formatCents(current.averageCents),
-        change: { current: current.averageCents, previous: previous.averageCents },
-      },
-      {
-        label: 'To fulfill',
-        value: String(snapshot.backlog.count),
-        note: `${snapshot.backlog.overdueCount} over 24h · Last ${days} days`,
-      },
-    ],
+    metrics: buildMetrics(snapshot, selected),
     comparisonText: selected.comparisonLabel,
     chart: buildChartModel(snapshot, period, currency),
     attention: buildAttention(snapshot),

@@ -63,8 +63,9 @@ export const QUERIES = Object.freeze({
 });
 
 export function validateStore(store) {
-  if (typeof store !== 'string' || !STORE_PATTERN.test(store))
+  if (typeof store !== 'string' || !STORE_PATTERN.test(store)) {
     throw new ShopifyError('invalid_store');
+  }
   return store;
 }
 
@@ -93,8 +94,9 @@ function readConnection(data, field) {
   }
   const { hasNextPage, endCursor } = connection.pageInfo;
   if (typeof hasNextPage !== 'boolean') throw new ShopifyError('bad_shape');
-  if (endCursor !== null && endCursor !== undefined && typeof endCursor !== 'string')
+  if (endCursor !== null && endCursor !== undefined && typeof endCursor !== 'string') {
     throw new ShopifyError('bad_shape');
+  }
   for (const node of connection.nodes) {
     if (!isPlainObject(node) || typeof node.id !== 'string') throw new ShopifyError('bad_shape');
   }

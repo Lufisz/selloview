@@ -78,6 +78,37 @@ function checkbox(name, label, checked) {
   return `<label class="checkbox-row"><input type="checkbox" name="${escapeHtml(name)}" ${checked ? 'checked' : ''}><span>${escapeHtml(label)}</span></label>`;
 }
 
+const PRINCIPLES = [
+  {
+    number: '01 / CONTEXT',
+    title: 'A quiet day is still a useful day.',
+    text: "See the week, not just this minute. Keep progress in view when there isn't a new order to watch.",
+  },
+  {
+    number: '02 / FOCUS',
+    title: 'The important things, not everything.',
+    text: 'A few clear numbers. The orders that need attention. No digging through another wall of charts.',
+  },
+  {
+    number: '03 / OWNERSHIP',
+    title: 'Your screen. Your choice.',
+    text: 'Designed for the browser, built toward self-hosting. No AI subscription needed to show your numbers.',
+  },
+];
+
+function renderPrinciples() {
+  const articles = PRINCIPLES.map(
+    (principle) => `<article>
+        <span class="principle-number">${escapeHtml(principle.number)}</span>
+        <h2>${escapeHtml(principle.title)}</h2>
+        <p>${escapeHtml(principle.text)}</p>
+      </article>`,
+  );
+  return `<section class="principles" aria-label="Why ${BRAND_NAME}">
+      ${articles.join('\n      ')}
+    </section>`;
+}
+
 /** @param {{data: DemoData, settings: DemoSettings, period: string, connectionError: boolean}} state */
 export function renderHome(state) {
   const previewModel = buildDemoBoardModel({ ...state, period: 'week', connectionError: false });
@@ -105,23 +136,7 @@ export function renderHome(state) {
       </div>
       ${renderBoard(previewModel, { preview: true })}
     </section>
-    <section class="principles" aria-label="Why ${BRAND_NAME}">
-      <article>
-        <span class="principle-number">01 / CONTEXT</span>
-        <h2>A quiet day is still a useful day.</h2>
-        <p>See the week, not just this minute. Keep progress in view when there isn't a new order to watch.</p>
-      </article>
-      <article>
-        <span class="principle-number">02 / FOCUS</span>
-        <h2>The important things, not everything.</h2>
-        <p>A few clear numbers. The orders that need attention. No digging through another wall of charts.</p>
-      </article>
-      <article>
-        <span class="principle-number">03 / OWNERSHIP</span>
-        <h2>Your screen. Your choice.</h2>
-        <p>Designed for the browser, built toward self-hosting. No AI subscription needed to show your numbers.</p>
-      </article>
-    </section>
+    ${renderPrinciples()}
     <section class="project-strip">
       <div>
         <h2>A small tool. An open direction.</h2>

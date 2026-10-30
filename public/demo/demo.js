@@ -192,13 +192,14 @@ appElement.addEventListener('change', (event) => {
 
 function showAttentionDetail(button) {
   const item = ATTENTION_ITEMS.find((candidate) => candidate.id === button.dataset.id);
-  if (item)
+  if (item) {
     dialog.open({
       eyebrow: `${BRAND_NAME.toUpperCase()} PROTOTYPE`,
       title: item.title,
       paragraphs: [item.detail],
       opener: button,
     });
+  }
 }
 
 appElement.addEventListener('click', async (event) => {
@@ -241,15 +242,17 @@ appElement.addEventListener('click', async (event) => {
       route();
       break;
     case 'fullscreen':
-      if (!(await toggleFullscreen()))
+      if (!(await toggleFullscreen())) {
         showToast('Full screen is unavailable here. TV mode still works in the browser.');
+      }
       break;
   }
 });
 
 document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape' && location.hash === '#/tv' && !document.fullscreenElement)
+  if (event.key === 'Escape' && location.hash === '#/tv' && !document.fullscreenElement) {
     location.hash = '#/dashboard';
+  }
 });
 window.addEventListener('hashchange', route);
 route();

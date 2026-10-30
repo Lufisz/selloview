@@ -55,15 +55,18 @@ function codeStepHtml({ email, message, tone }) {
   </form>`;
 }
 
-/** @param {{step: 'email'|'code', email: string, message: string, tone: 'error'|'info'}} state */
-export function renderSignIn(state) {
-  if (state.registering && state.step !== 'code' && !state.registration?.available) {
-    const full = state.registration?.enabled === true;
-    return entryPageHtml(
-      `<section class="entry-card" aria-labelledby="owner-title">
+// The sign-up page while registration is closed, or full.
+function registrationClosedHtml(state) {
+  const full = state.registration?.enabled === true;
+  const heading = full ? 'The beta is at capacity.' : 'Registration is not open yet.';
+  const description = full
+    ? 'New registrations are paused while the beta is at capacity. Existing owners can still sign in.'
+    : 'We are testing MetricTV with a small group of stores before opening registration.';
+  return entryPageHtml(
+    `<section class="entry-card" aria-labelledby="owner-title">
         <p class="entry-status">Private beta</p>
-        <h1 id="owner-title">${full ? 'The beta is at capacity.' : 'Registration is not open yet.'}</h1>
-        <p class="registration-description">${full ? 'New registrations are paused while the beta is at capacity. Existing owners can still sign in.' : 'We are testing MetricTV with a small group of stores before opening registration.'}</p>
+        <h1 id="owner-title">${heading}</h1>
+        <p class="registration-description">${description}</p>
         ${messageHtml(state.message, state.tone)}
         <div class="registration-actions">
           <a class="button primary" href="/demo">Explore the sample dashboard</a>
@@ -71,7 +74,13 @@ export function renderSignIn(state) {
         </div>
         <p class="registration-note">No account has been created.</p>
       </section>`,
-    );
+  );
+}
+
+/** @param {{step: 'email'|'code', email: string, message: string, tone: 'error'|'info'}} state */
+export function renderSignIn(state) {
+  if (state.registering && state.step !== 'code' && !state.registration?.available) {
+    return registrationClosedHtml(state);
   }
   const heading = state.registering ? 'Create your workspace.' : 'Sign in to your workspace.';
   const stepHtml = state.step === 'code' ? codeStepHtml(state) : emailStepHtml(state);

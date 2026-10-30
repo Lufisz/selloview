@@ -94,6 +94,13 @@ function finiteOrZero(value) {
   return Number.isFinite(value) ? value : 0;
 }
 
+const valueOf = (point) => finiteOrZero(point.value);
+
+/** Class names joined by spaces; false and empty names are skipped. */
+function classNames(...names) {
+  return names.filter(Boolean).join(' ');
+}
+
 // The geometry comes from the caller's view model, so it is checked here: a bad number must not
 // reach the picture as "NaN".
 function hasUsableGeometry({ axisStep, plotStart, dotRadius }) {
@@ -119,6 +126,23 @@ export function renderChange({ current, previous, srText = '' }, style = 'arrows
   return `<span class="change ${isPositive ? 'positive' : 'negative'}">${symbol}${Math.abs(change).toFixed(1)}%${hiddenText}</span>`;
 }
 
+// Both series share one scale, so a shorter one stops early instead of stretching.
+function chartScale(chart) {
+  const highest = Math.max(
+    chart.axisStep,
+    ...chart.current.map(valueOf),
+    ...chart.previous.map(valueOf),
+  );
+  const ceiling = Math.ceil(highest / chart.axisStep) * chart.axisStep;
+  const plotWidth = CHART.rightEdge - chart.plotStart;
+  const pointCount = Math.max(chart.current.length, chart.previous.length);
+  return {
+    ceiling,
+    xAt: (index) => chart.plotStart + index * (plotWidth / Math.max(1, pointCount - 1)),
+    yAt: (cents) => CHART.baseline - (cents / ceiling) * CHART.plotHeight,
+  };
+}
+
 /**
  * Two-series line chart. Safe for empty, all-zero and non-finite values.
  * @param {ChartModel} chart
@@ -127,18 +151,7 @@ export function renderChart(chart, { preview = false } = {}) {
   if (!chart.current.length || !hasUsableGeometry(chart)) {
     return `<p class="live-empty">${escapeHtml(chart.emptyText)}</p>`;
   }
-  const valueOf = (point) => finiteOrZero(point.value);
-  const highest = Math.max(
-    chart.axisStep,
-    ...chart.current.map(valueOf),
-    ...chart.previous.map(valueOf),
-  );
-  const ceiling = Math.ceil(highest / chart.axisStep) * chart.axisStep;
-  const plotWidth = CHART.rightEdge - chart.plotStart;
-  // Both series share one scale, so a shorter one stops early instead of stretching.
-  const pointCount = Math.max(chart.current.length, chart.previous.length);
-  const xAt = (index) => chart.plotStart + index * (plotWidth / Math.max(1, pointCount - 1));
-  const yAt = (cents) => CHART.baseline - (cents / ceiling) * CHART.plotHeight;
+  const { ceiling, xAt, yAt } = chartScale(chart);
   const polylinePoints = (points) =>
     points.map((point, index) => `${xAt(index)},${yAt(valueOf(point))}`).join(' ');
   const currentPoints = polylinePoints(chart.current);
@@ -147,7 +160,9 @@ export function renderChart(chart, { preview = false } = {}) {
     .map((fraction) => {
       const cents = Math.round(ceiling * fraction);
       const y = yAt(cents);
-      return `<line x1="${chart.plotStart - 4}" y1="${y}" x2="${CHART.gridRight}" y2="${y}" class="gridline"/><text x="0" y="${y + 4}">${escapeHtml(formatAxisMoney(cents, chart.currency))}</text>`;
+      const labelText = escapeHtml(formatAxisMoney(cents, chart.currency));
+      return `<line x1="${chart.plotStart - 4}" y1="${y}" x2="${CHART.gridRight}" y2="${y}" class="gridline"/>
+    <text x="0" y="${y + 4}">${labelText}</text>`;
     })
     .join('\n    ');
   const dotRadius = preview ? 3 : chart.dotRadius;
@@ -195,10 +210,11 @@ export function renderMetric(metric, { preview = false, changeStyle = 'arrows' }
       ? ` <button class="help-button" aria-label="${escapeHtml(metric.help.label)}" data-action="${escapeHtml(metric.help.action)}">i</button>`
       : '';
   let bottomHtml = '';
-  if (metric.change)
+  if (metric.change) {
     bottomHtml = `<div class="metric-bottom">${renderChange(metric.change, changeStyle)}</div>`;
-  else if (metric.note !== undefined)
+  } else if (metric.note !== undefined) {
     bottomHtml = `<div class="metric-comparison">${escapeHtml(metric.note)}</div>`;
+  }
   return `<section class="metric">
     <div class="metric-label">${escapeHtml(metric.label)}${helpButton}</div>
     <div class="metric-value">${escapeHtml(metric.value)}</div>
@@ -250,7 +266,7 @@ const CELL_CLASSES = {
 
 function renderOrderCell(cell, storeDomain) {
   const kindClass = hasOwn(CELL_CLASSES, cell.kind) ? CELL_CLASSES[cell.kind] : '';
-  const classes = [cell.alignRight ? 'align-right' : '', kindClass].filter(Boolean).join(' ');
+  const classes = classNames(cell.alignRight && 'align-right', kindClass);
   const classAttribute = classes ? ` class="${classes}"` : '';
   let inner = escapeHtml(cell.text);
   const href = safeShopifyAdminUrl(cell.href, storeDomain);
@@ -317,6 +333,35 @@ function renderBanner(banner) {
   return `<div class="error-banner" role="status">${titleHtml}${escapeHtml(banner.message)}${actionHtml}</div>`;
 }
 
+function renderHeading(model, { preview, tv, tvLink, controls }) {
+  const controlsHtml = controls ? renderControls(model, { preview, tv, tvLink }) : '';
+  return `<div class="board-heading">
+      <div>${renderTitle(model)}<p>${escapeHtml(model.subtitle)}</p></div>
+      <div class="board-controls">${controlsHtml}</div>
+    </div>`;
+}
+
+function renderChartPanel(chart, preview) {
+  const [currentLegend, previousLegend] = chart.legend;
+  return `<section class="chart-panel">
+        <div class="section-heading">
+          <h2>${escapeHtml(chart.title)}</h2>
+          <div class="chart-legend">
+            <span><i></i> ${escapeHtml(currentLegend)}</span>
+            <span><i class="previous"></i> ${escapeHtml(previousLegend)}</span>
+          </div>
+        </div>
+        ${renderChart(chart, { preview })}
+      </section>`;
+}
+
+function renderFootnote(model) {
+  const statusHtml = model.status
+    ? `${statusDot(model.status.tone)} ${escapeHtml(model.status.text)}`
+    : '';
+  return `<div class="board-footnote"><span>${statusHtml}</span><span>${escapeHtml(model.scope)}</span></div>`;
+}
+
 /**
  * The whole board: heading, metrics, chart, attention, orders and footnote.
  * @param {BoardModel} model
@@ -349,41 +394,24 @@ export function renderBoard(
     (showDetails || ordersBesideChart) && model.orders
       ? renderOrdersPanel(model.orders, { storeDomain: model.storeDomain })
       : '';
-  const statusHtml = model.status
-    ? `${statusDot(model.status.tone)} ${escapeHtml(model.status.text)}`
-    : '';
-  const boardClasses = ['board', preview ? 'board-preview' : '', tv ? 'board-tv' : '']
-    .filter(Boolean)
-    .join(' ');
-  const [currentLegend, previousLegend] = model.chart.legend;
-  const mainClasses = [
+  const boardClasses = classNames('board', preview && 'board-preview', tv && 'board-tv');
+  const mainClasses = classNames(
     'board-main',
-    attentionHtml ? '' : 'no-aside',
-    ordersBesideChart ? 'with-orders' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+    !attentionHtml && 'no-aside',
+    ordersBesideChart && 'with-orders',
+  );
   return `<div class="${boardClasses}">
-    <div class="board-heading">
-      <div>${renderTitle(model)}<p>${escapeHtml(model.subtitle)}</p></div>
-      <div class="board-controls">${controls ? renderControls(model, { preview, tv, tvLink }) : ''}</div>
-    </div>
+    ${renderHeading(model, { preview, tv, tvLink, controls })}
     ${renderBanner(model.banner)}
     <div class="metrics">${metricsHtml}</div>
     <p class="metrics-context">${escapeHtml(model.comparisonText)}</p>
     <div class="${mainClasses}">
-      <section class="chart-panel">
-        <div class="section-heading">
-          <h2>${escapeHtml(model.chart.title)}</h2>
-          <div class="chart-legend"><span><i></i> ${escapeHtml(currentLegend)}</span><span><i class="previous"></i> ${escapeHtml(previousLegend)}</span></div>
-        </div>
-        ${renderChart(model.chart, { preview })}
-      </section>
+      ${renderChartPanel(model.chart, preview)}
       ${ordersBesideChart ? ordersHtml : ''}
       ${attentionHtml}
     </div>
     ${ordersBesideChart ? '' : ordersHtml}
     ${showDetails ? detailsHtml : ''}
-    <div class="board-footnote"><span>${statusHtml}</span><span>${escapeHtml(model.scope)}</span></div>
+    ${renderFootnote(model)}
   </div>`;
 }

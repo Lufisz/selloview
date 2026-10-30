@@ -33,8 +33,9 @@ export function createAdminRunner({ store, connection, fetchImpl = fetch }) {
     }
     if (!response.ok) throw new ShopifyError('api_error');
     const servedVersion = response.headers.get('x-shopify-api-version');
-    if (servedVersion && servedVersion !== API_VERSION)
+    if (servedVersion && servedVersion !== API_VERSION) {
       throw new ShopifyError('api_version_mismatch');
+    }
     let payload;
     try {
       payload = await response.json();
