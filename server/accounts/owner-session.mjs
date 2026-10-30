@@ -8,8 +8,8 @@ import { singleHeaderValue } from '../http/static-files.mjs';
 
 /**
  * CSRF token bound to one server-side session; the browser keeps it in memory only. The label is
- * part of the HMAC input, so it keeps its original value: changing it would invalidate the token of
- * every page that is open during an upgrade.
+ * part of the HMAC input and keeps its original value, so an upgrade that leaves the routes alone
+ * does not invalidate the token of a page that is open.
  */
 function deriveCsrfToken(secret, sessionId) {
   return crypto.createHmac('sha256', secret).update(`beta-csrf\n${sessionId}`).digest('base64url');

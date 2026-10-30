@@ -72,7 +72,8 @@ export function parseRequestPath(requestUrl) {
   return { pathname };
 }
 
-function isInside(directory, candidate) {
+// Strictly below: the public root itself is never a file to serve.
+function isBelow(directory, candidate) {
   return candidate.startsWith(directory + path.sep);
 }
 
@@ -92,9 +93,9 @@ export async function findPublicFile(publicDir, requestedPath, allowedPaths) {
   try {
     const realRoot = await fs.realpath(publicDir);
     const candidate = path.resolve(realRoot, ...segments);
-    if (!isInside(realRoot, candidate)) return null;
+    if (!isBelow(realRoot, candidate)) return null;
     const realFile = await fs.realpath(candidate);
-    if (!isInside(realRoot, realFile)) return null;
+    if (!isBelow(realRoot, realFile)) return null;
     const resolvedSegments = path.relative(realRoot, realFile).split(path.sep);
     if (resolvedSegments.some((segment) => segment.startsWith('.'))) return null;
     if (!allowedPaths.has(`/${resolvedSegments.join('/')}`)) return null;
