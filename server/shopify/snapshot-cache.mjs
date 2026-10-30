@@ -36,10 +36,16 @@ function toIsoOrNull(milliseconds) {
 
 /**
  * In-memory snapshot cache with singleflight refresh.
- * A failed refresh keeps the last good snapshot and records only a safe error code.
- * @param {{ fetchSnapshot: () => object | Promise<object>, now?: () => number }} options
+ * A failed refresh keeps the last good snapshot and records only a safe error code; `onFailure`
+ * receives the real error so the operator can log it.
+ * @param {{ fetchSnapshot: () => object | Promise<object>, now?: () => number,
+ *   onFailure?: (error: unknown) => void }} options
  */
-export function createSnapshotCache({ fetchSnapshot, now = () => Date.now() }) {
+export function createSnapshotCache({
+  fetchSnapshot,
+  now = () => Date.now(),
+  onFailure = () => {},
+}) {
   const cache = {
     snapshot: null,
     lastSuccessAt: null,
@@ -81,6 +87,7 @@ export function createSnapshotCache({ fetchSnapshot, now = () => Date.now() }) {
       .catch((error) => {
         if (generation !== cache.generation) return;
         cache.errorCode = toSafeErrorCode(error);
+        onFailure(error);
       })
       .finally(() => {
         if (cache.inflight === operation) cache.inflight = null;
@@ -106,9 +113,10 @@ export function createSnapshotCache({ fetchSnapshot, now = () => Date.now() }) {
  * Snapshot cache for one store, filled through `run`: a Shopify query runner such as the one
  * `createAdminRunner` returns.
  */
-export function createShopSnapshotCache({ store, run, now = () => Date.now() }) {
+export function createShopSnapshotCache({ store, run, now = () => Date.now(), onFailure }) {
   return createSnapshotCache({
     now,
+    onFailure,
     fetchSnapshot: async () => {
       // One reporting cutoff across pagination and calculation, including midnight.
       const cutoff = new Date(now());

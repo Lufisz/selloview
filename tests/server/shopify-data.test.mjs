@@ -336,6 +336,25 @@ test(
   },
 );
 
+test('a failed refresh is logged with the workspace and a safe code only', http, async (t) => {
+  const { scenario, alice } = await connectedAlice(t);
+  const logged = [];
+  t.mock.method(console, 'error', (line) => logged.push(line));
+  scenario.upstream.state.graphqlOverride = () => ({ status: 500, json: {} });
+  scenario.clock.offsetMs = THREE_MINUTES_MS;
+  await alice.browser.shopifyStatus();
+
+  await waitFor(() => logged.length > 0, { label: 'the failed refresh is logged' });
+
+  const entry = JSON.parse(logged[0]);
+  assert.equal(entry.event, 'refresh_failed');
+  assert.equal(entry.workspaceId, scenario.workspaceId(ALICE));
+  assert.equal(entry.code, 'api_error');
+  assert.deepEqual(Object.keys(entry).sort(), ['code', 'error', 'event', 'time', 'workspaceId']);
+  assert.equal(logged[0].includes(ALICE), false, 'no owner email');
+  assert.equal(logged[0].includes('synthetic-store'), false, 'no store name');
+});
+
 test(
   'disconnect removes the grant, clears every screen and cannot be undone by late work',
   http,

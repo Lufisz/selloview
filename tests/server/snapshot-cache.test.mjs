@@ -125,6 +125,35 @@ test('clearing rejects late results without clearing a newer inflight refresh', 
   assert.equal(cache.inflight, null);
 });
 
+test('onFailure hears about each failed refresh, but not about successes or discarded work', async () => {
+  const failures = [];
+  const collectors = [];
+  const cache = createSnapshotCache({
+    fetchSnapshot: () => new Promise((resolve, reject) => collectors.push({ resolve, reject })),
+    onFailure: (error) => failures.push(error),
+  });
+
+  const succeeding = cache.refresh();
+  await Promise.resolve();
+  collectors[0].resolve({ ok: true });
+  await succeeding;
+  assert.deepEqual(failures, []);
+
+  const failing = cache.refresh();
+  await Promise.resolve();
+  const realError = failingWith('api_timeout', 'the real reason');
+  collectors[1].reject(realError);
+  await failing;
+  assert.deepEqual(failures, [realError], 'the operator gets the real error, clients only a code');
+
+  const discarded = cache.refresh();
+  await Promise.resolve();
+  cache.clear();
+  collectors[2].reject(failingWith('api_error'));
+  await discarded;
+  assert.equal(failures.length, 1, 'a failure that finishes after a disconnect is not reported');
+});
+
 // A query runner that reports `reportedDomain` as the shop and has no orders or variants.
 function runnerForShop(reportedDomain) {
   return async (queryName) => {

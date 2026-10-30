@@ -345,6 +345,50 @@ test(
 );
 
 test(
+  'signing out while the grant is being written undoes the link and logs a failed cleanup',
+  http,
+  async (t) => {
+    const scenario = await createScenario(t);
+    const { browser } = await scenario.signIn(ALICE);
+    const { state } = await beginAuthorization(browser);
+
+    // Fault injection: hold the atomic write of the grant file, then fail its removal.
+    const realRename = fs.rename;
+    const realUnlink = fs.unlink;
+    let writeStarted = false;
+    let releaseWrite;
+    const writeHeld = new Promise((resolve) => {
+      releaseWrite = resolve;
+    });
+    t.mock.method(fs, 'rename', async (from, to) => {
+      writeStarted = true;
+      await writeHeld;
+      return realRename(from, to);
+    });
+    t.mock.method(fs, 'unlink', async (target) => {
+      if (String(target).endsWith('.grant.json')) throw new Error('synthetic disk failure');
+      return realUnlink(target);
+    });
+    const logged = [];
+    t.mock.method(console, 'error', (line) => logged.push(line));
+
+    const inFlight = browser.shopifyCallback(signedCallbackQuery({ state }));
+    await waitFor(() => writeStarted, { label: 'grant write start' });
+    assert.equal((await browser.signOut()).status, 200);
+    releaseWrite();
+
+    const result = await inFlight;
+    assert.equal(result.headers.get('location'), FAILED);
+    assert.equal(scenario.link(ALICE), null, 'the link is undone');
+    assert.equal(logged.length, 1, logged.join('\n'));
+    const entry = JSON.parse(logged[0]);
+    assert.equal(entry.event, 'grant_cleanup_failed');
+    assert.equal(entry.workspaceId, scenario.workspaceId(ALICE));
+    assert.equal(entry.error, 'ShopifyError');
+  },
+);
+
+test(
   "another owner never gets a connection, a board or a way in through someone else's attempt",
   http,
   async (t) => {

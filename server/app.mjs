@@ -28,6 +28,7 @@ import {
   sendJson,
 } from './http/guards.mjs';
 import { ensureWorkspace, updateWorkspaceSettings } from './accounts/workspaces.mjs';
+import { logEvent } from './log.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 import { createShopifyRoutes } from './shopify/routes.mjs';
 import { APP_PUBLIC_FILES } from './http/public-files.mjs';
@@ -350,7 +351,7 @@ export function createAppHandler({
       if (response.headersSent) return response.destroy();
       if (error instanceof RequestRejection)
         return reply(response, error.status, { error: error.code });
-      console.error(`request failed: ${error?.name ?? 'Error'}`);
+      logEvent('request_failed', { error: error?.name ?? 'Error' });
       return reply(response, 500, { error: 'server_error' });
     }
   };

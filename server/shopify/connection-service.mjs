@@ -11,7 +11,7 @@ import crypto from 'node:crypto';
 import path from 'node:path';
 import { createAdminRunner } from './admin-runner.mjs';
 import { createShopifyFetch } from './http.mjs';
-import { createShopSnapshotCache, REFRESH_MS } from './snapshot-cache.mjs';
+import { createShopSnapshotCache, REFRESH_MS, toSafeErrorCode } from './snapshot-cache.mjs';
 import { createTokenStore } from './token-store.mjs';
 import { createGrantManager } from './grant-manager.mjs';
 import {
@@ -26,6 +26,7 @@ import {
 } from './sdk.mjs';
 import { SIGNED_COOKIE_VALUE_PATTERN, readCookie } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
+import { logEvent } from '../log.mjs';
 import { fetchShopLogo } from './shop-logo.mjs';
 import {
   claimStore,
@@ -150,12 +151,21 @@ export function createShopifyService({
       store: config.store,
       clientId: config.clientId,
       now,
+      // Dropped first, so a refresh that fails because its credentials just vanished is ignored.
+      onDiscard: () => runtime.cache.clear(),
       onChange: (event) => handleGrantChange(runtime, event),
     });
     runtime.cache = createShopSnapshotCache({
       store: config.store,
       run: createAdminRunner({ store: config.store, connection: runtime.manager, fetchImpl }),
       now,
+      onFailure: (error) => {
+        logEvent('refresh_failed', {
+          workspaceId,
+          code: toSafeErrorCode(error),
+          error: error?.name ?? 'Error',
+        });
+      },
     });
     runtimes.set(workspaceId, runtime);
     return runtime;
@@ -255,7 +265,14 @@ export function createShopifyService({
     if (!ownerStillAllowed(attempt)) {
       // Signed out while the grant was being written: undo it completely.
       removeLink(database, attempt.workspace_id);
-      await runtime.manager.disconnect().catch(() => {});
+      // A grant file that could not be removed stays encrypted and unused until the next connect
+      // replaces it, but the operator should know about it.
+      await runtime.manager.disconnect().catch((error) => {
+        logEvent('grant_cleanup_failed', {
+          workspaceId: attempt.workspace_id,
+          error: error?.name ?? 'Error',
+        });
+      });
       runtime.cache.clear();
       return false;
     }

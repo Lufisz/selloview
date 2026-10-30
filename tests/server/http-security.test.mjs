@@ -250,6 +250,27 @@ test('requests for another Host header are refused', http, async (t) => {
   assert.equal(result.status, 400);
 });
 
+test('an unexpected failure answers 500 and logs only the error name', http, async (t) => {
+  const environment = await createAppEnvironment(t, { invites: [ALICE] });
+  const handle = await startAppServer(t, environment);
+  const { browser } = await signInOwner(handle, ALICE);
+  const logged = [];
+  t.mock.method(console, 'error', (line) => logged.push(line));
+  t.mock.method(handle.shopify, 'inspect', async () => {
+    throw new TypeError('synthetic failure carrying a SECRET detail');
+  });
+
+  const response = await browser.loadSession();
+
+  assert.equal(response.status, 500);
+  assert.deepEqual(response.json, { error: 'server_error' });
+  assert.equal(logged.length, 1);
+  const entry = JSON.parse(logged[0]);
+  assert.equal(entry.event, 'request_failed');
+  assert.equal(entry.error, 'TypeError');
+  assert.equal(logged[0].includes('SECRET'), false);
+});
+
 test(
   'sessions and workspaces survive a restart; a second invite creates nothing new',
   http,
