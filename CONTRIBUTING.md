@@ -22,7 +22,7 @@ npm test           # all tests
 ```
 
 To run the full app locally, follow [docs/self-hosting.md](docs/self-hosting.md) with
-`BETA_ORIGIN=http://127.0.0.1:4330` and a database path outside the project.
+`METRICTV_ORIGIN=http://127.0.0.1:4330` and a database path outside the project.
 
 ## What a good pull request looks like
 

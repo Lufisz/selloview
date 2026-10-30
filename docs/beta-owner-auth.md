@@ -15,7 +15,7 @@ exposing it needs a separately approved tunnel or proxy, a domain and an email p
 - SQLite is Node's built-in `node:sqlite` (`DatabaseSync`, Node 22.5+) in one private file.
 - Invite only: the runtime cannot create users (`databaseHooks.user.create.before` refuses) and the
   email-OTP plugin runs with `disableSignUp`. Accounts exist only because an operator ran
-  `beta:invite` for that exact email. Unknown emails get the same response but no code is sent.
+  `npm run admin -- invite` for that exact email. Unknown emails get the same response but no code is sent.
 - One owner, one workspace (UNIQUE owner column), created at invite time and stable across restarts.
   The workspace is always derived from the server-side session, never from the request.
 - Per-workspace appearance settings (period, theme, revision) live in the same database, behind the
@@ -24,11 +24,11 @@ exposing it needs a separately approved tunnel or proxy, a domain and an email p
   (sign-up, password, social/linking, email change, session listing, `/get-session`) return 404, both in
   the HTTP layer and inside the library (`disabledPaths` plus a `hooks.before` allowlist).
 - Cookies: `HttpOnly`, `SameSite=Strict`, 7-day expiry, `Secure` and `__Secure-` prefix whenever the
-  configured origin is https. Sign-out and `beta:revoke` delete the session rows.
+  configured origin is https. Sign-out and `npm run admin -- revoke` delete the session rows.
 
 ## TV pairing and display sessions
 
-Schema version 3 (`PRAGMA user_version`; run `npm run beta:migrate` on an older database, the
+Schema version 3 (`PRAGMA user_version`; run `npm run admin -- migrate` on an older database, the
 server refuses to start on any other version). Code: `server/screens/screens.mjs` (storage),
 `screen-routes.mjs` (HTTP), `rate-limiter.mjs`; pages `public/tv/tv.html`, `tv.js`.
 
@@ -53,7 +53,7 @@ On https origins the cookies are `__Host-` prefixed and `Secure`. Rate limits ar
 restart clears them): 6 new codes/min per address, 240 TV requests/min per address, 40 pairing polls
 and 30 display polls/min per credential, 10 approvals/min and 5 failed codes per 5 minutes per owner
 (the owner is then locked out of approving until the window ends, even with a correct code). The
-address is the socket address unless `BETA_TRUSTED_IP_HEADER` is set. Tests: `tests/server/screens.test.mjs`.
+address is the socket address unless `METRICTV_TRUSTED_IP_HEADER` is set. Tests: `tests/server/screens.test.mjs`.
 Real TV browsers were not tested, and no browser rendering of `/tv` or Screens was exercised.
 
 ## Setup (all local; nothing is sent or exposed)
@@ -61,23 +61,23 @@ Real TV browsers were not tested, and no browser rendering of `/tv` or Screens w
 Choose a private directory outside the project, for example `~/.local/share/metrictv-beta/`.
 Environment variables (put them in your service manager or a private env file; never in the repo):
 
-| Variable                                | Meaning                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------------------ |
-| `BETA_DB_PATH`                          | Absolute path ending in `.sqlite`, outside the project. Never created by the server. |
-| `BETA_AUTH_SECRET`                      | Random secret, at least 32 characters (`openssl rand -base64 48`).                   |
-| `BETA_ORIGIN`                           | Exact public origin: `https://host` (or `http://127.0.0.1:PORT` for local trials).   |
-| `BETA_PORT`                             | Loopback port, default 4330. The listener is always `127.0.0.1`.                     |
-| `BETA_RESEND_API_KEY`, `BETA_MAIL_FROM` | Both or neither. Without them code delivery fails closed.                            |
-| `BETA_TRUSTED_IP_HEADER`                | Optional, e.g. `cf-connecting-ip`, only if a trusted proxy always overwrites it.     |
-| `BETA_SHOPIFY_*`                        | Optional, all six or none: see "Shopify store connection".                           |
+| Variable                                        | Meaning                                                                              |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `METRICTV_DB_PATH`                              | Absolute path ending in `.sqlite`, outside the project. Never created by the server. |
+| `METRICTV_AUTH_SECRET`                          | Random secret, at least 32 characters (`openssl rand -base64 48`).                   |
+| `METRICTV_ORIGIN`                               | Exact public origin: `https://host` (or `http://127.0.0.1:PORT` for local trials).   |
+| `METRICTV_PORT`                                 | Loopback port, default 4330. The listener is always `127.0.0.1`.                     |
+| `METRICTV_RESEND_API_KEY`, `METRICTV_MAIL_FROM` | Both or neither. Without them code delivery fails closed.                            |
+| `METRICTV_TRUSTED_IP_HEADER`                    | Optional, e.g. `cf-connecting-ip`, only if a trusted proxy always overwrites it.     |
+| `METRICTV_SHOPIFY_*`                            | Optional, all six or none: see "Shopify store connection".                           |
 
 ```
-npm run beta:init                         # creates the 0700 directory and 0600 database; refuses if it exists
-npm run beta:invite -- owner@example.com  # registers the exact email; sends nothing
-npm run beta:owners                       # emails and workspace ids
-npm run beta:revoke -- owner@example.com  # signs that owner out everywhere
-npm run beta:migrate                      # after upgrading the package
-npm run start:beta                        # http://127.0.0.1:$BETA_PORT, page at /
+npm run admin -- init                      # creates the 0700 directory and 0600 database; refuses if it exists
+npm run admin -- invite owner@example.com  # registers the exact email; sends nothing
+npm run admin -- owners                    # emails and workspace ids
+npm run admin -- revoke owner@example.com  # signs that owner out everywhere
+npm run admin -- migrate                   # after upgrading the package
+npm run start:server                       # http://127.0.0.1:$METRICTV_PORT, owner page at /app
 ```
 
 There is no automatic bootstrap: starting the server on a missing database fails.
@@ -93,7 +93,7 @@ synthetic and lives only under `tests/`.
 
 ## Known limits
 
-- Rate limiting is keyed on the socket address unless `BETA_TRUSTED_IP_HEADER` is set. Behind a
+- Rate limiting is keyed on the socket address unless `METRICTV_TRUSTED_IP_HEADER` is set. Behind a
   tunnel on the same host every client then shares one bucket per path, so one abuser can lock others
   out of sign-in (fail-closed, not a bypass). Configure the header when a trusted proxy exists.
 - A code request for an uninvited email returns the same success body as an invited one; delivery
@@ -101,7 +101,7 @@ synthetic and lives only under `tests/`.
 - The session cookie has a fixed 7-day life from sign-in; database expiry slides but the cookie does not.
 - `node:sqlite` is marked experimental by Node and prints a warning at start.
 - Browser behaviour of `beta.html` was not exercised in a real browser in the build sandbox.
-- Better Auth's schema is created by its own migration (`getMigrations`); upgrade with `beta:migrate`.
+- Better Auth's schema is created by its own migration (`getMigrations`); upgrade with `npm run admin -- migrate`.
 
 ## Shopify store connection (pilot)
 
@@ -116,15 +116,15 @@ collector are in `shop-data.mjs`, the metric code in `server/metrics.mjs`.
 
 | Variable                                               | Meaning                                                                                                                                  |
 | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `BETA_SHOPIFY_CLIENT_ID`, `BETA_SHOPIFY_CLIENT_SECRET` | The Shopify app's credentials, server-only.                                                                                              |
-| `BETA_SHOPIFY_ENCRYPTION_KEY`                          | Canonical base64 of 32 random bytes. A new key for the beta; never reuse the app secret.                                                 |
-| `BETA_SHOPIFY_TOKEN_DIR`                               | Absolute directory outside the project for per-workspace encrypted grant files (`<workspace-id>.grant.json`, mode 0600, directory 0700). |
-| `BETA_SHOPIFY_ALLOWED_STORE`                           | The one exact `*.myshopify.com` host that may be connected.                                                                              |
-| `BETA_SHOPIFY_OWNER_EMAIL`                             | The one owner address that may connect it.                                                                                               |
+| `METRICTV_SHOPIFY_CLIENT_ID`, `METRICTV_SHOPIFY_CLIENT_SECRET` | The Shopify app's credentials, server-only.                                                                                              |
+| `METRICTV_SHOPIFY_ENCRYPTION_KEY`                          | Canonical base64 of 32 random bytes. A new key for the beta; never reuse the app secret.                                                 |
+| `METRICTV_SHOPIFY_TOKEN_DIR`                               | Absolute directory outside the project for per-workspace encrypted grant files (`<workspace-id>.grant.json`, mode 0600, directory 0700). |
+| `METRICTV_SHOPIFY_ALLOWED_STORE`                           | The one exact `*.myshopify.com` host that may be connected.                                                                              |
+| `METRICTV_SHOPIFY_OWNER_EMAIL`                             | The one owner address that may connect it.                                                                                               |
 
 None set: the owner page and TVs say "setup required" and nothing contacts Shopify. Some but not
 all, or any malformed value: the server refuses to start (error code only, no values). The Shopify
-app must allow the redirect URL `BETA_ORIGIN` + `/auth/beta/shopify/callback`, and no other scopes
+app must allow the redirect URL `METRICTV_ORIGIN` + `/auth/beta/shopify/callback`, and no other scopes
 than `read_all_orders,read_orders,read_products,read_inventory` (any other scope set in a token
 response is refused).
 
@@ -143,7 +143,7 @@ response is refused).
   workspace, user, session id, shop, 5 minute expiry; deleted when read, so a replay finds nothing),
   (3) a random binding cookie (HttpOnly, SameSite=Lax, Path = the callback only, `__Secure-` on https)
   whose hash must match, and (4) the initiating Better Auth session still existing and unexpired, owned by
-  the pilot owner who owns that workspace. Sign-out, `beta:revoke` or expiry while pending, including
+  the pilot owner who owns that workspace. Sign-out, `npm run admin -- revoke` or expiry while pending, including
   during the code exchange, cancels the finish. A repeated start replaces the earlier attempt.
 - The SDK's state cookies are renamed on the wire (`metrictv_beta_oauth_state[.sig]`, callback-path
   scoped) so they cannot collide with the SDK's default `shopify_app_state` cookies on the same host
@@ -164,7 +164,7 @@ response is refused).
 ### Upgrading an existing beta database (schema 2 to 3)
 
 Stop the service, copy the database (`beta.sqlite` plus `-wal`/`-shm`), load the service environment
-and run `npm run beta:migrate`; it adds `workspace_store` and `shopify_oauth_attempt` and keeps
+and run `npm run admin -- migrate`; it adds `workspace_store` and `shopify_oauth_attempt` and keeps
 accounts, sessions, screens and settings. A version 2 database is refused at startup until migrated.
 
 ### Verified, and not

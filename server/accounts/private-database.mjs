@@ -2,7 +2,7 @@
 //
 // The path is explicit operator configuration. Serving never creates the file, so a typo or a
 // wiped disk cannot silently start a fresh, empty (and therefore takeover-able) account store.
-// Creation is a separate operator command (`npm run beta:init`).
+// Creation is a separate operator command (`npm run admin -- init`).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,7 +27,7 @@ function isInside(directory, candidate) {
   return candidate === directory || candidate.startsWith(directory + path.sep);
 }
 
-/** Validates BETA_DB_PATH. Throws instead of falling back to a default location. */
+/** Validates METRICTV_DB_PATH. Throws instead of falling back to a default location. */
 export function parseDatabasePath(configured, projectRoot = PROJECT_ROOT) {
   const isSafePath =
     typeof configured === 'string' &&
@@ -39,11 +39,14 @@ export function parseDatabasePath(configured, projectRoot = PROJECT_ROOT) {
   if (!isSafePath) {
     throw new PrivateDatabaseError(
       'invalid_path',
-      'BETA_DB_PATH must be an absolute normalized path ending in .sqlite',
+      'METRICTV_DB_PATH must be an absolute normalized path ending in .sqlite',
     );
   }
   if (isInside(projectRoot, configured)) {
-    throw new PrivateDatabaseError('inside_project', 'BETA_DB_PATH must be outside the project');
+    throw new PrivateDatabaseError(
+      'inside_project',
+      'METRICTV_DB_PATH must be outside the project',
+    );
   }
   return configured;
 }
@@ -104,7 +107,7 @@ export function openPrivateDatabase(databasePath) {
     missing = true;
   }
   if (missing) {
-    throw new PrivateDatabaseError('not_initialized', 'Run `npm run beta:init` first');
+    throw new PrivateDatabaseError('not_initialized', 'Run `npm run admin -- init` first');
   }
   return configureConnection(new DatabaseSync(databasePath));
 }

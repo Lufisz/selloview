@@ -32,9 +32,9 @@ import {
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const VALID_SECRET = 'S'.repeat(40);
 const GOOD_ENV = {
-  BETA_DB_PATH: '/var/tmp/metrictv-beta-private/beta.sqlite',
-  BETA_AUTH_SECRET: VALID_SECRET,
-  BETA_ORIGIN: 'https://beta.example.test',
+  METRICTV_DB_PATH: '/var/tmp/metrictv-beta-private/beta.sqlite',
+  METRICTV_AUTH_SECRET: VALID_SECRET,
+  METRICTV_ORIGIN: 'https://beta.example.test',
 };
 
 test('configuration rejects unsafe or missing values instead of defaulting', () => {
@@ -44,29 +44,80 @@ test('configuration rejects unsafe or missing values instead of defaulting', () 
   assert.equal(config.port, 4330);
 
   const badChanges = [
-    { BETA_DB_PATH: undefined },
-    { BETA_DB_PATH: 'relative/beta.sqlite' },
-    { BETA_DB_PATH: '/var/tmp/../tmp/beta.sqlite' },
-    { BETA_DB_PATH: '/var/tmp/beta.db' },
-    { BETA_DB_PATH: path.join(PROJECT_ROOT, 'state', 'beta.sqlite') },
-    { BETA_AUTH_SECRET: 'short' },
-    { BETA_AUTH_SECRET: undefined },
-    { BETA_ORIGIN: undefined },
-    { BETA_ORIGIN: 'http://beta.example.test' },
-    { BETA_ORIGIN: 'https://beta.example.test/' },
-    { BETA_ORIGIN: 'https://beta.example.test/path' },
-    { BETA_ORIGIN: 'https://user:pass@beta.example.test' },
-    { BETA_PORT: '0' },
-    { BETA_PORT: 'abc' },
-    { BETA_TRUSTED_IP_HEADER: 'bad header' },
+    { METRICTV_DB_PATH: undefined },
+    { METRICTV_DB_PATH: 'relative/beta.sqlite' },
+    { METRICTV_DB_PATH: '/var/tmp/../tmp/beta.sqlite' },
+    { METRICTV_DB_PATH: '/var/tmp/beta.db' },
+    { METRICTV_DB_PATH: path.join(PROJECT_ROOT, 'state', 'beta.sqlite') },
+    { METRICTV_AUTH_SECRET: 'short' },
+    { METRICTV_AUTH_SECRET: undefined },
+    { METRICTV_ORIGIN: undefined },
+    { METRICTV_ORIGIN: 'http://beta.example.test' },
+    { METRICTV_ORIGIN: 'https://beta.example.test/' },
+    { METRICTV_ORIGIN: 'https://beta.example.test/path' },
+    { METRICTV_ORIGIN: 'https://user:pass@beta.example.test' },
+    { METRICTV_PORT: '0' },
+    { METRICTV_PORT: 'abc' },
+    { METRICTV_TRUSTED_IP_HEADER: 'bad header' },
   ];
   for (const change of badChanges) {
     assert.throws(() => loadBetaConfig({ ...GOOD_ENV, ...change }), Error, JSON.stringify(change));
   }
   assert.equal(
-    loadBetaConfig({ ...GOOD_ENV, BETA_ORIGIN: 'http://127.0.0.1:4330' }).origin,
+    loadBetaConfig({ ...GOOD_ENV, METRICTV_ORIGIN: 'http://127.0.0.1:4330' }).origin,
     'http://127.0.0.1:4330',
   );
+});
+
+// The settings were called BETA_* before the project went public. A stale environment file has to
+// stop the server: a half-renamed configuration would run with the old half silently ignored.
+const RENAMED_SETTINGS = [
+  ['BETA_DB_PATH', 'METRICTV_DB_PATH'],
+  ['BETA_AUTH_SECRET', 'METRICTV_AUTH_SECRET'],
+  ['BETA_ORIGIN', 'METRICTV_ORIGIN'],
+  ['BETA_PORT', 'METRICTV_PORT'],
+  ['BETA_TRUSTED_IP_HEADER', 'METRICTV_TRUSTED_IP_HEADER'],
+  ['BETA_RESEND_API_KEY', 'METRICTV_RESEND_API_KEY'],
+  ['BETA_MAIL_FROM', 'METRICTV_MAIL_FROM'],
+  ['BETA_SELF_REGISTRATION', 'METRICTV_SELF_REGISTRATION'],
+  ['BETA_REGISTRATION_MAX_ACCOUNTS', 'METRICTV_REGISTRATION_MAX_ACCOUNTS'],
+  ['BETA_SHOPIFY_CLIENT_ID', 'METRICTV_SHOPIFY_CLIENT_ID'],
+  ['BETA_SHOPIFY_CLIENT_SECRET', 'METRICTV_SHOPIFY_CLIENT_SECRET'],
+  ['BETA_SHOPIFY_ENCRYPTION_KEY', 'METRICTV_SHOPIFY_ENCRYPTION_KEY'],
+  ['BETA_SHOPIFY_TOKEN_DIR', 'METRICTV_SHOPIFY_TOKEN_DIR'],
+  ['BETA_SHOPIFY_ALLOWED_STORE', 'METRICTV_SHOPIFY_ALLOWED_STORE'],
+  ['BETA_SHOPIFY_OWNER_EMAIL', 'METRICTV_SHOPIFY_OWNER_EMAIL'],
+];
+
+test('a leftover BETA_ setting is refused with its replacement named, and its value is never printed', () => {
+  const leftoverValue = 'leftover-value-that-must-not-be-printed';
+  for (const [oldName, newName] of RENAMED_SETTINGS) {
+    assert.throws(
+      () => loadBetaConfig({ ...GOOD_ENV, [oldName]: leftoverValue }),
+      (error) =>
+        error.message.includes(`${oldName} is now ${newName}`) &&
+        !error.message.includes(leftoverValue),
+      oldName,
+    );
+  }
+});
+
+test('a leftover setting counts even when empty, all of them are listed, and unknown names are left alone', () => {
+  assert.throws(
+    () =>
+      loadBetaConfig({
+        ...GOOD_ENV,
+        BETA_PORT: '',
+        BETA_ORIGIN: '',
+        BETA_SHOPIFY_TOKEN_DIR: '',
+      }),
+    (error) =>
+      error.message.includes('BETA_PORT is now METRICTV_PORT') &&
+      error.message.includes('BETA_ORIGIN is now METRICTV_ORIGIN') &&
+      error.message.includes('BETA_SHOPIFY_TOKEN_DIR is now METRICTV_SHOPIFY_TOKEN_DIR'),
+  );
+  // A name this project never had is not a renamed setting.
+  assert.equal(loadBetaConfig({ ...GOOD_ENV, BETA_UNRELATED: 'x' }).port, 4330);
 });
 
 test('the private database is created once, private, outside the project, and never auto-created', async (t) => {
@@ -129,20 +180,23 @@ test('invite emails are normalized and strictly validated', () => {
 
 test('mail configuration is all-or-nothing and the unconfigured transport fails closed', async () => {
   assert.equal(loadMailConfig({}), null);
-  assert.throws(() => loadMailConfig({ BETA_RESEND_API_KEY: 'k'.repeat(30) }));
-  assert.throws(() => loadMailConfig({ BETA_MAIL_FROM: 'MetricTV <login@example.test>' }));
+  assert.throws(() => loadMailConfig({ METRICTV_RESEND_API_KEY: 'k'.repeat(30) }));
+  assert.throws(() => loadMailConfig({ METRICTV_MAIL_FROM: 'MetricTV <login@example.test>' }));
   assert.throws(() =>
-    loadMailConfig({ BETA_RESEND_API_KEY: 'bad key!', BETA_MAIL_FROM: 'login@example.test' }),
+    loadMailConfig({
+      METRICTV_RESEND_API_KEY: 'bad key!',
+      METRICTV_MAIL_FROM: 'login@example.test',
+    }),
   );
   assert.throws(() =>
     loadMailConfig({
-      BETA_RESEND_API_KEY: 'k'.repeat(30),
-      BETA_MAIL_FROM: 'a@b.test\r\nBcc: x@y.test',
+      METRICTV_RESEND_API_KEY: 'k'.repeat(30),
+      METRICTV_MAIL_FROM: 'a@b.test\r\nBcc: x@y.test',
     }),
   );
   const config = loadMailConfig({
-    BETA_RESEND_API_KEY: 'k'.repeat(30),
-    BETA_MAIL_FROM: 'MetricTV <login@example.test>',
+    METRICTV_RESEND_API_KEY: 'k'.repeat(30),
+    METRICTV_MAIL_FROM: 'MetricTV <login@example.test>',
   });
   assert.equal(config.sender, 'MetricTV <login@example.test>');
 
@@ -214,9 +268,9 @@ function runCli(args, env) {
 test('operator CLI initializes once, invites exact emails, lists, revokes and prints no secrets', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const env = {
-    BETA_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
-    BETA_AUTH_SECRET: 'cli-secret-'.padEnd(48, 'x'),
-    BETA_ORIGIN: 'http://127.0.0.1:4331',
+    METRICTV_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
+    METRICTV_AUTH_SECRET: 'cli-secret-'.padEnd(48, 'x'),
+    METRICTV_ORIGIN: 'http://127.0.0.1:4331',
   };
 
   const beforeInit = await runCli(['invite', 'owner@example.test'], env);
@@ -252,7 +306,7 @@ test('operator CLI initializes once, invites exact emails, lists, revokes and pr
   assert.equal(unknown.code, 1);
 
   for (const output of [init, invite, list, revoke]) {
-    assert.equal((output.stdout + output.stderr).includes(env.BETA_AUTH_SECRET), false);
+    assert.equal((output.stdout + output.stderr).includes(env.METRICTV_AUTH_SECRET), false);
   }
 });
 
@@ -284,7 +338,7 @@ function acceptsConnection(host, port, timeoutMs = 2000) {
 const processOptions = { skip: (await curlAvailable()) ? false : 'curl is not installed' };
 
 test(
-  'a real beta server process binds loopback, fails closed without mail and logs no secrets',
+  'a real server process binds loopback, fails closed without mail and logs no secrets',
   processOptions,
   async (t) => {
     const directory = await makeTemporaryDirectory(t);
@@ -293,10 +347,10 @@ test(
     const secret = 'proc-secret-'.padEnd(48, 'y');
     const env = {
       PATH: process.env.PATH,
-      BETA_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
-      BETA_AUTH_SECRET: secret,
-      BETA_ORIGIN: `http://127.0.0.1:${port}`,
-      BETA_PORT: String(port),
+      METRICTV_DB_PATH: path.join(directory, 'private', 'beta.sqlite'),
+      METRICTV_AUTH_SECRET: secret,
+      METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
+      METRICTV_PORT: String(port),
     };
     const init = await runCli(['init'], env);
     assert.equal(init.code, 0, init.stderr);
@@ -344,26 +398,57 @@ test(
   },
 );
 
-test('server start without an initialized database fails and creates nothing', async (t) => {
-  const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'beta.sqlite');
-  const result = await new Promise((resolve) => {
+/** Runs the server entry point until it exits (it must, because the settings are wrong). */
+function runServerOnce(env) {
+  return new Promise((resolve) => {
     execFile(
       process.execPath,
       [path.join(PROJECT_ROOT, 'server', 'main.mjs')],
-      {
-        env: {
-          PATH: process.env.PATH,
-          BETA_DB_PATH: databasePath,
-          BETA_AUTH_SECRET: VALID_SECRET,
-          BETA_ORIGIN: 'http://127.0.0.1:43999',
-        },
-        timeout: 20_000,
-      },
+      { env: { PATH: process.env.PATH, ...env }, timeout: 20_000 },
       (error, stdout, stderr) => resolve({ code: error?.code ?? 0, stderr }),
     );
+  });
+}
+
+test('server start without an initialized database fails and creates nothing', async (t) => {
+  const directory = await makeTemporaryDirectory(t);
+  const databasePath = path.join(directory, 'private', 'beta.sqlite');
+  const result = await runServerOnce({
+    METRICTV_DB_PATH: databasePath,
+    METRICTV_AUTH_SECRET: VALID_SECRET,
+    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
   });
   assert.equal(result.code, 1);
   assert.match(result.stderr, /cannot start/);
   await assert.rejects(fs.stat(databasePath), { code: 'ENOENT' });
+});
+
+test('the server and the admin CLI refuse a leftover BETA_ setting before touching anything', async (t) => {
+  const directory = await makeTemporaryDirectory(t);
+  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
+  const env = {
+    METRICTV_DB_PATH: databasePath,
+    METRICTV_AUTH_SECRET: VALID_SECRET,
+    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
+    BETA_PORT: '43999',
+  };
+  const server = await runServerOnce(env);
+  const admin = await runCli(['init'], env);
+  for (const result of [server, admin]) {
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /BETA_PORT is now METRICTV_PORT/);
+    assert.equal(result.stderr.includes(VALID_SECRET), false);
+  }
+  await assert.rejects(fs.stat(databasePath), { code: 'ENOENT' }, 'nothing was created');
+});
+
+test('the admin CLI names the npm command to run when it gets an unknown command', async (t) => {
+  const directory = await makeTemporaryDirectory(t);
+  const result = await runCli(['frobnicate'], {
+    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
+    METRICTV_AUTH_SECRET: VALID_SECRET,
+    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
+  });
+  assert.equal(result.code, 2);
+  assert.match(result.stderr, /npm run admin -- init \| migrate \| invite <email>/);
 });

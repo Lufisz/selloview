@@ -17,8 +17,8 @@ Do not enable before the public-release gates in `hosted-release-plan.md` are me
 Configuration (operator controlled):
 
 ```
-BETA_SELF_REGISTRATION=enabled
-BETA_REGISTRATION_MAX_ACCOUNTS=10
+METRICTV_SELF_REGISTRATION=enabled
+METRICTV_REGISTRATION_MAX_ACCOUNTS=10
 ```
 
 Leaving the first variable unset preserves invite-only behavior. Invalid settings fail at startup. The cap counts all existing user accounts, including invited ones, not only new registrations. Existing owners can still sign in at capacity.

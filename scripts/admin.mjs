@@ -1,12 +1,12 @@
-// Operator commands for the invite-only beta. Local only; sends no email and opens no port.
+// Operator commands for a MetricTV server. Local only; sends no email and opens no port.
 //
-//   npm run beta:init                       create the private database (fails if it exists)
-//   npm run beta:migrate                    bring an existing database to the current schema
-//   npm run beta:invite -- owner@example.com  register one exact email as an owner
-//   npm run beta:revoke -- owner@example.com  sign that owner out everywhere
-//   npm run beta:owners                     list invited owners (emails and workspace ids)
+//   npm run admin -- init                      create the private database (fails if it exists)
+//   npm run admin -- migrate                   bring an existing database to the current schema
+//   npm run admin -- invite owner@example.com  register one exact email as an owner
+//   npm run admin -- revoke owner@example.com  sign that owner out everywhere
+//   npm run admin -- owners                    list invited owners (emails and workspace ids)
 //
-// Configuration comes from the environment: BETA_DB_PATH, BETA_AUTH_SECRET, BETA_ORIGIN.
+// Configuration comes from the environment: METRICTV_DB_PATH, METRICTV_AUTH_SECRET, METRICTV_ORIGIN.
 import { loadBetaConfig } from '../server/config.mjs';
 import {
   initializeDatabase,
@@ -17,7 +17,7 @@ import {
   revokeOwnerSessions,
 } from '../server/accounts/accounts.mjs';
 
-const USAGE = 'Usage: beta-admin.mjs init | migrate | invite <email> | revoke <email> | owners';
+const USAGE = 'Usage: npm run admin -- init | migrate | invite <email> | revoke <email> | owners';
 
 async function runWithDatabase(config, action) {
   const database = openInitializedDatabase(config.databasePath);
@@ -35,7 +35,7 @@ async function main(argv) {
 
   if (command === 'init') {
     await initializeDatabase({ databasePath: config.databasePath, ...credentials });
-    console.log('Private beta database created. Nothing has been invited yet.');
+    console.log('Private database created. Nothing has been invited yet.');
   } else if (command === 'migrate') {
     await migrateDatabase({ databasePath: config.databasePath, ...credentials });
     console.log('Database schema is current.');
@@ -65,6 +65,6 @@ async function main(argv) {
 try {
   await main(process.argv.slice(2));
 } catch (error) {
-  console.error(`beta-admin failed: ${error.code ?? error.message}`);
+  console.error(`admin failed: ${error.code ?? error.message}`);
   process.exitCode = 1;
 }

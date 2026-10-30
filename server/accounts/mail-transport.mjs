@@ -27,16 +27,16 @@ export const unconfiguredTransport = Object.freeze({
 });
 
 /**
- * Reads BETA_RESEND_API_KEY and BETA_MAIL_FROM. Both or neither: a half-configured provider is a
+ * Reads METRICTV_RESEND_API_KEY and METRICTV_MAIL_FROM. Both or neither: a half-configured provider is a
  * startup error rather than a quiet fallback.
  */
 export function loadMailConfig(env = process.env) {
-  const apiKey = env.BETA_RESEND_API_KEY ?? '';
-  const sender = env.BETA_MAIL_FROM ?? '';
+  const apiKey = env.METRICTV_RESEND_API_KEY ?? '';
+  const sender = env.METRICTV_MAIL_FROM ?? '';
   if (apiKey === '' && sender === '') return null;
-  if (!API_KEY_PATTERN.test(apiKey)) throw new Error('BETA_RESEND_API_KEY is not a valid key');
+  if (!API_KEY_PATTERN.test(apiKey)) throw new Error('METRICTV_RESEND_API_KEY is not a valid key');
   if (sender.length > MAX_SENDER_LENGTH || !SENDER_PATTERN.test(sender)) {
-    throw new Error('BETA_MAIL_FROM must be an address or "Name <address>"');
+    throw new Error('METRICTV_MAIL_FROM must be an address or "Name <address>"');
   }
   return { apiKey, sender };
 }

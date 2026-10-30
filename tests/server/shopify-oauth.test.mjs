@@ -310,7 +310,7 @@ test(
     await assertNothingStored(scenario, ALICE);
     assert.equal(scenario.upstream.state.tokenCalls.length, 0, 'the code was never exchanged');
 
-    // Operator revocation (beta:revoke) removes every session, which has the same effect.
+    // Operator revocation (npm run admin -- revoke) removes every session, which has the same effect.
     const second = await scenario.signIn(ALICE);
     const pending = await beginAuthorization(second.browser);
     scenario.handle.database.prepare('DELETE FROM session').run();
