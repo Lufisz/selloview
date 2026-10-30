@@ -21,6 +21,7 @@ export function publicPathFor(pages, pathname) {
 export const DEMO_PUBLIC_FILES = new Set([
   '/demo/demo.html',
   '/demo/demo.js',
+  '/demo/demo-board.js',
   '/demo/demo-data.js',
   '/demo/demo-view.js',
   '/shared/styles.css',

@@ -8,7 +8,6 @@ import {
   DEFAULT_SETTINGS,
 } from '../../public/demo/demo-data.js';
 import {
-  buildDemoBoardModel,
   renderHome,
   renderSetup,
   renderDashboard,
@@ -22,14 +21,6 @@ const demoState = {
   period: 'week',
   connectionError: false,
 };
-
-test('demo model keeps net-sales wording and EUR sample totals', () => {
-  const model = buildDemoBoardModel(demoState);
-  assert.equal(model.metrics[0].label, 'Net sales');
-  assert.equal(model.metrics[0].value, '€4,151.00');
-  assert.equal(model.chart.axisStep, 20000);
-  assert.equal(buildDemoBoardModel({ ...demoState, period: 'today' }).metrics[0].value, '€782.00');
-});
 
 test('demo pages render readable multi-line markup with expected selectors', () => {
   const pages = [

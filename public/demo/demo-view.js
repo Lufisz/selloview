@@ -1,7 +1,8 @@
-// Demo-only views. Everything here is sample content: the entry point (app.js)
+// Demo-only views. Everything here is sample content: the entry point (demo.js)
 // passes fixtures in as arguments, so this module imports no data itself.
-import { escapeHtml, money, getPeriod, goalProgress } from '../shared/format.js';
+import { escapeHtml } from '../shared/format.js';
 import { renderBoard } from '../shared/board.js';
+import { buildDemoBoardModel } from './demo-board.js';
 import {
   BRAND_NAME,
   icon,
@@ -12,11 +13,6 @@ import {
   navLinks,
   tvShell,
 } from '../shared/ui.js';
-
-const DEMO_CURRENCY = 'EUR';
-const DEMO_TIME_ZONE = 'Europe/Stockholm';
-const DAY_LABELS = { today: '21 Oct 2026', week: '15–21 Oct 2026' };
-const COMPARISON_LABELS = { today: 'sample day', week: '7 days' };
 
 /**
  * @typedef {Object} DemoSettings
@@ -36,117 +32,6 @@ const COMPARISON_LABELS = { today: 'sample day', week: '7 days' };
  */
 
 const demoBrand = () => brandLink({ href: '#/', label: `${BRAND_NAME} home` });
-
-/** Builds the shared board view model from sample fixtures. Net sales, not order value. */
-export function buildDemoBoardModel({ data, settings, period, connectionError }) {
-  const { current, previous, currentDays, previousDays } = getPeriod(data.days, period);
-  const weeklyRevenue = getPeriod(data.days, 'week').current.revenue;
-  const comparisonName = COMPARISON_LABELS[period];
-  // "Sample day" shows the latest seven daily totals, not an invented intraday curve.
-  const chartCurrent = period === 'today' ? data.days.slice(-7) : currentDays;
-  const chartPrevious = period === 'today' ? data.days.slice(0, 7) : previousDays;
-  const toPoint = (day) => ({ label: day.label, value: day.revenue });
-  const change = (currentValue, previousValue) => ({
-    current: currentValue,
-    previous: previousValue,
-    srText: ` vs. previous ${comparisonName}`,
-  });
-
-  return {
-    title: settings.name,
-    subtitle: DAY_LABELS[period],
-    previewLabel: 'Demo · Sample data',
-    periodOptions: [
-      { value: 'week', label: 'Last 7 days' },
-      { value: 'today', label: 'Sample day' },
-    ],
-    selectedPeriod: period,
-    banner: connectionError
-      ? {
-          title: 'Sample connection interrupted.',
-          message: 'Showing the last sample snapshot, not current data.',
-          action: { label: 'Restore sample', name: 'restore' },
-        }
-      : null,
-    changeStyle: 'arrows',
-    metrics: [
-      {
-        label: 'Net sales',
-        value: money(current.revenue, false, DEMO_CURRENCY),
-        help: { action: 'sales-definition', label: 'How net sales are defined' },
-        change: change(current.revenue, previous.revenue),
-      },
-      {
-        label: 'Orders',
-        value: String(current.orders),
-        change: change(current.orders, previous.orders),
-      },
-      {
-        label: 'Average order',
-        value: money(current.averageOrder, false, DEMO_CURRENCY),
-        change: change(current.averageOrder, previous.averageOrder),
-      },
-      {
-        kind: 'goal',
-        label: 'Weekly goal',
-        percent: goalProgress(weeklyRevenue, settings.goal),
-        target: `of ${money(settings.goal * 100, true, DEMO_CURRENCY)}`,
-      },
-    ],
-    comparisonText: `Compared with previous ${comparisonName}`,
-    chart: {
-      title: 'Sales trend',
-      ariaLabel:
-        'Sample net sales by day. Solid green: current seven-day period. Dashed grey: previous seven-day period.',
-      legend: ['This week', 'Previous week'],
-      current: chartCurrent.map(toPoint),
-      previous: chartPrevious.map(toPoint),
-      currency: DEMO_CURRENCY,
-      axisStep: 20000,
-      plotStart: 48,
-      dotRadius: 4,
-      emptyText: 'No sample days available.',
-    },
-    attention: settings.showAttention
-      ? {
-          title: 'Needs attention',
-          emptyText: 'Nothing needs attention.',
-          items: data.attention.map((item) => ({
-            title: item.title,
-            description: item.description,
-            tone: item.tone,
-            action: { type: 'button', action: 'attention', id: item.id, label: item.action },
-          })),
-        }
-      : null,
-    orders: settings.showOrders ? buildDemoOrders(data.orders) : null,
-    status: connectionError ? { tone: 'amber', text: 'Cached sample · Offline' } : null,
-    scope: `${DEMO_CURRENCY} · ${DEMO_TIME_ZONE}`,
-  };
-}
-
-function buildDemoOrders(orders) {
-  return {
-    title: 'Latest orders',
-    emptyText: 'No sample orders.',
-    columns: [
-      { label: 'Order' },
-      { label: 'Product' },
-      { label: 'Destination' },
-      { label: 'Status' },
-      { label: 'Amount', alignRight: true },
-      { label: 'Time', alignRight: true },
-    ],
-    rows: orders.map((order) => [
-      { text: order.id, kind: 'id' },
-      { text: order.product },
-      { text: order.country, kind: 'muted' },
-      { text: order.status, kind: 'status', fulfilled: order.status === 'Fulfilled' },
-      { text: money(order.amount, false, DEMO_CURRENCY), kind: 'amount', alignRight: true },
-      { text: order.time, kind: 'muted', alignRight: true },
-    ]),
-  };
-}
 
 function prototypeNotice() {
   return `<div class="prototype-notice">${statusDot('amber')} Interactive prototype <span class="notice-divider">/</span> Sample data only. No store is connected.</div>`;

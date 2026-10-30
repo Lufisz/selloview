@@ -1,3 +1,5 @@
+// Small pure helpers every page uses to show a value. No DOM and no fetching; the TV page
+// loads this module on old browsers, so no newer built-ins such as Object.hasOwn.
 /** Own-property check that also works in older TV browsers, which lack Object.hasOwn. */
 export function hasOwn(object, key) {
   return Object.prototype.hasOwnProperty.call(object, key);
@@ -47,29 +49,7 @@ export function percentChange(current, previous) {
   return previous === 0 ? null : ((current - previous) / previous) * 100;
 }
 
-export function summarise(days) {
-  const revenue = days.reduce((total, day) => total + day.revenue, 0);
-  const orders = days.reduce((total, day) => total + day.orders, 0);
-  return { revenue, orders, averageOrder: orders ? revenue / orders : 0 };
-}
-
-export function getPeriod(days, period) {
-  const count = period === 'today' ? 1 : 7;
-  const currentDays = days.slice(-count);
-  const previousDays = days.slice(-count * 2, -count);
-  return {
-    currentDays,
-    previousDays,
-    current: summarise(currentDays),
-    previous: summarise(previousDays),
-  };
-}
-
 export function normaliseStore(value) {
   const store = String(value).trim().toLowerCase();
   return /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.myshopify\.com$/.test(store) ? store : null;
-}
-
-export function goalProgress(revenueCents, goalEuros) {
-  return goalEuros > 0 ? Math.min(100, Math.max(0, (revenueCents / (goalEuros * 100)) * 100)) : 0;
 }
