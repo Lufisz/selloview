@@ -110,15 +110,9 @@ function withoutComments(source) {
 test('no module the TV loads uses a built-in that older TV browsers lack', () => {
   const modules = tvModuleClosure();
   assert.ok(modules.includes('shared/board.js') && modules.includes('shared/board-model.js'));
-  // The owner page modules are not part of the TV.
-  for (const owner of [
-    'owner/owner.js',
-    'owner/owner-view.js',
-    'owner/store-view.js',
-    'owner/shopify-client.js',
-  ]) {
-    assert.equal(modules.includes(owner), false, `${owner} must not load on the TV`);
-  }
+  // The TV is its own folder plus what the pages share; the owner page and the demo are not part of it.
+  const outsiders = modules.filter((name) => !/^(tv|shared)\//.test(name));
+  assert.deepEqual(outsiders, [], 'the TV page may load only tv/ and shared/ modules');
   const banned = [
     /Object\.hasOwn\s*\(/,
     /\.replaceAll\s*\(/,

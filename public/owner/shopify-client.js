@@ -2,7 +2,7 @@
 // Authorization is entirely server-side: the page never sees a token, a secret or a grant; the only
 // secret it holds is the short-lived CSRF token from the session endpoint, in memory.
 import { normaliseStore } from '../shared/format.js';
-import { sendRequest } from './owner-client.js';
+import { sendRequest } from '../shared/api-client.js';
 import { validateAuthorizeUrl } from './shopify-authorize-url.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 

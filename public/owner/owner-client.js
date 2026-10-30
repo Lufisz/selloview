@@ -1,5 +1,6 @@
 // Browser API for the owner page. Talks only to same-origin routes.
 // The CSRF token returned by the session endpoint stays in memory; nothing is put in storage.
+import { sendRequest } from '../shared/api-client.js';
 
 export const SESSION_URL = '/api/session';
 export const REGISTRATION_URL = '/api/registration';
@@ -13,7 +14,6 @@ export const REVOKE_SCREEN_URL = '/api/screens/revoke';
 export const PERIOD_CHOICES = Object.freeze(['today', 'week', 'month', 'days60']);
 export const THEME_CHOICES = Object.freeze(['light', 'dark']);
 
-const REQUEST_TIMEOUT_MS = 12000;
 const CODE_PATTERN = /^\d{6}$/;
 const EMAIL_PATTERN = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
 const MAX_EMAIL_LENGTH = 254;
@@ -79,41 +79,6 @@ export function messageForError(code) {
   return Object.prototype.hasOwnProperty.call(ERROR_MESSAGES, code)
     ? ERROR_MESSAGES[code]
     : 'Something went wrong. Please try again.';
-}
-
-async function readJson(response) {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-}
-
-/** @returns {Promise<{ok: boolean, status: number, data: object|null, error: string}>} */
-export async function sendRequest({ fetchImpl, url, method = 'POST', body, csrfToken }) {
-  const headers = {};
-  if (method === 'POST') headers['Content-Type'] = 'application/json';
-  if (csrfToken) headers['X-CSRF-Token'] = csrfToken;
-  // TV browsers often have AbortController but not the newer AbortSignal.timeout API.
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  let response;
-  try {
-    response = await fetchImpl(url, {
-      method,
-      headers,
-      credentials: 'same-origin',
-      body: method === 'POST' ? JSON.stringify(body ?? {}) : undefined,
-      signal: controller.signal,
-    });
-    const data = await readJson(response);
-    const error = response.ok ? '' : (data?.error ?? 'request_failed');
-    return { ok: response.ok, status: response.status, data, error };
-  } catch {
-    return { ok: false, status: 0, data: null, error: 'offline' };
-  } finally {
-    clearTimeout(timeout);
-  }
 }
 
 export function requestSignInCode(email, fetchImpl = fetch) {
