@@ -18,6 +18,8 @@ node --test --experimental-test-coverage "tests/**/*.test.mjs"            # with
 | `tests/helpers/` | shared setup for both | see below |
 | `tests/qa/` | the sample board in a real browser | an optional Python script |
 
+GitHub Actions (`.github/workflows/ci.yml`) runs `npm ci --ignore-scripts`, `npm run check` and `npm test` on Node 22.16, the lowest supported version, and on the current LTS, plus `npm audit --omit=dev` once a week.
+
 A test file is named for what it exercises, not for when it was written. Test titles are sentences that say the behaviour: `a TV that is told a slower pace polls at that pace`.
 
 ## Synthetic data only

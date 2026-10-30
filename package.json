@@ -4,7 +4,7 @@
   "private": true,
   "license": "AGPL-3.0-only",
   "type": "module",
-  "description": "A dependency-light business wallboard with a fictional demo and private read-only Shopify connections.",
+  "description": "A read-only Shopify wallboard for TVs: a dependency-light Node app with a fictional sample board.",
   "scripts": {
     "start": "node server/demo.mjs",
     "start:server": "node server/main.mjs",

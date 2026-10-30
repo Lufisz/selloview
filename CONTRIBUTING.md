@@ -37,7 +37,8 @@ To run the full app locally (`npm run start:server`), follow [docs/self-hosting.
 - Tests with **synthetic data only**. Never paste real store data, screenshots of a real store or
   credentials into code, tests or issues.
 - `npm run format`, `npm run check` and `npm test` pass, and the checklist "Before calling a change
-  done" in [AGENTS.md](AGENTS.md) holds.
+  done" in [AGENTS.md](AGENTS.md) holds. CI runs the same checks on the lowest supported Node.js and
+  the current LTS.
 - For visual changes, a before and after screenshot at desktop and phone width, using the sample
   dashboard.
 
