@@ -1,10 +1,10 @@
 // Shared UI primitives for the demo, the owner page and the TV page.
 // Pure string helpers first, then small DOM controllers. Nothing here imports
 // data, fetches anything or touches the DOM at import time.
-import { escapeHtml, normaliseStore } from './format.js';
+import { escapeHtml, hasOwn, normaliseStore } from './format.js';
 
 export const BRAND_NAME = 'MetricTV';
-export const BRAND_WORDMARK = 'Metric TV';
+const BRAND_WORDMARK = 'Metric TV';
 
 const ICON_PATHS = {
   arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
@@ -34,9 +34,7 @@ function safeClassName(value) {
  * Anything else (including prototype keys such as "constructor") falls back to the arrow.
  */
 export function icon(name, className = '') {
-  const paths = Object.prototype.hasOwnProperty.call(ICON_PATHS, name)
-    ? ICON_PATHS[name]
-    : ICON_PATHS.arrow;
+  const paths = hasOwn(ICON_PATHS, name) ? ICON_PATHS[name] : ICON_PATHS.arrow;
   const classes = `icon ${safeClassName(className)}`.trim();
   return `<svg class="${classes}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
 }
@@ -50,6 +48,15 @@ export function brandLink({ href, label }) {
 export function statusDot(tone = '') {
   const safeTone = ['amber', 'neutral'].includes(tone) ? tone : '';
   return `<span class="status-dot ${safeTone}"></span>`;
+}
+
+/** A form or panel message: announced as an alert when it is an error, quietly otherwise. */
+export function messageHtml(message, tone) {
+  if (!message) return '';
+  const isError = tone === 'error';
+  const role = isError ? 'alert' : 'status';
+  const toneClass = isError ? 'field-error' : 'field-hint';
+  return `<p class="form-message ${toneClass}" role="${role}">${escapeHtml(message)}</p>`;
 }
 
 /** The <option> elements of a <select>; `options` is a list of {value, label}. */

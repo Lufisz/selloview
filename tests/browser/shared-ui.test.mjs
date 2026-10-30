@@ -7,6 +7,7 @@ import {
   safeShopifyAdminUrl,
   brandLink,
   actionButton,
+  messageHtml,
   optionsHtml,
 } from '../../public/shared/ui.js';
 import { renderBoard, renderChart, renderChange, renderMetric } from '../../public/shared/board.js';
@@ -295,6 +296,14 @@ test('shared primitives escape their inputs', () => {
     false,
   );
   assert.match(actionButton({ action: 'a', label: 'b' }), /type="button"/);
+});
+
+test('a message is escaped, is an alert only when it is an error, and is absent when empty', () => {
+  assert.equal(messageHtml('', 'error'), '');
+  const error = messageHtml(ATTACK, 'error');
+  assert.match(error, /class="form-message field-error" role="alert"/);
+  assert.equal(error.includes('<img'), false);
+  assert.match(messageHtml('Saved.', 'info'), /class="form-message field-hint" role="status"/);
 });
 
 test('select options are escaped and only the chosen one is marked', () => {

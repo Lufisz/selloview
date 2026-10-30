@@ -1,6 +1,13 @@
 // Pure HTML for the owner page. Every dynamic value is escaped here, whoever supplied it.
 import { escapeHtml } from '../shared/format.js';
-import { BRAND_NAME, actionButton, brandLink, optionsHtml, siteHeader } from '../shared/ui.js';
+import {
+  BRAND_NAME,
+  actionButton,
+  brandLink,
+  messageHtml,
+  optionsHtml,
+  siteHeader,
+} from '../shared/ui.js';
 import { SETTINGS_PERIOD_OPTIONS } from '../shared/periods.js';
 import { messageForError } from './owner-client.js';
 import { detailsOpenAttribute, renderOwnerBoard, renderStorePanel } from './store-view.js';
@@ -17,12 +24,6 @@ function pageShell(headerTrailingHtml, contentHtml, mainClass = 'workspace sessi
     trailingHtml: headerTrailingHtml,
   });
   return `${header}<main class="${mainClass}" id="main" tabindex="-1">${contentHtml}</main>`;
-}
-
-function messageHtml(message, tone) {
-  if (!message) return '';
-  const role = tone === 'error' ? 'alert' : 'status';
-  return `<p class="form-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
 }
 
 function entryPageHtml(contentHtml) {

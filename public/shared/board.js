@@ -308,7 +308,7 @@ function renderTitle(model) {
   return `<h1>${escapeHtml(model.title)}<span class="heading-dot">.</span></h1>`;
 }
 
-export function renderBanner(banner) {
+function renderBanner(banner) {
   if (!banner) return '';
   const titleHtml = banner.title ? `<strong>${escapeHtml(banner.title)}</strong> ` : '';
   const actionHtml = banner.action

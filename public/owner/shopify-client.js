@@ -6,9 +6,9 @@ import { sendRequest } from '../shared/api-client.js';
 import { validateAuthorizeUrl } from './shopify-authorize-url.js';
 import { isUsableSnapshot } from '../shared/snapshot-validation.js';
 
-export const SHOPIFY_STATUS_URL = '/api/shopify';
-export const SHOPIFY_START_URL = '/api/shopify/start';
-export const SHOPIFY_DISCONNECT_URL = '/api/shopify/disconnect';
+const SHOPIFY_STATUS_URL = '/api/shopify';
+const SHOPIFY_START_URL = '/api/shopify/start';
+const SHOPIFY_DISCONNECT_URL = '/api/shopify/disconnect';
 // The redirect path registered in the operator's Shopify app; the server uses the same value.
 // It keeps its original name because renaming it would break every existing registration.
 export const SHOPIFY_CALLBACK_PATH = '/auth/beta/shopify/callback';

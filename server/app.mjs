@@ -62,7 +62,7 @@ function clientAddress(request, trustedIpHeader) {
  * @param {ReturnType<typeof createShopifyService>} [dependencies.shopify]
  *   Defaults to a service that reports "setup required" and never contacts Shopify.
  */
-export function createAppHandler({
+function createAppHandler({
   auth,
   database,
   config,

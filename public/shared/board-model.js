@@ -39,7 +39,7 @@ export function formatPeriodLabel(label) {
 }
 
 /** True when the last refresh failed, the server's sync is unhealthy, or the data is over five minutes old. */
-export function isSnapshotStale(snapshot, unavailableMessage, now) {
+function isSnapshotStale(snapshot, unavailableMessage, now) {
   const ageMs = now - Date.parse(snapshot.fetchedAt);
   return Boolean(unavailableMessage) || snapshot.sync.state !== 'ok' || !(ageMs <= STALE_AFTER_MS);
 }

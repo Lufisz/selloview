@@ -39,7 +39,7 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
   };
 }
 
-export function createDemoServer(options) {
+function createDemoServer(options) {
   return applyServerLimits(createServer(SERVER_OPTIONS, createDemoHandler(options)));
 }
 

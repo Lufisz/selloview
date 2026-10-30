@@ -2,8 +2,8 @@
 // page; pure, no fetching.
 import { normaliseStore } from '../shared/format.js';
 
-export const AUTHORIZE_PATH = '/admin/oauth/authorize';
-export const READ_ONLY_SCOPES = Object.freeze([
+const AUTHORIZE_PATH = '/admin/oauth/authorize';
+const READ_ONLY_SCOPES = Object.freeze([
   'read_all_orders',
   'read_orders',
   'read_products',

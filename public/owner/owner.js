@@ -23,6 +23,7 @@ import {
   parseStoreDomain,
   startShopifyConnection,
 } from './shopify-client.js';
+import { hasOwn } from '../shared/format.js';
 import { renderLoading, renderOwner, renderSessionError, renderSignIn } from './owner-view.js';
 
 const STORE_POLL_MS = 30000;
@@ -465,7 +466,7 @@ async function runExclusively(task) {
 app.addEventListener('submit', (event) => {
   event.preventDefault();
   const form = event.target;
-  const handler = Object.prototype.hasOwnProperty.call(FORM_HANDLERS, form.dataset.form)
+  const handler = hasOwn(FORM_HANDLERS, form.dataset.form)
     ? FORM_HANDLERS[form.dataset.form]
     : null;
   if (handler) void runExclusively(() => handler(form));
@@ -485,7 +486,7 @@ app.addEventListener('input', (event) => {
     state.store.draft = field.value;
     return;
   }
-  if (Object.prototype.hasOwnProperty.call(DRAFT_STORES, form.dataset.form)) {
+  if (hasOwn(DRAFT_STORES, form.dataset.form)) {
     DRAFT_STORES[form.dataset.form]()[field.name] = field.value;
   }
 });

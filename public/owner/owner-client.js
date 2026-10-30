@@ -1,16 +1,17 @@
 // Browser API for the owner page. Talks only to same-origin routes.
 // The CSRF token returned by the session endpoint stays in memory; nothing is put in storage.
 import { sendRequest } from '../shared/api-client.js';
+import { hasOwn } from '../shared/format.js';
 
-export const SESSION_URL = '/api/session';
-export const REGISTRATION_URL = '/api/registration';
-export const SETTINGS_URL = '/api/settings';
-export const SEND_CODE_URL = '/api/auth/email-otp/send-verification-otp';
-export const SIGN_IN_URL = '/api/auth/sign-in/email-otp';
-export const SIGN_OUT_URL = '/api/auth/sign-out';
-export const SCREENS_URL = '/api/screens';
-export const PAIR_SCREEN_URL = '/api/screens/pair';
-export const REVOKE_SCREEN_URL = '/api/screens/revoke';
+const SESSION_URL = '/api/session';
+const REGISTRATION_URL = '/api/registration';
+const SETTINGS_URL = '/api/settings';
+const SEND_CODE_URL = '/api/auth/email-otp/send-verification-otp';
+const SIGN_IN_URL = '/api/auth/sign-in/email-otp';
+const SIGN_OUT_URL = '/api/auth/sign-out';
+const SCREENS_URL = '/api/screens';
+const PAIR_SCREEN_URL = '/api/screens/pair';
+const REVOKE_SCREEN_URL = '/api/screens/revoke';
 
 const CODE_PATTERN = /^\d{6}$/;
 const EMAIL_PATTERN = /^[^\s@]{1,64}@[^\s@]{1,190}\.[^\s@]{2,}$/;
@@ -74,7 +75,7 @@ export function parsePairingCode(text) {
 }
 
 export function messageForError(code) {
-  return Object.prototype.hasOwnProperty.call(ERROR_MESSAGES, code)
+  return hasOwn(ERROR_MESSAGES, code)
     ? ERROR_MESSAGES[code]
     : 'Something went wrong. Please try again.';
 }

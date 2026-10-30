@@ -1,7 +1,7 @@
 // Demo entry point: owns state, routing and events. Rendering lives in demo-view.js
 // and board.js, fixtures in data.js. Nothing here talks to the network.
 import { SAMPLE_DAYS, SAMPLE_ORDERS, ATTENTION_ITEMS, DEFAULT_SETTINGS } from './demo-data.js';
-import { normaliseStore } from '../shared/format.js';
+import { hasOwn, normaliseStore } from '../shared/format.js';
 import { BRAND_NAME, createDialog, createToast, toggleFullscreen } from '../shared/ui.js';
 import {
   renderHome,
@@ -205,7 +205,7 @@ appElement.addEventListener('click', async (event) => {
   const button = event.target.closest('[data-action]');
   if (!button) return;
   const action = button.dataset.action;
-  if (Object.hasOwn(DIALOGS, action)) {
+  if (hasOwn(DIALOGS, action)) {
     const content = DIALOGS[action];
     dialog.open({
       eyebrow: `${BRAND_NAME.toUpperCase()} PROTOTYPE`,

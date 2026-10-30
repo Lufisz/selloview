@@ -1,5 +1,5 @@
 // Pure HTML for the TV page. Every dynamic value is escaped here, whoever supplied it.
-import { escapeHtml } from '../shared/format.js';
+import { escapeHtml, hasOwn } from '../shared/format.js';
 import { BRAND_NAME, brandLink, statusDot, tvShell } from '../shared/ui.js';
 import { PERIODS, normalizePeriod } from '../shared/periods.js';
 import { renderBoard } from '../shared/board.js';
@@ -18,9 +18,7 @@ const LOGO_PATH = '/api/display/logo';
 const LOGO_VERSION_PATTERN = /^[A-Za-z0-9_-]{16}$/;
 
 export function messageForTvError(code) {
-  return Object.prototype.hasOwnProperty.call(TV_MESSAGES, code)
-    ? TV_MESSAGES[code]
-    : TV_MESSAGES.unexpected;
+  return hasOwn(TV_MESSAGES, code) ? TV_MESSAGES[code] : TV_MESSAGES.unexpected;
 }
 
 function tvPage(boardHtml, dark, { showTopbar = true } = {}) {
@@ -69,11 +67,7 @@ const STORE_STATE_MESSAGES = Object.freeze({
 
 function storeStateKey({ state, sync }) {
   if (state === 'connected' && sync && sync.state === 'error') return 'connected_failed';
-  return hasOwnMessage(state) ? state : 'not_connected';
-}
-
-function hasOwnMessage(state) {
-  return Object.prototype.hasOwnProperty.call(STORE_STATE_MESSAGES, state);
+  return hasOwn(STORE_STATE_MESSAGES, state) ? state : 'not_connected';
 }
 
 function noticeHtml(notice) {

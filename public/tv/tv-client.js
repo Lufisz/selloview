@@ -2,10 +2,10 @@
 // live in HttpOnly cookies the page cannot read, and nothing is put in browser storage.
 import { sendRequest } from '../shared/api-client.js';
 
-export const TV_CHALLENGE_URL = '/api/tv/challenge';
-export const TV_PAIRING_URL = '/api/tv/pairing';
-export const TV_EXCHANGE_URL = '/api/tv/pairing/exchange';
-export const DISPLAY_URL = '/api/display';
+const TV_CHALLENGE_URL = '/api/tv/challenge';
+const TV_PAIRING_URL = '/api/tv/pairing';
+const TV_EXCHANGE_URL = '/api/tv/pairing/exchange';
+const DISPLAY_URL = '/api/display';
 
 /** Asks for a new pairing code; any earlier challenge of this browser is replaced. */
 export function createChallenge(fetchImpl = fetch) {

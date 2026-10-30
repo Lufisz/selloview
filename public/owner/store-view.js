@@ -1,6 +1,6 @@
 // Pure HTML for the owner's store connection on the owner page. Every dynamic value is escaped here.
 import { escapeHtml, formatDateTime } from '../shared/format.js';
-import { actionButton, statusDot } from '../shared/ui.js';
+import { actionButton, messageHtml, statusDot } from '../shared/ui.js';
 import { renderBoard } from '../shared/board.js';
 import { buildStoreBoardModel } from '../shared/board-model.js';
 import { normalizePeriod } from '../shared/periods.js';
@@ -19,12 +19,6 @@ const STATE_HEADINGS = Object.freeze({
   connected: 'Store connected',
   reconnect_required: 'Reconnect your store',
 });
-
-function messageHtml(message, tone) {
-  if (!message) return '';
-  const role = tone === 'error' ? 'alert' : 'status';
-  return `<p class="form-message ${tone === 'error' ? 'field-error' : 'field-hint'}" role="${role}">${escapeHtml(message)}</p>`;
-}
 
 function syncSummary(connection, snapshot) {
   const sync = connection.sync;
