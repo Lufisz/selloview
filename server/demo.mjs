@@ -1,6 +1,5 @@
 // Static demo server: serves only the public directory. No APIs, credentials, analytics or database.
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -9,6 +8,7 @@ import {
   findPublicFile,
   isReadMethod,
   parseRequestPath,
+  sendPublicFile,
   SERVER_OPTIONS,
 } from './http/static-files.mjs';
 import { DEMO_PAGES, DEMO_PUBLIC_FILES, publicPathFor } from './http/public-files.mjs';
@@ -34,17 +34,8 @@ export function createDemoHandler({ publicDir = DEFAULT_PUBLIC_DIR } = {}) {
     const requestedPath = publicPathFor(DEMO_PAGES, parsed.pathname);
     const file = await findPublicFile(publicDir, requestedPath, DEMO_PUBLIC_FILES);
     if (!file) return sendText(response, 404, 'Not found');
-    try {
-      const body = await readFile(file.filePath);
-      response.writeHead(200, {
-        ...DEMO_HEADERS,
-        'Content-Type': file.contentType,
-        'Content-Length': body.length,
-      });
-      response.end(request.method === 'HEAD' ? undefined : body);
-    } catch {
-      sendText(response, 404, 'Not found');
-    }
+    const sent = await sendPublicFile(request, response, DEMO_HEADERS, file);
+    if (!sent) return sendText(response, 404, 'Not found');
   };
 }
 

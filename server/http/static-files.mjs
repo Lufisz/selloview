@@ -108,6 +108,26 @@ export async function findPublicFile(publicDir, requestedPath, allowedPaths) {
   }
 }
 
+/**
+ * Sends a file found by findPublicFile. Returns false, having sent nothing, when it can no longer
+ * be read, so the caller can answer 404.
+ */
+export async function sendPublicFile(request, response, headers, file) {
+  let body;
+  try {
+    body = await fs.readFile(file.filePath);
+  } catch {
+    return false;
+  }
+  response.writeHead(200, {
+    ...headers,
+    'Content-Type': file.contentType,
+    'Content-Length': body.length,
+  });
+  response.end(request.method === 'HEAD' ? undefined : body);
+  return true;
+}
+
 // Bounds slow or oversized requests. Values are well above anything the dashboard sends.
 export const SERVER_OPTIONS = Object.freeze({ maxHeaderSize: 16 * 1024 });
 

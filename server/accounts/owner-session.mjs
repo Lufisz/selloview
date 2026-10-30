@@ -11,24 +11,28 @@ import { singleHeaderValue } from '../http/static-files.mjs';
  * part of the HMAC input, so it keeps its original value: changing it would invalidate the token of
  * every page that is open during an upgrade.
  */
-export function csrfTokenFor(secret, sessionId) {
+function deriveCsrfToken(secret, sessionId) {
   return crypto.createHmac('sha256', secret).update(`beta-csrf\n${sessionId}`).digest('base64url');
-}
-
-function isValidCsrf(request, secret, sessionId) {
-  const supplied = singleHeaderValue(request.rawHeaders, 'x-csrf-token');
-  return supplied !== null && constantTimeEqual(supplied, csrfTokenFor(secret, sessionId));
 }
 
 /**
  * @param {object} options
  * @param {ReturnType<typeof import('./auth.mjs').createAuth>} options.auth
- * @param {string} options.secret  The server secret the CSRF tokens are derived from.
+ * @param {string} options.secret  The server secret the CSRF tokens are derived from. It stays here.
  * @param {(response, status, body) => void} options.reply  Sends the denials.
  */
 export function createOwnerSession({ auth, secret, reply }) {
   async function lookupSession(request) {
     return auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
+  }
+
+  function csrfTokenFor(sessionId) {
+    return deriveCsrfToken(secret, sessionId);
+  }
+
+  function isValidCsrf(request, sessionId) {
+    const supplied = singleHeaderValue(request.rawHeaders, 'x-csrf-token');
+    return supplied !== null && constantTimeEqual(supplied, csrfTokenFor(sessionId));
   }
 
   // Resolves the signed-in owner and checks the session-bound CSRF token.
@@ -39,12 +43,12 @@ export function createOwnerSession({ auth, secret, reply }) {
       reply(response, 401, { error: 'unauthenticated' });
       return null;
     }
-    if (!isValidCsrf(request, secret, sessionData.session.id)) {
+    if (!isValidCsrf(request, sessionData.session.id)) {
       reply(response, 403, { error: 'invalid_csrf' });
       return null;
     }
     return sessionData;
   }
 
-  return { lookupSession, requireCsrfSession };
+  return { lookupSession, requireCsrfSession, csrfTokenFor };
 }

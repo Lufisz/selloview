@@ -8,6 +8,7 @@ import {
   findPublicFile,
   parseRequestPath,
   rawHeaderValues,
+  sendPublicFile,
   singleHeaderValue,
 } from '../../server/http/static-files.mjs';
 import { ATTACK_PATHS, makePublicDirectory } from '../helpers/public-directory.mjs';
@@ -107,6 +108,43 @@ test('symlinks cannot disguise hidden files, forbidden types or unlisted entry p
   await symlink('styles.css', join(publicDirectory, 'styles-alias.css'));
   const safeFile = await findPublicFile(publicDirectory, '/styles-alias.css', listed);
   assert.equal(safeFile.contentType, 'text/css; charset=utf-8');
+});
+
+// The parts of a response that sendPublicFile touches.
+function fakeResponse() {
+  const response = {
+    writeHead(status, headers) {
+      response.status = status;
+      response.headers = headers;
+    },
+    end(body) {
+      response.body = body;
+    },
+  };
+  return response;
+}
+
+test('a found file is sent with its headers, without a body for HEAD, and a vanished file is reported', async (context) => {
+  const publicDir = makePublicDirectory(context);
+  const file = await lookup(publicDir, '/app.js');
+
+  const get = fakeResponse();
+  assert.equal(await sendPublicFile({ method: 'GET' }, get, { 'X-Test': 'yes' }, file), true);
+  assert.equal(get.status, 200);
+  assert.equal(get.headers['Content-Type'], 'text/javascript; charset=utf-8');
+  assert.equal(get.headers['X-Test'], 'yes');
+  assert.equal(get.headers['Content-Length'], get.body.length);
+  assert.equal(get.body.toString(), '// app.js');
+
+  const head = fakeResponse();
+  assert.equal(await sendPublicFile({ method: 'HEAD' }, head, {}, file), true);
+  assert.equal(head.headers['Content-Length'], get.body.length);
+  assert.equal(head.body, undefined);
+
+  await rm(file.filePath);
+  const gone = fakeResponse();
+  assert.equal(await sendPublicFile({ method: 'GET' }, gone, {}, file), false);
+  assert.equal(gone.status, undefined, 'nothing is sent, so the caller can answer 404');
 });
 
 test('the demo and the app reuse security headers while retaining distinct network permissions', () => {
