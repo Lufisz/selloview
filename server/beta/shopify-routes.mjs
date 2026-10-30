@@ -6,7 +6,7 @@
 import { validateStore } from '../shopify.mjs';
 import { RequestRejection, assertSameOriginJson, readJsonObject } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
-import { ensureWorkspace } from './workspaces.mjs';
+import { ensureWorkspace } from '../accounts/workspaces.mjs';
 import { SHOPIFY_CALLBACK_PATH } from './shopify-service.mjs';
 
 export const SHOPIFY_STATUS_PATH = '/api/beta/shopify';

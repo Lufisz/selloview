@@ -15,7 +15,7 @@ import {
   migrateDatabase,
   openInitializedDatabase,
   revokeOwnerSessions,
-} from '../server/beta/accounts.mjs';
+} from '../server/accounts/accounts.mjs';
 
 const USAGE = 'Usage: beta-admin.mjs init | migrate | invite <email> | revoke <email> | owners';
 

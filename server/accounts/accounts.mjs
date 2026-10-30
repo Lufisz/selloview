@@ -3,8 +3,8 @@
 import { getMigrations } from 'better-auth/db/migration';
 import { createAuth, createAuthOptions } from './auth.mjs';
 import { applyWorkspaceSchema, ensureWorkspace } from './workspaces.mjs';
-import { SCREEN_SCHEMA } from './screens.mjs';
-import { SHOPIFY_SCHEMA } from './shopify-links.mjs';
+import { SCREEN_SCHEMA } from '../beta/screens.mjs';
+import { SHOPIFY_SCHEMA } from '../beta/shopify-links.mjs';
 import { createPrivateDatabaseFile, openPrivateDatabase } from './private-database.mjs';
 import { unconfiguredTransport } from './mail-transport.mjs';
 

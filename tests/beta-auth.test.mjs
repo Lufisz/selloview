@@ -2,9 +2,9 @@
 // Mail delivery is the expressly synthetic in-memory transport from beta-helpers.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuth } from '../server/beta/auth.mjs';
-import { openInitializedDatabase } from '../server/beta/accounts.mjs';
-import { unconfiguredTransport } from '../server/beta/mail-transport.mjs';
+import { createAuth } from '../server/accounts/auth.mjs';
+import { openInitializedDatabase } from '../server/accounts/accounts.mjs';
+import { unconfiguredTransport } from '../server/accounts/mail-transport.mjs';
 import {
   createBetaEnvironment,
   createBrowser,

@@ -20,7 +20,7 @@ import {
   AccountError,
   migrateDatabase,
   openInitializedDatabase,
-} from '../server/beta/accounts.mjs';
+} from '../server/accounts/accounts.mjs';
 import { projectBoardForDisplay } from '../server/beta/display-board.mjs';
 import {
   consumeShopifyReturn,

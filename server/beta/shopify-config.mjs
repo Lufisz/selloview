@@ -6,7 +6,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ShopifyError, validateStore } from '../shopify.mjs';
-import { normalizeInviteEmail } from './accounts.mjs';
+import { normalizeInviteEmail } from '../accounts/accounts.mjs';
 
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const SETTING_NAMES = Object.freeze([

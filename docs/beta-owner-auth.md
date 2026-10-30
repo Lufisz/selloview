@@ -85,7 +85,7 @@ There is no automatic bootstrap: starting the server on a missing database fails
 ## Email delivery
 
 The auth layer calls an injected server-only transport. The only production transport is Resend over
-HTTPS (`server/beta/mail-transport.mjs`: 8 s timeout, no redirects, no provider detail leaked). If it
+HTTPS (`server/accounts/mail-transport.mjs`: 8 s timeout, no redirects, no provider detail leaked). If it
 is not configured the send endpoint answers `503 delivery_not_configured` and the page says that no
 code was sent. If the provider fails, the page shows a delivery failure. Codes are never logged,
 returned, or exposed through a development endpoint. Tests use an in-memory transport that is clearly

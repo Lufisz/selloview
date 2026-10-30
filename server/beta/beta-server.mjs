@@ -20,15 +20,19 @@ import {
   SIGN_OUT_PATH,
   createAuth,
   trackCodeDelivery,
-} from './auth.mjs';
-import { openInitializedDatabase } from './accounts.mjs';
+} from '../accounts/auth.mjs';
+import { openInitializedDatabase } from '../accounts/accounts.mjs';
 import {
   closedRegistration,
   createRegistrationPolicy,
   loadRegistrationConfig,
-} from './registration.mjs';
-import { parseDatabasePath } from './private-database.mjs';
-import { createResendTransport, loadMailConfig, unconfiguredTransport } from './mail-transport.mjs';
+} from '../accounts/registration.mjs';
+import { parseDatabasePath } from '../accounts/private-database.mjs';
+import {
+  createResendTransport,
+  loadMailConfig,
+  unconfiguredTransport,
+} from '../accounts/mail-transport.mjs';
 import {
   RequestRejection,
   assertExpectedHost,
@@ -37,7 +41,7 @@ import {
   readJsonObject,
   sendJson,
 } from '../http/guards.mjs';
-import { ensureWorkspace, updateWorkspaceSettings } from './workspaces.mjs';
+import { ensureWorkspace, updateWorkspaceSettings } from '../accounts/workspaces.mjs';
 import { loadBetaShopifyConfig } from './shopify-config.mjs';
 import { createBetaShopifyService } from './shopify-service.mjs';
 import { createShopifyRoutes } from './shopify-routes.mjs';

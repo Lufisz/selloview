@@ -2,10 +2,13 @@
 // Mail delivery is the synthetic in-memory transport from beta-helpers.mjs.
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAuth } from '../server/beta/auth.mjs';
-import { openInitializedDatabase } from '../server/beta/accounts.mjs';
+import { createAuth } from '../server/accounts/auth.mjs';
+import { openInitializedDatabase } from '../server/accounts/accounts.mjs';
 import { createBetaServer } from '../server/beta/beta-server.mjs';
-import { createRegistrationPolicy, loadRegistrationConfig } from '../server/beta/registration.mjs';
+import {
+  createRegistrationPolicy,
+  loadRegistrationConfig,
+} from '../server/accounts/registration.mjs';
 import { createBetaShopifyService } from '../server/beta/shopify-service.mjs';
 import {
   createBetaEnvironment,

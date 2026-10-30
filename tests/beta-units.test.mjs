@@ -14,14 +14,14 @@ import {
   createPrivateDatabaseFile,
   openPrivateDatabase,
   parseDatabasePath,
-} from '../server/beta/private-database.mjs';
+} from '../server/accounts/private-database.mjs';
 import {
   DeliveryError,
   createResendTransport,
   loadMailConfig,
   unconfiguredTransport,
-} from '../server/beta/mail-transport.mjs';
-import { normalizeInviteEmail } from '../server/beta/accounts.mjs';
+} from '../server/accounts/mail-transport.mjs';
+import { normalizeInviteEmail } from '../server/accounts/accounts.mjs';
 import {
   ERROR_MESSAGES,
   loadOwnerSession,

@@ -9,7 +9,7 @@ import {
   AccountError,
   migrateDatabase,
   openInitializedDatabase,
-} from '../server/beta/accounts.mjs';
+} from '../server/accounts/accounts.mjs';
 import { createRateLimiter } from '../server/http/rate-limiter.mjs';
 import {
   MAX_OPEN_CHALLENGES,

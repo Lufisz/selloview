@@ -261,7 +261,8 @@ test(
     const workspaceBefore = handle.database.prepare('SELECT id FROM workspace').get().id;
     await handle.close();
 
-    const { inviteOwner, openInitializedDatabase } = await import('../server/beta/accounts.mjs');
+    const { inviteOwner, openInitializedDatabase } =
+      await import('../server/accounts/accounts.mjs');
     const database = openInitializedDatabase(environment.databasePath);
     const repeated = await inviteOwner({
       database,
@@ -290,7 +291,7 @@ test('revoked sessions stop working immediately', http, async (t) => {
   const { browser } = await signInOwner(handle, ALICE);
   assert.equal((await browser.loadSession()).status, 200);
 
-  const { revokeOwnerSessions } = await import('../server/beta/accounts.mjs');
+  const { revokeOwnerSessions } = await import('../server/accounts/accounts.mjs');
   await revokeOwnerSessions({
     database: handle.database,
     secret: environment.secret,

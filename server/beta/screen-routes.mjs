@@ -13,7 +13,7 @@ import {
   readJsonObject,
 } from '../http/guards.mjs';
 import { createRateLimiter } from '../http/rate-limiter.mjs';
-import { ensureWorkspace, readWorkspaceById } from './workspaces.mjs';
+import { ensureWorkspace, readWorkspaceById } from '../accounts/workspaces.mjs';
 import { projectBoardForDisplay } from './display-board.mjs';
 import {
   CHALLENGE_LIFETIME_MS,

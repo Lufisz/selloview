@@ -8,12 +8,12 @@ import fs from 'node:fs/promises';
 import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
-import { createAuth } from '../server/beta/auth.mjs';
+import { createAuth } from '../server/accounts/auth.mjs';
 import {
   initializeDatabase,
   inviteOwner,
   openInitializedDatabase,
-} from '../server/beta/accounts.mjs';
+} from '../server/accounts/accounts.mjs';
 import { createBetaServer } from '../server/beta/beta-server.mjs';
 import { createBetaShopifyService } from '../server/beta/shopify-service.mjs';
 
