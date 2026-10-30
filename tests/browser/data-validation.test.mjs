@@ -105,13 +105,31 @@ const malformedSnapshots = [
   [
     'non-finite chart value',
     (snapshot) => {
-      snapshot.chart.current[0].valueCents = Infinity;
+      snapshot.charts.week.current[0].valueCents = Infinity;
     },
   ],
   [
     'null chart item',
     (snapshot) => {
-      snapshot.chart.current[0] = null;
+      snapshot.charts.week.current[0] = null;
+    },
+  ],
+  [
+    'no per-period charts',
+    (snapshot) => {
+      delete snapshot.charts;
+    },
+  ],
+  [
+    'a period without its chart',
+    (snapshot) => {
+      delete snapshot.charts.days60;
+    },
+  ],
+  [
+    'a chart with more points than its period has',
+    (snapshot) => {
+      snapshot.charts.week.current = new Array(8).fill({ label: 'x', valueCents: 0 });
     },
   ],
   [

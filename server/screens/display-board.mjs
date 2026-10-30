@@ -35,7 +35,6 @@ export function projectBoardForDisplay(snapshot, sync, logoVersion = null) {
     fetchedAt: snapshot.fetchedAt,
     coverage: snapshot.coverage,
     periods: snapshot.periods,
-    chart: snapshot.chart,
     charts: snapshot.charts,
     recentOrders: snapshot.recentOrders.map(projectOrder),
     // Titles and counts only; the links point into the Shopify admin and stay with the owner.

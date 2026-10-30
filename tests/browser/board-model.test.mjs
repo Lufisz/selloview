@@ -43,7 +43,6 @@ function snapshotFixture(overrides = {}) {
       week: period('2026-10-14 to 2026-10-20'),
       today: period('2026-10-21'),
     },
-    chart: series,
     charts: { days60: series, month: series, week: series, today: series },
     backlog: { count: 1, overdueCount: 0 },
     attention: [

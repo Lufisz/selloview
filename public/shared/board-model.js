@@ -180,7 +180,7 @@ const CHART_CONFIGS = Object.freeze({
 });
 
 function buildChartModel(snapshot, period, currency) {
-  const selectedSeries = snapshot.charts?.[period] || snapshot.chart;
+  const selectedSeries = snapshot.charts[period];
   const config = CHART_CONFIGS[period] || CHART_CONFIGS.week;
   const toPoint = (point) => ({ label: point.label, value: point.valueCents });
   return {

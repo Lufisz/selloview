@@ -63,7 +63,7 @@ test('genuine empty data yields zeros and the backlog note', () => {
   assert.deepEqual(snapshot.recentOrders, []);
   assert.equal(snapshot.charts.week.current.length, 7);
   assert.equal(snapshot.charts.week.previous.length, 7);
-  assert.deepEqual(snapshot.chart, snapshot.charts.week); // legacy field, see the snapshot typedef
+  assert.equal('chart' in snapshot, false, 'the per-period charts are the only chart data');
   assert.ok(snapshot.coverage.notes.some((note) => /older order backlog/i.test(note)));
   assert.equal(snapshot.source, 'shopify');
 });

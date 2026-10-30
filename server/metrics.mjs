@@ -6,9 +6,11 @@ import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
 /**
  * @typedef {{ valueCents: number, orders: number, averageCents: number }} PeriodTotals
  * @typedef {{ date: string, label: string, valueCents: number }} ChartPoint
+ * @typedef {{ current: ChartPoint[], previous: ChartPoint[] }} ChartSeries
  * @typedef {{ id: string, title: string, description: string, url?: string }} AttentionItem
  *
- * The /api/snapshot payload (the server adds `sync` when serving it):
+ * What the owner's board receives from GET /api/shopify (the server adds `sync`; a TV gets the
+ * smaller projection of server/screens/display-board.mjs):
  * @typedef {object} Snapshot
  * @property {'shopify'} source
  * @property {{ name: string, domain: string, currency: string, timeZone: string, plan: (string | null) }} shop
@@ -18,7 +20,8 @@ import { HISTORY_DAYS, validateStore } from './shopify/shop-data.mjs';
  *              month: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals },
  *              week: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals },
  *              today: { label: string, comparisonLabel: string, current: PeriodTotals, previous: PeriodTotals } }} periods
- * @property {{ current: ChartPoint[], previous: ChartPoint[] }} chart  Seven local days each.
+ * @property {{ days60: ChartSeries, month: ChartSeries, week: ChartSeries, today: ChartSeries }} charts
+ *   Per period: 60, 30 or 7 local days, or the 24 hours of today.
  * @property {Array<{ number: string, createdAt: string, amountCents: number, paymentStatus: string, fulfillmentStatus: string, url?: string }>} recentOrders
  * @property {AttentionItem[]} attention  At most three.
  * @property {{ count: number, overdueCount: number }} backlog
@@ -517,7 +520,6 @@ export function buildSnapshot(raw, now = new Date()) {
       notes: buildCoverageNotes(raw),
     },
     periods: buildPeriods(orders, windows, nowMs, timeZone, raw.since.getTime()),
-    chart: charts.week,
     charts,
     recentOrders: buildRecentOrders(orders, domain),
     attention: buildAttention({ raw, domain, overdueCount: backlog.overdueCount, inventory }),

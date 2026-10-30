@@ -46,7 +46,7 @@ function hasTotals(totals) {
   );
 }
 
-function hasChartSeries(points, maxPoints = 60) {
+function hasChartSeries(points, maxPoints) {
   return (
     Array.isArray(points) &&
     points.length <= maxPoints &&
@@ -55,6 +55,22 @@ function hasChartSeries(points, maxPoints = 60) {
         Boolean(point) && typeof point.label === 'string' && isNonnegativeInteger(point.valueCents),
     )
   );
+}
+
+// The most points a period's chart may carry: the 24 hours of today, otherwise one per local day.
+const CHART_POINT_LIMITS = { today: 24, week: 7, month: 30, days60: 60 };
+
+function hasCharts(charts) {
+  if (!charts) return false;
+  return Object.keys(CHART_POINT_LIMITS).every((period) => {
+    const series = charts[period];
+    const maxPoints = CHART_POINT_LIMITS[period];
+    return (
+      Boolean(series) &&
+      hasChartSeries(series.current, maxPoints) &&
+      hasChartSeries(series.previous, maxPoints)
+    );
+  });
 }
 
 function hasAttentionItems(items) {
@@ -104,7 +120,7 @@ function hasCoverage(coverage) {
 /** Validate every field used by rendering before replacing a last-good snapshot. */
 export function isUsableSnapshot(value, { requireStoreDomain = true } = {}) {
   if (!value || value.source !== 'shopify') return false;
-  const { shop, periods, chart, backlog, coverage, sync } = value;
+  const { shop, periods, charts, backlog, coverage, sync } = value;
   return (
     Boolean(shop) &&
     hasText(shop.name) &&
@@ -117,17 +133,7 @@ export function isUsableSnapshot(value, { requireStoreDomain = true } = {}) {
     hasPeriod(periods?.month) &&
     hasPeriod(periods?.week) &&
     hasPeriod(periods?.today) &&
-    hasChartSeries(chart?.current) &&
-    hasChartSeries(chart?.previous) &&
-    (!value.charts ||
-      (hasChartSeries(value.charts?.today?.current, 24) &&
-        hasChartSeries(value.charts?.today?.previous, 24) &&
-        hasChartSeries(value.charts?.week?.current, 7) &&
-        hasChartSeries(value.charts?.week?.previous, 7) &&
-        hasChartSeries(value.charts?.month?.current, 30) &&
-        hasChartSeries(value.charts?.month?.previous, 30) &&
-        hasChartSeries(value.charts?.days60?.current, 60) &&
-        hasChartSeries(value.charts?.days60?.previous, 60))) &&
+    hasCharts(charts) &&
     hasAttentionItems(value.attention) &&
     hasRecentOrders(value.recentOrders) &&
     isNonnegativeInteger(backlog?.count) &&

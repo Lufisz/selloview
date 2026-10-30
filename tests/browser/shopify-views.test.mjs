@@ -336,6 +336,8 @@ test('the display projection keeps figures and a bare order feed, never links or
   assert.equal(projected.recentOrders[0].number, snapshot.recentOrders[0].number);
   assert.deepEqual(projected.sync, { state: 'ok', lastSuccessAt: snapshot.fetchedAt });
   assert.equal(projected.shop.plan, null);
+  assert.deepEqual(projected.charts, snapshot.charts);
+  assert.equal('chart' in projected, false, 'the per-period charts are the only chart data');
   const text = JSON.stringify(projected);
   for (const forbidden of [SYNTHETIC_STORE, 'myshopify', 'gid://', 'admin.shopify.com', '"url"']) {
     assert.equal(text.includes(forbidden), false, forbidden);
