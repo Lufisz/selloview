@@ -14,7 +14,8 @@ const NOW = Date.now();
 
 let scratch;
 before(async () => {
-  scratch = await fs.mkdtemp(path.join(os.tmpdir(), 'metrictv-store-'));
+  // The store refuses a directory reached through a symlink, and os.tmpdir() is one on macOS.
+  scratch = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'metrictv-store-'));
 });
 after(async () => {
   await fs.rm(scratch, { recursive: true, force: true });
