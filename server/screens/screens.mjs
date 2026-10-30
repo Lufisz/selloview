@@ -8,6 +8,7 @@
 // Credentials look like `<id>.<secret>`. Only a SHA-256 hash of the secret is stored, and it is
 // compared in constant time. Nothing here reads an owner or workspace id from a browser.
 import crypto from 'node:crypto';
+import { inTransaction } from '../accounts/private-database.mjs';
 import { constantTimeEqual, sha256Hex } from '../hashing.mjs';
 
 export const CHALLENGE_LIFETIME_MS = 5 * 60 * 1000;
@@ -70,18 +71,6 @@ function newCredential() {
 function parseCredential(text) {
   const match = typeof text === 'string' ? CREDENTIAL_PATTERN.exec(text) : null;
   return match ? { id: match[1], secret: match[2] } : null;
-}
-
-function inTransaction(database, work) {
-  database.exec('BEGIN IMMEDIATE');
-  try {
-    const result = work();
-    database.exec('COMMIT');
-    return result;
-  } catch (error) {
-    database.exec('ROLLBACK');
-    throw error;
-  }
 }
 
 // ---- Codes ----------------------------------------------------------------------------------

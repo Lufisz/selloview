@@ -1,6 +1,7 @@
 // One owner, one workspace. The owner is always an authenticated user id taken from a verified
 // session on the server; nothing here accepts an owner or workspace id from a browser.
 import crypto from 'node:crypto';
+import { inTransaction } from './private-database.mjs';
 
 const DEFAULT_WORKSPACE_NAME = 'My MetricTV';
 const MAX_REVISION = 1_000_000_000;
@@ -91,8 +92,7 @@ export function ensureWorkspace(database, ownerUserId) {
 
   const now = new Date().toISOString();
   const workspaceId = crypto.randomUUID();
-  database.exec('BEGIN IMMEDIATE');
-  try {
+  inTransaction(database, () => {
     const inserted = database
       .prepare(
         `INSERT OR IGNORE INTO workspace (id, owner_user_id, name, created_at)
@@ -107,11 +107,7 @@ export function ensureWorkspace(database, ownerUserId) {
         )
         .run(workspaceId, DEFAULT_SETTINGS.period, DEFAULT_SETTINGS.theme, now);
     }
-    database.exec('COMMIT');
-  } catch (error) {
-    database.exec('ROLLBACK');
-    throw error;
-  }
+  });
   return readWorkspace(database, ownerUserId);
 }
 

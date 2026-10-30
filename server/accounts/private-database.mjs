@@ -78,6 +78,19 @@ function configureConnection(database) {
   return database;
 }
 
+/** Runs `work` in one write transaction: everything it did is kept, or none of it. */
+export function inTransaction(database, work) {
+  database.exec('BEGIN IMMEDIATE');
+  try {
+    const result = work();
+    database.exec('COMMIT');
+    return result;
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  }
+}
+
 /** Creates the directory (0700) and an empty file (0600). Refuses to touch an existing file. */
 export function createPrivateDatabaseFile(databasePath) {
   const directory = path.dirname(databasePath);
