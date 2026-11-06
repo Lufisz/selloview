@@ -21,7 +21,7 @@ A read-only Shopify dashboard for TVs. See sales, orders, trends and stock alert
 Requires **Node.js 22.16+**. The demo uses fictional data and needs no Shopify account or dependencies.
 
 ```sh
-git clone https://github.com/Lufisz/metrictv.git
+git clone https://github.com/Lufisz/selloview.git
 cd selloview
 npm start
 ```
