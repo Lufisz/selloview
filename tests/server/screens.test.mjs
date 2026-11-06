@@ -878,10 +878,10 @@ test(
   http,
   async (t) => {
     const environment = await createAppEnvironment(t, { invites: [ALICE] });
-    const httpsOrigin = 'https://metrictv.example.test';
+    const httpsOrigin = 'https://selloview.example.test';
     const handle = await startAppServer(t, { ...environment, origin: httpsOrigin });
     const headerLines = [
-      'Host: metrictv.example.test',
+      'Host: selloview.example.test',
       `Origin: ${httpsOrigin}`,
       'Content-Type: application/json',
     ];
@@ -949,7 +949,7 @@ test('a version 1 database is refused until migrated, then keeps its data', http
   assert.equal(count(migrated, 'workspace'), 1, 'owners and workspaces are kept');
   migrated.exec('PRAGMA user_version = 99');
   migrated.close();
-  await assert.rejects(migrateDatabase({ databasePath, secret, origin }), /newer MetricTV/);
+  await assert.rejects(migrateDatabase({ databasePath, secret, origin }), /newer Selloview/);
   assert.throws(() => openInitializedDatabase(databasePath), /schema_not_current/);
 });
 

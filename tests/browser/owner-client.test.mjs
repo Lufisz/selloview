@@ -102,7 +102,7 @@ test('session loading separates signed-out from failure', async () => {
 
 const SESSION_VIEW = {
   owner: { email: 'owner@example.test' },
-  workspace: { name: 'My MetricTV', revision: 3, settings: { period: 'month', theme: 'dark' } },
+  workspace: { name: 'My Selloview', revision: 3, settings: { period: 'month', theme: 'dark' } },
   storeConnection: { state: 'setup_required', canConnect: false },
   csrfToken: 'abc',
 };

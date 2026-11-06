@@ -353,7 +353,7 @@ async function handleDisconnectShopify() {
   state.confirmDisconnect = false;
   state.userChoices.delete('connection');
   if (result.ok) {
-    setStoreMessage('Disconnected from MetricTV. The app is still installed in Shopify.', 'info');
+    setStoreMessage('Disconnected from Selloview. The app is still installed in Shopify.', 'info');
   } else {
     setStoreMessage(messageForError(result.error));
   }

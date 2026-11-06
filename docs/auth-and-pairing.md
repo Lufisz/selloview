@@ -23,7 +23,7 @@ Every route starts from a verified session or display cookie. No route reads an 
 
 ## Self-service registration (optional)
 
-Off by default. `METRICTV_SELF_REGISTRATION=enabled` together with `METRICTV_REGISTRATION_MAX_ACCOUNTS` (1 to 10,000) lets people create their own account. Invalid values stop the server at start.
+Off by default. `SELLOVIEW_SELF_REGISTRATION=enabled` together with `SELLOVIEW_REGISTRATION_MAX_ACCOUNTS` (1 to 10,000) lets people create their own account. Invalid values stop the server at start.
 
 - No new endpoint: the same email-code sign-in creates the account, and only after the emailed code was verified. A code request alone creates nothing.
 - The cap counts every account, invited ones included. Existing owners can still sign in at capacity.
@@ -38,11 +38,11 @@ Code: `server/screens/screens.mjs` (storage), `screen-routes.mjs` (HTTP), `app-v
 1. **A code.** The TV page calls `POST /api/tv/challenge`. The server stores a hashed random secret and a hashed 8-symbol code (40 bits, no look-alike characters) for 5 minutes, puts the secret in an HttpOnly `SameSite=Strict` cookie, and returns only the visible code. A TV that asks again drops its earlier challenge. At most 200 are open at once.
 2. **Approval.** A signed-in owner submits the code and a screen name to `POST /api/screens/pair` (the checks above apply). That only marks the challenge approved for the owner's workspace. A wrong, expired or used code gets one identical answer (`400 invalid_code`), so a code never reveals an owner. After 5 wrong codes in 5 minutes that owner cannot approve anything until the window ends, even with the right code. A workspace holds at most 10 screens.
 3. **The exchange.** The TV polls `GET /api/tv/pairing` and, once approved, calls `POST /api/tv/pairing/exchange`. Only the holder of the challenge cookie can do this, once. The challenge row is deleted in the same transaction that creates the display session: an opaque random credential whose SHA-256 hash is stored.
-4. **Display.** `GET /api/display` returns the screen name, the workspace's period, theme and revision, the server's clock (`serverTime`, so a TV with a wrong clock still judges staleness correctly), `appVersion` (the TV reloads when it changes), `pollSeconds` (how often to ask next), an honest `storeConnection` state and, for a connected store, the display-only `board`. A screen in use renews its pairing to a full 30 days, at most once a day; one that is off for 30 days is paired again. Owners list their screens (`GET /api/screens`) and remove one (`POST /api/screens/revoke`); removal takes effect on the next request. A TV can also load the store's logo from `GET /api/display/logo`, served by MetricTV so no Shopify address reaches the TV.
+4. **Display.** `GET /api/display` returns the screen name, the workspace's period, theme and revision, the server's clock (`serverTime`, so a TV with a wrong clock still judges staleness correctly), `appVersion` (the TV reloads when it changes), `pollSeconds` (how often to ask next), an honest `storeConnection` state and, for a connected store, the display-only `board`. A screen in use renews its pairing to a full 30 days, at most once a day; one that is off for 30 days is paired again. Owners list their screens (`GET /api/screens`) and remove one (`POST /api/screens/revoke`); removal takes effect on the next request. A TV can also load the store's logo from `GET /api/display/logo`, served by Selloview so no Shopify address reaches the TV.
 
 Display cookies are not accepted by any owner route, and session cookies are not accepted by any TV route. On https the TV cookies are `__Host-` prefixed and `Secure`.
 
-Rate limits are in memory, so a restart clears them. They count a visitor by the address in the header named by `METRICTV_TRUSTED_IP_HEADER` (on in `.env.example`, matching the Caddyfile that overwrites it), or by the socket address when none is trusted. An IPv6 visitor is counted by /64. The numbers:
+Rate limits are in memory, so a restart clears them. They count a visitor by the address in the header named by `SELLOVIEW_TRUSTED_IP_HEADER` (on in `.env.example`, matching the Caddyfile that overwrites it), or by the socket address when none is trusted. An IPv6 visitor is counted by /64. The numbers:
 
 | What | Limit |
 | --- | --- |
@@ -64,13 +64,13 @@ Code, all in `server/shopify/`: `config.mjs` (settings), `connect-flow.mjs` (the
 
 | Setting | Meaning |
 | --- | --- |
-| `METRICTV_SHOPIFY_CLIENT_ID`, `METRICTV_SHOPIFY_CLIENT_SECRET` | The Shopify app's credentials, server-only. |
-| `METRICTV_SHOPIFY_ENCRYPTION_KEY` | Canonical base64 of 32 random bytes. Never reuse the app secret. |
-| `METRICTV_SHOPIFY_TOKEN_DIR` | Absolute directory outside the project for the encrypted grant files (`<workspace-id>.grant.json`, mode 0600, directory 0700). |
-| `METRICTV_SHOPIFY_ALLOWED_STORE` | The one exact `*.myshopify.com` host that may be connected. |
-| `METRICTV_SHOPIFY_OWNER_EMAIL` | The one owner address that may connect it. |
+| `SELLOVIEW_SHOPIFY_CLIENT_ID`, `SELLOVIEW_SHOPIFY_CLIENT_SECRET` | The Shopify app's credentials, server-only. |
+| `SELLOVIEW_SHOPIFY_ENCRYPTION_KEY` | Canonical base64 of 32 random bytes. Never reuse the app secret. |
+| `SELLOVIEW_SHOPIFY_TOKEN_DIR` | Absolute directory outside the project for the encrypted grant files (`<workspace-id>.grant.json`, mode 0600, directory 0700). |
+| `SELLOVIEW_SHOPIFY_ALLOWED_STORE` | The one exact `*.myshopify.com` host that may be connected. |
+| `SELLOVIEW_SHOPIFY_OWNER_EMAIL` | The one owner address that may connect it. |
 
-None set: the owner page and TVs say "setup required" and nothing contacts Shopify. Some but not all, or any malformed value: the server refuses to start, naming the setting but never its value. The Shopify app must allow the redirect URL `METRICTV_ORIGIN` + `/auth/beta/shopify/callback`, and request only `read_all_orders`, `read_orders`, `read_products` and `read_inventory`. A token that comes back with any other scope is refused.
+None set: the owner page and TVs say "setup required" and nothing contacts Shopify. Some but not all, or any malformed value: the server refuses to start, naming the setting but never its value. The Shopify app must allow the redirect URL `SELLOVIEW_ORIGIN` + `/auth/beta/shopify/callback`, and request only `read_all_orders`, `read_orders`, `read_products` and `read_inventory`. A token that comes back with any other scope is refused.
 
 ### Rules
 
@@ -89,7 +89,7 @@ The sign-in code reaches the auth layer through an injected, server-only transpo
 ## Known limits
 
 - A code request for an uninvited address gets the same reply as for an invited one, and every answer from the sign-in endpoints takes at least `MIN_ANSWER_MS` (100 ms, `auth-gateway.mjs`), far more than the work behind it, so the time says nothing either. Without that minimum an invited address answered about 0.1 ms faster, which is measurable with enough requests. Two things follow. A failing mail provider is invisible to the visitor, so an owner whose code never arrives has to ask the operator to read the journal. And work that ever approached 100 ms would show through (the `ceiling:` comment on the constant). With self-service registration on, anyone can create an account anyway.
-- Behind a proxy without `METRICTV_TRUSTED_IP_HEADER`, all visitors share one rate-limit bucket, so anyone can use up the sign-in, pairing and callback allowances for the owner ([gotchas.md](gotchas.md#behind-a-proxy-every-visitor-looks-like-the-proxy)).
+- Behind a proxy without `SELLOVIEW_TRUSTED_IP_HEADER`, all visitors share one rate-limit bucket, so anyone can use up the sign-in, pairing and callback allowances for the owner ([gotchas.md](gotchas.md#behind-a-proxy-every-visitor-looks-like-the-proxy)).
 - Removing an owner is an operator command, `npm run admin -- remove <email>`: it deletes the account, workspace, screens and stored Shopify credentials (the grant file first, so a failure leaves the owner untouched and the command can be run again), but not the Shopify app in the store. `revoke` only signs an owner out and the address stays invited.
 - Not implemented: an owner deleting their own account, email change, Shopify uninstall and privacy webhooks, billing. One store and one owner may connect per instance.
 - Better Auth creates its own tables through its migration; `npm run admin -- migrate` applies it and the app's own tables.

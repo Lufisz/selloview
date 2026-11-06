@@ -24,7 +24,7 @@ export function projectBoardForDisplay(snapshot, sync, logoVersion = null) {
   return {
     source: snapshot.source,
     // No domain, no plan: the TV needs the name (and logo) for its heading, the rest for
-    // formatting. The logo itself is served by MetricTV, so no Shopify address goes to the TV.
+    // formatting. The logo itself is served by Selloview, so no Shopify address goes to the TV.
     shop: {
       name: snapshot.shop.name,
       currency: snapshot.shop.currency,

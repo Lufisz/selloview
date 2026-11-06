@@ -10,15 +10,15 @@ import {
 } from '../../server/private-files.mjs';
 
 test('a configured path must be absolute, already normalized and free of NUL bytes', () => {
-  assert.equal(isCleanAbsolutePath('/var/lib/metrictv/metrictv.sqlite'), true);
+  assert.equal(isCleanAbsolutePath('/var/lib/selloview/selloview.sqlite'), true);
 
   const refused = [
-    'metrictv.sqlite',
-    './metrictv.sqlite',
-    '/var/lib/../lib/metrictv.sqlite',
-    '/var/lib//metrictv.sqlite',
-    '/var/lib/./metrictv.sqlite',
-    '/var/lib/metrictv\0.sqlite',
+    'selloview.sqlite',
+    './selloview.sqlite',
+    '/var/lib/../lib/selloview.sqlite',
+    '/var/lib//selloview.sqlite',
+    '/var/lib/./selloview.sqlite',
+    '/var/lib/selloview\0.sqlite',
     '',
     undefined,
     42,

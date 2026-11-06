@@ -64,18 +64,18 @@ async function startRegistering(t, environment, maxAccounts) {
 
 test('registration config is closed by default and validates the cap', () => {
   assert.deepEqual(loadRegistrationConfig({}), { enabled: false, maxAccounts: 0 });
-  assert.throws(() => loadRegistrationConfig({ METRICTV_SELF_REGISTRATION: 'yes' }));
-  assert.throws(() => loadRegistrationConfig({ METRICTV_SELF_REGISTRATION: 'enabled' }));
+  assert.throws(() => loadRegistrationConfig({ SELLOVIEW_SELF_REGISTRATION: 'yes' }));
+  assert.throws(() => loadRegistrationConfig({ SELLOVIEW_SELF_REGISTRATION: 'enabled' }));
   assert.throws(() =>
     loadRegistrationConfig({
-      METRICTV_SELF_REGISTRATION: 'enabled',
-      METRICTV_REGISTRATION_MAX_ACCOUNTS: '0',
+      SELLOVIEW_SELF_REGISTRATION: 'enabled',
+      SELLOVIEW_REGISTRATION_MAX_ACCOUNTS: '0',
     }),
   );
   assert.deepEqual(
     loadRegistrationConfig({
-      METRICTV_SELF_REGISTRATION: 'enabled',
-      METRICTV_REGISTRATION_MAX_ACCOUNTS: '25',
+      SELLOVIEW_SELF_REGISTRATION: 'enabled',
+      SELLOVIEW_REGISTRATION_MAX_ACCOUNTS: '25',
     }),
     { enabled: true, maxAccounts: 25 },
   );

@@ -74,8 +74,8 @@ test('the client accepts only well-formed connections and drops unusable snapsho
 });
 
 test('starting a connection sends only the canonical store and follows only a Shopify address', async () => {
-  const authorize = `https://${SYNTHETIC_STORE}/admin/oauth/authorize?client_id=x&scope=read_all_orders,read_orders,read_products,read_inventory&redirect_uri=https%3A%2F%2Fmetrictv.example.test%2Fauth%2Fbeta%2Fshopify%2Fcallback&state=abc`;
-  const callbackUrl = 'https://metrictv.example.test/auth/beta/shopify/callback';
+  const authorize = `https://${SYNTHETIC_STORE}/admin/oauth/authorize?client_id=x&scope=read_all_orders,read_orders,read_products,read_inventory&redirect_uri=https%3A%2F%2Fselloview.example.test%2Fauth%2Fbeta%2Fshopify%2Fcallback&state=abc`;
+  const callbackUrl = 'https://selloview.example.test/auth/beta/shopify/callback';
   const ok = fakeFetch(200, { authorizationUrl: authorize });
   const started = await startShopifyConnection(
     { csrfToken: 'tok', storeText: ` ${SYNTHETIC_STORE.toUpperCase()} `, callbackUrl },
@@ -103,7 +103,7 @@ test('starting a connection sends only the canonical store and follows only a Sh
     `https://${SYNTHETIC_STORE}/somewhere/else`,
     `${authorize}&scope=write_orders`,
     authorize.replace('read_all_orders,read_orders,read_products,read_inventory', 'write_orders'),
-    authorize.replace('metrictv.example.test', 'evil.example.test'),
+    authorize.replace('selloview.example.test', 'evil.example.test'),
     'javascript:alert(1)',
     42,
   ]) {
@@ -271,7 +271,7 @@ test('store text is escaped and no credential detail can appear in the panel', (
 test('the owner board shows real-shaped figures with no demo, live-page or TV controls', () => {
   const session = {
     owner: { email: OWNER },
-    workspace: { name: 'My MetricTV', revision: 0, settings: { period: 'week', theme: 'light' } },
+    workspace: { name: 'My Selloview', revision: 0, settings: { period: 'week', theme: 'light' } },
     storeConnection: { state: 'connected' },
     csrfToken: 'owner-csrf-token',
   };

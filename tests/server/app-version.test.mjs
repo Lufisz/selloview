@@ -11,7 +11,7 @@ import { isNewAppVersion } from '../../public/tv/tv-client.js';
 const THIRTY_ONE_SECONDS_MS = 31 * 1000;
 
 async function makePublicDirectory(t) {
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'metrictv-app-version-'));
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'selloview-app-version-'));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   await fs.mkdir(path.join(directory, 'tv'));
   await fs.mkdir(path.join(directory, 'owner'));

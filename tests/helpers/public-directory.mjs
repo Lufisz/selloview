@@ -57,7 +57,7 @@ export const ATTACK_PATHS = [
 
 /** Creates the directory and removes it again when the test (or suite) `context` finishes. */
 export function makePublicDirectory(context) {
-  const parent = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'metrictv-public-'));
+  const parent = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'selloview-public-'));
   context.after(() => fs.rmSync(parent, { recursive: true, force: true }));
 
   const publicDir = path.join(parent, 'public');

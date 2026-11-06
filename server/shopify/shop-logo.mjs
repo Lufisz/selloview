@@ -3,7 +3,7 @@
 //
 // The Admin API does not expose brand assets; the Storefront API does, without a token, because
 // the logo is already public on the storefront. The server downloads the image itself and the
-// TV loads it from MetricTV, so the TV never contacts Shopify and the page keeps `img-src 'self'`.
+// TV loads it from Selloview, so the TV never contacts Shopify and the page keeps `img-src 'self'`.
 //
 // Only a PNG or JPEG from Shopify's CDN is accepted (some older TV browsers cannot show WebP),
 // and every read is bounded in time and size.

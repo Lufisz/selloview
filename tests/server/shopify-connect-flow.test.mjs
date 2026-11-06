@@ -11,7 +11,7 @@ import { createAppEnvironment } from '../helpers/app-server.mjs';
 import { SYNTHETIC_CLIENT_ID, SYNTHETIC_STORE } from '../helpers/synthetic-shopify.mjs';
 
 const OWNER_EMAIL = 'owner@example.test';
-const ORIGIN = 'https://metrictv.test.example';
+const ORIGIN = 'https://selloview.test.example';
 
 // What the SDK answers to a start: a redirect to Shopify's authorize URL for our app and store,
 // and the two signed cookies that go with its state.

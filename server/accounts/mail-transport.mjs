@@ -23,16 +23,16 @@ export const unconfiguredTransport = Object.freeze({
 });
 
 /**
- * Reads METRICTV_RESEND_API_KEY and METRICTV_MAIL_FROM. Both or neither: a half-configured provider is a
+ * Reads SELLOVIEW_RESEND_API_KEY and SELLOVIEW_MAIL_FROM. Both or neither: a half-configured provider is a
  * startup error rather than a quiet fallback.
  */
 export function loadMailConfig(env = process.env) {
-  const apiKey = env.METRICTV_RESEND_API_KEY ?? '';
-  const sender = env.METRICTV_MAIL_FROM ?? '';
+  const apiKey = env.SELLOVIEW_RESEND_API_KEY ?? '';
+  const sender = env.SELLOVIEW_MAIL_FROM ?? '';
   if (apiKey === '' && sender === '') return null;
-  if (!API_KEY_PATTERN.test(apiKey)) throw new Error('METRICTV_RESEND_API_KEY is not a valid key');
+  if (!API_KEY_PATTERN.test(apiKey)) throw new Error('SELLOVIEW_RESEND_API_KEY is not a valid key');
   if (sender.length > MAX_SENDER_LENGTH || !SENDER_PATTERN.test(sender)) {
-    throw new Error('METRICTV_MAIL_FROM must be an address or "Name <address>"');
+    throw new Error('SELLOVIEW_MAIL_FROM must be an address or "Name <address>"');
   }
   return { apiKey, sender };
 }
@@ -41,9 +41,9 @@ function buildMessage({ sender, recipient, code, validMinutes }) {
   return {
     from: sender,
     to: [recipient],
-    subject: 'Your MetricTV sign-in code',
+    subject: 'Your Selloview sign-in code',
     text:
-      `Your MetricTV sign-in code is ${code}.\n\n` +
+      `Your Selloview sign-in code is ${code}.\n\n` +
       `It expires in ${validMinutes} minutes and works once. ` +
       'If you did not ask for it, ignore this message.',
   };

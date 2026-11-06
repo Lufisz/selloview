@@ -15,7 +15,7 @@ export const SEND_CODE_PATH = '/email-otp/send-verification-otp';
 export const SIGN_IN_PATH = '/sign-in/email-otp';
 export const SIGN_OUT_PATH = '/sign-out';
 // Set by this server from the socket (or a configured trusted proxy header), never by browsers.
-export const CLIENT_IP_HEADER = 'x-metrictv-client-ip';
+export const CLIENT_IP_HEADER = 'x-selloview-client-ip';
 
 // Paths a browser-originated request may reach inside Better Auth (/get-session is used only by
 // this server's own session lookup, never forwarded from the network).
@@ -100,7 +100,7 @@ function restrictBrowserEndpoints() {
  * @param {object} options
  * @param {import('node:sqlite').DatabaseSync} options.database
  * @param {string} options.secret  Operator-provided, at least 32 characters.
- * @param {string} options.origin  Exact public origin, e.g. https://metrictv.example.com.
+ * @param {string} options.origin  Exact public origin, e.g. https://selloview.example.com.
  * @param {{sendSignInCode: Function}} options.mailTransport
  * @param {boolean} [options.allowUserCreation]  True only for the operator invite command.
  * @param {import('./registration.mjs').closedRegistration} [options.registration]
@@ -116,7 +116,7 @@ export function createAuthOptions({
 }) {
   const isHttps = new URL(origin).protocol === 'https:';
   return {
-    appName: 'MetricTV',
+    appName: 'Selloview',
     baseURL: origin,
     basePath: AUTH_BASE_PATH,
     secret,

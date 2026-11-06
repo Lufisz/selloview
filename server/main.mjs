@@ -1,4 +1,4 @@
-// Starts the MetricTV app server from the environment (see .env.example). Loopback only: a tunnel
+// Starts the Selloview app server from the environment (see .env.example). Loopback only: a tunnel
 // or proxy in front is the operator's separate, explicitly approved step.
 import { createAuth } from './accounts/auth.mjs';
 import { openInitializedDatabase } from './accounts/accounts.mjs';
@@ -15,7 +15,7 @@ import { loadShopifyConfig } from './shopify/config.mjs';
 import { createShopifyService } from './shopify/connection-service.mjs';
 
 function exitCannotStart(error) {
-  console.error(`MetricTV cannot start: ${error.message}`);
+  console.error(`Selloview cannot start: ${error.message}`);
   process.exit(1);
 }
 
@@ -47,7 +47,7 @@ function startFromEnvironment() {
     const delivery = mailTransport.configured
       ? 'configured'
       : 'NOT configured (sign-in codes cannot be sent)';
-    console.log(`MetricTV listening on http://${config.host}:${config.port} for ${config.origin}`);
+    console.log(`Selloview listening on http://${config.host}:${config.port} for ${config.origin}`);
     console.log(`Email delivery: ${delivery}`);
     const signUp = registration.enabled
       ? `OPEN, capped at ${registrationConfig.maxAccounts} accounts`
@@ -58,7 +58,7 @@ function startFromEnvironment() {
     const addressSource =
       config.trustedIpHeader === ''
         ? 'the connection (behind a proxy, every visitor looks like the proxy: ' +
-          'see METRICTV_TRUSTED_IP_HEADER)'
+          'see SELLOVIEW_TRUSTED_IP_HEADER)'
         : `the ${config.trustedIpHeader} header`;
     console.log(`Client address for rate limits: ${addressSource}`);
   });

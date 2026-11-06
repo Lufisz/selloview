@@ -61,7 +61,7 @@ function registrationClosedHtml(state) {
   const heading = full ? 'The beta is at capacity.' : 'Registration is not open yet.';
   const description = full
     ? 'New registrations are paused while the beta is at capacity. Existing owners can still sign in.'
-    : 'We are testing MetricTV with a small group of stores before opening registration.';
+    : 'We are testing Selloview with a small group of stores before opening registration.';
   return entryPageHtml(
     `<section class="entry-card" aria-labelledby="owner-title">
         <p class="entry-status">Private beta</p>
@@ -89,7 +89,7 @@ export function renderSignIn(state) {
       <p class="entry-status">${state.registering ? 'Free beta' : 'Private beta'}</p>
       <h1 id="owner-title">${heading}</h1>
       ${stepHtml}
-      <a class="entry-back" href="/">Back to MetricTV</a>
+      <a class="entry-back" href="/">Back to Selloview</a>
     </section>`,
   );
 }

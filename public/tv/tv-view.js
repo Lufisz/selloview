@@ -13,7 +13,7 @@ const TV_MESSAGES = Object.freeze({
   unexpected: 'Something went wrong. Trying again shortly.',
 });
 
-// Served by MetricTV itself; the version in the address lets the TV cache the image safely.
+// Served by Selloview itself; the version in the address lets the TV cache the image safely.
 const LOGO_PATH = '/api/display/logo';
 const LOGO_VERSION_PATTERN = /^[A-Za-z0-9_-]{16}$/;
 
@@ -38,7 +38,7 @@ export function renderWaiting({ code, message }) {
     `<section class="board tv-card" aria-labelledby="tv-title">
       <p class="eyebrow"><span class="tiny-line"></span>NOT PAIRED</p>
       <h1 id="tv-title">Pair this screen.</h1>
-      <p class="tv-steps">Sign in to MetricTV on your phone or computer, open <strong>Screens</strong> and enter this code.</p>
+      <p class="tv-steps">Sign in to Selloview on your phone or computer, open <strong>Screens</strong> and enter this code.</p>
       <p class="tv-code" aria-label="Pairing code">${escapeHtml(code)}</p>
       <p class="field-hint">The code works once and expires in 5 minutes. A new one appears by itself. Approving it does not show it to anyone else.</p>
       ${notice}
@@ -58,9 +58,9 @@ export function renderConnecting() {
 const STORE_STATE_MESSAGES = Object.freeze({
   setup_required: 'Store connection is not set up on this server yet.',
   owner_not_allowed: 'Store connection is not available for this workspace.',
-  not_connected: 'No store is connected. Connect one from your MetricTV workspace page.',
+  not_connected: 'No store is connected. Connect one from your Selloview workspace page.',
   reconnect_required:
-    'Store access ended. Reconnect the store from your MetricTV workspace page to see figures again.',
+    'Store access ended. Reconnect the store from your Selloview workspace page to see figures again.',
   connected: 'Connected. Waiting for the first figures from the store.',
   connected_failed: 'Connected, but the store could not be read yet. Trying again shortly.',
 });

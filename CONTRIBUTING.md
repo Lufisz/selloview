@@ -1,6 +1,6 @@
-# Contributing to MetricTV
+# Contributing to Selloview
 
-Thanks for helping. MetricTV is deliberately small, so the bar is "would a new developer understand
+Thanks for helping. Selloview is deliberately small, so the bar is "would a new developer understand
 this in one read?" more than "is this clever?".
 
 ## Before you start
@@ -24,7 +24,7 @@ npm test           # all tests
 ```
 
 To run the full app locally (`npm run start:server`), follow [docs/self-hosting.md](docs/self-hosting.md) with
-`METRICTV_ORIGIN=http://127.0.0.1:4330` and a database path outside the project.
+`SELLOVIEW_ORIGIN=http://127.0.0.1:4330` and a database path outside the project.
 
 ## What a good pull request looks like
 
@@ -53,7 +53,7 @@ To run the full app locally (`npm run start:server`), follow [docs/self-hosting.
 
 ## Licence of contributions
 
-MetricTV is licensed under AGPL-3.0. By opening a pull request you agree that your contribution is
+Selloview is licensed under AGPL-3.0. By opening a pull request you agree that your contribution is
 licensed under the same terms.
 
 ## Reporting bugs

@@ -78,7 +78,7 @@ test('only listed files are found, and a symlink cannot reach a file that is not
 });
 
 test('symlinks cannot disguise hidden files, forbidden types or unlisted entry points', async (context) => {
-  const directory = await mkdtemp(join(tmpdir(), 'metrictv-alias-test-'));
+  const directory = await mkdtemp(join(tmpdir(), 'selloview-alias-test-'));
   context.after(() => rm(directory, { recursive: true, force: true }));
   const publicDirectory = join(directory, 'public');
   await mkdir(publicDirectory);

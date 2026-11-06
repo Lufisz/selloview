@@ -46,7 +46,7 @@ export const ERROR_MESSAGES = Object.freeze({
   setup_required: 'Store connection is not set up on this server yet.',
   owner_not_allowed: 'Store connection is limited to the owner this server is set up for.',
   store_not_allowed: 'This server can connect only one specific store, and this is not it.',
-  store_in_use: 'That store is already connected to another MetricTV workspace.',
+  store_in_use: 'That store is already connected to another Selloview workspace.',
   invalid_store: 'Enter the store address as shown in Shopify, ending in .myshopify.com.',
   start_failed: 'Shopify authorization could not be started. Nothing was changed. Try again.',
   unsupported_client: 'This browser cannot start the Shopify authorization.',

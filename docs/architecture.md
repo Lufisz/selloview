@@ -114,7 +114,7 @@ Browser: `escapeHtml`, `hasOwn`, `money`, `percentChange`, `normaliseStore` (`sh
 
 ## Names that never change
 
-These are stored on disk, registered outside this repository or held by open browser tabs. Renaming one signs owners out, unpairs TVs, orphans encrypted grants or breaks the Shopify app configuration. `tests/server/stable-identifiers.test.mjs` asserts them, and several still say "beta" for that reason.
+These are stored on disk, registered outside this repository or held by open browser tabs. Renaming one signs owners out, unpairs TVs, orphans encrypted grants or breaks the Shopify app configuration. `tests/server/stable-identifiers.test.mjs` asserts them, and several still say "beta" or "metrictv" (the project's earlier name) for that reason.
 
 - Owner session cookie prefix `metrictv_beta` (`accounts/auth.mjs`), and the CSRF label `beta-csrf` (`accounts/owner-session.mjs`).
 - TV cookies `metrictv_tv_challenge` and `metrictv_tv_display` (`__Host-` prefixed on https).

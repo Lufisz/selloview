@@ -12,7 +12,7 @@ import { createShopifySdk } from '../../server/shopify/sdk.mjs';
 import { createTokenStore } from '../../server/shopify/token-store.mjs';
 
 const STORE = 'synthetic-test-store.myshopify.com';
-const ORIGIN = 'https://metrictv.test.example';
+const ORIGIN = 'https://selloview.test.example';
 const CLIENT_ID = 'synthetic_client_id_0001';
 const CLIENT_SECRET = 'synthetic_client_secret_value_0001';
 const KEY = crypto.randomBytes(32);
@@ -24,7 +24,7 @@ const NINETY_DAYS_MS = 90 * 24 * HOUR_MS;
 let scratch;
 before(async () => {
   // The token store refuses a directory reached through a symlink, and os.tmpdir() is one on macOS.
-  scratch = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'metrictv-grants-'));
+  scratch = await fs.mkdtemp(path.join(await fs.realpath(os.tmpdir()), 'selloview-grants-'));
 });
 after(async () => {
   await fs.rm(scratch, { recursive: true, force: true });

@@ -88,7 +88,7 @@ test('session cookie is HttpOnly, SameSite=Strict and expires', http, async (t) 
 
 test('an https origin makes the session cookie Secure with a __Secure- prefix', http, async (t) => {
   const environment = await createAppEnvironment(t, { invites: [ALICE] });
-  const httpsOrigin = 'https://metrictv.example.test';
+  const httpsOrigin = 'https://selloview.example.test';
   const transport = createMemoryMailTransport();
   const database = openInitializedDatabase(environment.databasePath);
   t.after(() => database.close());

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-MetricTV is a small, dependency-light business wallboard: a read-only Shopify dashboard for TVs. Plain Node ESM on the server, plain browser JavaScript and CSS, no build step, two runtime dependencies (`better-auth`, `@shopify/shopify-api`). Keep source code as calm and understandable as the interface.
+Selloview is a small, dependency-light business wallboard: a read-only Shopify dashboard for TVs. Plain Node ESM on the server, plain browser JavaScript and CSS, no build step, two runtime dependencies (`better-auth`, `@shopify/shopify-api`). Keep source code as calm and understandable as the interface.
 
 ## Quick map
 
@@ -44,7 +44,7 @@ Needs Node 22.16 or later. The database is the built-in `node:sqlite`.
 - Read `SECURITY.md` before changing data access, rendering, files, authentication or deployment.
 - Keep Shopify access read-only and server-side. No browser token fields, secrets in Git, client-controlled GraphQL or arbitrary store URLs.
 - Authorize every live route on the server. Client state and UI visibility are never authorization.
-- The server listens on loopback only, with an HTTPS reverse proxy in front. A client address from a proxy header is trusted only when the operator names that header in `METRICTV_TRUSTED_IP_HEADER`. Do not widen the listener or trust more headers without explicit approval.
+- The server listens on loopback only, with an HTTPS reverse proxy in front. A client address from a proxy header is trusted only when the operator names that header in `SELLOVIEW_TRUSTED_IP_HEADER`. Do not widen the listener or trust more headers without explicit approval.
 - Escape all external text and attributes, validate numbers before building SVG, and restrict external links to intended HTTPS destinations. Shared templates must not trust a value merely because another caller validated it.
 - Restrict static files to the public root, allowed file types and intended entry points. Block dotfiles and symlink escapes.
 - Bound requests, pagination and output. Use fixed query allowlists and argument arrays, never a shell with interpolated input.

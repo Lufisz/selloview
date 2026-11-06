@@ -35,33 +35,33 @@ import {
 const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const VALID_SECRET = 'S'.repeat(40);
 const GOOD_ENV = {
-  METRICTV_DB_PATH: '/var/tmp/metrictv-private/metrictv.sqlite',
-  METRICTV_AUTH_SECRET: VALID_SECRET,
-  METRICTV_ORIGIN: 'https://metrictv.example.test',
+  SELLOVIEW_DB_PATH: '/var/tmp/selloview-private/selloview.sqlite',
+  SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+  SELLOVIEW_ORIGIN: 'https://selloview.example.test',
 };
 
 test('configuration rejects unsafe or missing values instead of defaulting', () => {
   const config = loadServerConfig(GOOD_ENV);
   assert.equal(config.host, '127.0.0.1');
-  assert.equal(config.origin, 'https://metrictv.example.test');
+  assert.equal(config.origin, 'https://selloview.example.test');
   assert.equal(config.port, 4330);
 
   const badChanges = [
-    { METRICTV_DB_PATH: undefined },
-    { METRICTV_DB_PATH: 'relative/metrictv.sqlite' },
-    { METRICTV_DB_PATH: '/var/tmp/../tmp/metrictv.sqlite' },
-    { METRICTV_DB_PATH: '/var/tmp/beta.db' },
-    { METRICTV_DB_PATH: path.join(PROJECT_ROOT, 'state', 'metrictv.sqlite') },
-    { METRICTV_AUTH_SECRET: 'short' },
-    { METRICTV_AUTH_SECRET: undefined },
-    { METRICTV_ORIGIN: undefined },
-    { METRICTV_ORIGIN: 'http://metrictv.example.test' },
-    { METRICTV_ORIGIN: 'https://metrictv.example.test/' },
-    { METRICTV_ORIGIN: 'https://metrictv.example.test/path' },
-    { METRICTV_ORIGIN: 'https://user:pass@metrictv.example.test' },
-    { METRICTV_PORT: '0' },
-    { METRICTV_PORT: 'abc' },
-    { METRICTV_TRUSTED_IP_HEADER: 'bad header' },
+    { SELLOVIEW_DB_PATH: undefined },
+    { SELLOVIEW_DB_PATH: 'relative/selloview.sqlite' },
+    { SELLOVIEW_DB_PATH: '/var/tmp/../tmp/selloview.sqlite' },
+    { SELLOVIEW_DB_PATH: '/var/tmp/beta.db' },
+    { SELLOVIEW_DB_PATH: path.join(PROJECT_ROOT, 'state', 'selloview.sqlite') },
+    { SELLOVIEW_AUTH_SECRET: 'short' },
+    { SELLOVIEW_AUTH_SECRET: undefined },
+    { SELLOVIEW_ORIGIN: undefined },
+    { SELLOVIEW_ORIGIN: 'http://selloview.example.test' },
+    { SELLOVIEW_ORIGIN: 'https://selloview.example.test/' },
+    { SELLOVIEW_ORIGIN: 'https://selloview.example.test/path' },
+    { SELLOVIEW_ORIGIN: 'https://user:pass@selloview.example.test' },
+    { SELLOVIEW_PORT: '0' },
+    { SELLOVIEW_PORT: 'abc' },
+    { SELLOVIEW_TRUSTED_IP_HEADER: 'bad header' },
   ];
   for (const change of badChanges) {
     assert.throws(
@@ -71,7 +71,7 @@ test('configuration rejects unsafe or missing values instead of defaulting', () 
     );
   }
   assert.equal(
-    loadServerConfig({ ...GOOD_ENV, METRICTV_ORIGIN: 'http://127.0.0.1:4330' }).origin,
+    loadServerConfig({ ...GOOD_ENV, SELLOVIEW_ORIGIN: 'http://127.0.0.1:4330' }).origin,
     'http://127.0.0.1:4330',
   );
 });
@@ -92,27 +92,43 @@ test('a Node.js whose SQLite statements lack columns() is refused at start, nami
   assert.doesNotThrow(() => assertSupportedRuntime());
 });
 
-// The settings were called BETA_* before the project went public. A stale environment file has to
-// stop the server: a half-renamed configuration would run with the old half silently ignored.
+// The settings were called BETA_* and then METRICTV_* before the project became Selloview. A stale
+// environment file has to stop the server: a half-renamed configuration would run with the old half
+// silently ignored.
 const RENAMED_SETTINGS = [
-  ['BETA_DB_PATH', 'METRICTV_DB_PATH'],
-  ['BETA_AUTH_SECRET', 'METRICTV_AUTH_SECRET'],
-  ['BETA_ORIGIN', 'METRICTV_ORIGIN'],
-  ['BETA_PORT', 'METRICTV_PORT'],
-  ['BETA_TRUSTED_IP_HEADER', 'METRICTV_TRUSTED_IP_HEADER'],
-  ['BETA_RESEND_API_KEY', 'METRICTV_RESEND_API_KEY'],
-  ['BETA_MAIL_FROM', 'METRICTV_MAIL_FROM'],
-  ['BETA_SELF_REGISTRATION', 'METRICTV_SELF_REGISTRATION'],
-  ['BETA_REGISTRATION_MAX_ACCOUNTS', 'METRICTV_REGISTRATION_MAX_ACCOUNTS'],
-  ['BETA_SHOPIFY_CLIENT_ID', 'METRICTV_SHOPIFY_CLIENT_ID'],
-  ['BETA_SHOPIFY_CLIENT_SECRET', 'METRICTV_SHOPIFY_CLIENT_SECRET'],
-  ['BETA_SHOPIFY_ENCRYPTION_KEY', 'METRICTV_SHOPIFY_ENCRYPTION_KEY'],
-  ['BETA_SHOPIFY_TOKEN_DIR', 'METRICTV_SHOPIFY_TOKEN_DIR'],
-  ['BETA_SHOPIFY_ALLOWED_STORE', 'METRICTV_SHOPIFY_ALLOWED_STORE'],
-  ['BETA_SHOPIFY_OWNER_EMAIL', 'METRICTV_SHOPIFY_OWNER_EMAIL'],
+  ['BETA_DB_PATH', 'SELLOVIEW_DB_PATH'],
+  ['BETA_AUTH_SECRET', 'SELLOVIEW_AUTH_SECRET'],
+  ['BETA_ORIGIN', 'SELLOVIEW_ORIGIN'],
+  ['BETA_PORT', 'SELLOVIEW_PORT'],
+  ['BETA_TRUSTED_IP_HEADER', 'SELLOVIEW_TRUSTED_IP_HEADER'],
+  ['BETA_RESEND_API_KEY', 'SELLOVIEW_RESEND_API_KEY'],
+  ['BETA_MAIL_FROM', 'SELLOVIEW_MAIL_FROM'],
+  ['BETA_SELF_REGISTRATION', 'SELLOVIEW_SELF_REGISTRATION'],
+  ['BETA_REGISTRATION_MAX_ACCOUNTS', 'SELLOVIEW_REGISTRATION_MAX_ACCOUNTS'],
+  ['BETA_SHOPIFY_CLIENT_ID', 'SELLOVIEW_SHOPIFY_CLIENT_ID'],
+  ['BETA_SHOPIFY_CLIENT_SECRET', 'SELLOVIEW_SHOPIFY_CLIENT_SECRET'],
+  ['BETA_SHOPIFY_ENCRYPTION_KEY', 'SELLOVIEW_SHOPIFY_ENCRYPTION_KEY'],
+  ['BETA_SHOPIFY_TOKEN_DIR', 'SELLOVIEW_SHOPIFY_TOKEN_DIR'],
+  ['BETA_SHOPIFY_ALLOWED_STORE', 'SELLOVIEW_SHOPIFY_ALLOWED_STORE'],
+  ['BETA_SHOPIFY_OWNER_EMAIL', 'SELLOVIEW_SHOPIFY_OWNER_EMAIL'],
+  ['METRICTV_DB_PATH', 'SELLOVIEW_DB_PATH'],
+  ['METRICTV_AUTH_SECRET', 'SELLOVIEW_AUTH_SECRET'],
+  ['METRICTV_ORIGIN', 'SELLOVIEW_ORIGIN'],
+  ['METRICTV_PORT', 'SELLOVIEW_PORT'],
+  ['METRICTV_TRUSTED_IP_HEADER', 'SELLOVIEW_TRUSTED_IP_HEADER'],
+  ['METRICTV_RESEND_API_KEY', 'SELLOVIEW_RESEND_API_KEY'],
+  ['METRICTV_MAIL_FROM', 'SELLOVIEW_MAIL_FROM'],
+  ['METRICTV_SELF_REGISTRATION', 'SELLOVIEW_SELF_REGISTRATION'],
+  ['METRICTV_REGISTRATION_MAX_ACCOUNTS', 'SELLOVIEW_REGISTRATION_MAX_ACCOUNTS'],
+  ['METRICTV_SHOPIFY_CLIENT_ID', 'SELLOVIEW_SHOPIFY_CLIENT_ID'],
+  ['METRICTV_SHOPIFY_CLIENT_SECRET', 'SELLOVIEW_SHOPIFY_CLIENT_SECRET'],
+  ['METRICTV_SHOPIFY_ENCRYPTION_KEY', 'SELLOVIEW_SHOPIFY_ENCRYPTION_KEY'],
+  ['METRICTV_SHOPIFY_TOKEN_DIR', 'SELLOVIEW_SHOPIFY_TOKEN_DIR'],
+  ['METRICTV_SHOPIFY_ALLOWED_STORE', 'SELLOVIEW_SHOPIFY_ALLOWED_STORE'],
+  ['METRICTV_SHOPIFY_OWNER_EMAIL', 'SELLOVIEW_SHOPIFY_OWNER_EMAIL'],
 ];
 
-test('a leftover BETA_ setting is refused with its replacement named, and its value is never printed', () => {
+test('a leftover BETA_ or METRICTV_ setting is refused with its replacement named, and its value is never printed', () => {
   const leftoverValue = 'leftover-value-that-must-not-be-printed';
   for (const [oldName, newName] of RENAMED_SETTINGS) {
     assert.throws(
@@ -135,9 +151,9 @@ test('a leftover setting counts even when empty, all of them are listed, and unk
         BETA_SHOPIFY_TOKEN_DIR: '',
       }),
     (error) =>
-      error.message.includes('BETA_PORT is now METRICTV_PORT') &&
-      error.message.includes('BETA_ORIGIN is now METRICTV_ORIGIN') &&
-      error.message.includes('BETA_SHOPIFY_TOKEN_DIR is now METRICTV_SHOPIFY_TOKEN_DIR'),
+      error.message.includes('BETA_PORT is now SELLOVIEW_PORT') &&
+      error.message.includes('BETA_ORIGIN is now SELLOVIEW_ORIGIN') &&
+      error.message.includes('BETA_SHOPIFY_TOKEN_DIR is now SELLOVIEW_SHOPIFY_TOKEN_DIR'),
   );
   // A name this project never had is not a renamed setting.
   assert.equal(loadServerConfig({ ...GOOD_ENV, BETA_UNRELATED: 'x' }).port, 4330);
@@ -155,8 +171,8 @@ function parseSettingsFile(text) {
 
 test('an untouched copy of .env.example starts once the secret is set, with mail and Shopify not configured', async () => {
   const env = parseSettingsFile(await fs.readFile(path.join(PROJECT_ROOT, '.env.example'), 'utf8'));
-  assert.equal(env.METRICTV_AUTH_SECRET, '', 'the operator has to generate the secret');
-  env.METRICTV_AUTH_SECRET = VALID_SECRET;
+  assert.equal(env.SELLOVIEW_AUTH_SECRET, '', 'the operator has to generate the secret');
+  env.SELLOVIEW_AUTH_SECRET = VALID_SECRET;
 
   assert.doesNotThrow(() => loadServerConfig(env));
   assert.equal(loadMailConfig(env), null);
@@ -171,18 +187,18 @@ test('.env.example trusts the header that deploy/Caddyfile overwrites, so the tw
     match[1].toLowerCase(),
   );
   assert.ok(
-    env.METRICTV_TRUSTED_IP_HEADER,
+    env.SELLOVIEW_TRUSTED_IP_HEADER,
     'on by default: behind the proxy every visitor looks the same without it',
   );
   assert.ok(
-    overwrittenHeaders.includes(env.METRICTV_TRUSTED_IP_HEADER),
-    `the Caddyfile overwrites ${overwrittenHeaders.join(', ')}, not ${env.METRICTV_TRUSTED_IP_HEADER}`,
+    overwrittenHeaders.includes(env.SELLOVIEW_TRUSTED_IP_HEADER),
+    `the Caddyfile overwrites ${overwrittenHeaders.join(', ')}, not ${env.SELLOVIEW_TRUSTED_IP_HEADER}`,
   );
 });
 
 test('the private database is created once, private, outside the project, and never auto-created', async (t) => {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'nested', 'metrictv.sqlite');
+  const databasePath = path.join(directory, 'nested', 'selloview.sqlite');
   assert.equal(parseDatabasePath(databasePath), databasePath);
 
   assert.throws(
@@ -240,25 +256,25 @@ test('invite emails are normalized and strictly validated', () => {
 
 test('mail configuration is all-or-nothing and the unconfigured transport fails closed', async () => {
   assert.equal(loadMailConfig({}), null);
-  assert.throws(() => loadMailConfig({ METRICTV_RESEND_API_KEY: 'k'.repeat(30) }));
-  assert.throws(() => loadMailConfig({ METRICTV_MAIL_FROM: 'MetricTV <login@example.test>' }));
+  assert.throws(() => loadMailConfig({ SELLOVIEW_RESEND_API_KEY: 'k'.repeat(30) }));
+  assert.throws(() => loadMailConfig({ SELLOVIEW_MAIL_FROM: 'Selloview <login@example.test>' }));
   assert.throws(() =>
     loadMailConfig({
-      METRICTV_RESEND_API_KEY: 'bad key!',
-      METRICTV_MAIL_FROM: 'login@example.test',
+      SELLOVIEW_RESEND_API_KEY: 'bad key!',
+      SELLOVIEW_MAIL_FROM: 'login@example.test',
     }),
   );
   assert.throws(() =>
     loadMailConfig({
-      METRICTV_RESEND_API_KEY: 'k'.repeat(30),
-      METRICTV_MAIL_FROM: 'a@b.test\r\nBcc: x@y.test',
+      SELLOVIEW_RESEND_API_KEY: 'k'.repeat(30),
+      SELLOVIEW_MAIL_FROM: 'a@b.test\r\nBcc: x@y.test',
     }),
   );
   const config = loadMailConfig({
-    METRICTV_RESEND_API_KEY: 'k'.repeat(30),
-    METRICTV_MAIL_FROM: 'MetricTV <login@example.test>',
+    SELLOVIEW_RESEND_API_KEY: 'k'.repeat(30),
+    SELLOVIEW_MAIL_FROM: 'Selloview <login@example.test>',
   });
-  assert.equal(config.sender, 'MetricTV <login@example.test>');
+  assert.equal(config.sender, 'Selloview <login@example.test>');
 
   assert.equal(unconfiguredTransport.configured, false);
   await assert.rejects(
@@ -275,7 +291,7 @@ test('the Resend adapter sends one bounded HTTPS request and hides provider deta
   };
   const transport = createResendTransport({
     apiKey: 'k'.repeat(30),
-    sender: 'MetricTV <login@example.test>',
+    sender: 'Selloview <login@example.test>',
     fetchImpl: fakeFetch,
   });
   await transport.sendSignInCode({ recipient: 'owner@example.test', code: '654321' });
@@ -288,7 +304,7 @@ test('the Resend adapter sends one bounded HTTPS request and hides provider deta
   assert.equal(calls[0].options.headers.Authorization, `Bearer ${'k'.repeat(30)}`);
   const message = JSON.parse(calls[0].options.body);
   assert.deepEqual(message.to, ['owner@example.test']);
-  assert.equal(message.from, 'MetricTV <login@example.test>');
+  assert.equal(message.from, 'Selloview <login@example.test>');
   assert.match(message.text, /654321/);
 
   const rejecting = createResendTransport({
@@ -317,9 +333,9 @@ test('the Resend adapter sends one bounded HTTPS request and hides provider deta
 test('operator CLI initializes once, invites exact emails, lists, revokes and prints no secrets', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const env = {
-    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-    METRICTV_AUTH_SECRET: 'cli-secret-'.padEnd(48, 'x'),
-    METRICTV_ORIGIN: 'http://127.0.0.1:4331',
+    SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+    SELLOVIEW_AUTH_SECRET: 'cli-secret-'.padEnd(48, 'x'),
+    SELLOVIEW_ORIGIN: 'http://127.0.0.1:4331',
   };
 
   const beforeInit = await runCli(['invite', 'owner@example.test'], env);
@@ -355,7 +371,7 @@ test('operator CLI initializes once, invites exact emails, lists, revokes and pr
   assert.equal(unknown.code, 1);
 
   for (const output of [init, invite, list, revoke]) {
-    assert.equal((output.stdout + output.stderr).includes(env.METRICTV_AUTH_SECRET), false);
+    assert.equal((output.stdout + output.stderr).includes(env.SELLOVIEW_AUTH_SECRET), false);
   }
 });
 
@@ -396,10 +412,10 @@ test(
     const secret = 'proc-secret-'.padEnd(48, 'y');
     const env = {
       PATH: process.env.PATH,
-      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-      METRICTV_AUTH_SECRET: secret,
-      METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
-      METRICTV_PORT: String(port),
+      SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+      SELLOVIEW_AUTH_SECRET: secret,
+      SELLOVIEW_ORIGIN: `http://127.0.0.1:${port}`,
+      SELLOVIEW_PORT: String(port),
     };
     const init = await runCli(['init'], env);
     assert.equal(init.code, 0, init.stderr);
@@ -464,10 +480,10 @@ test('a server whose port is taken says so in one line and exits', async (t) => 
   const port = await findFreePort();
   const env = {
     PATH: process.env.PATH,
-    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-    METRICTV_AUTH_SECRET: VALID_SECRET,
-    METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
-    METRICTV_PORT: String(port),
+    SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+    SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+    SELLOVIEW_ORIGIN: `http://127.0.0.1:${port}`,
+    SELLOVIEW_PORT: String(port),
   };
   assert.equal((await runCli(['init'], env)).code, 0);
   const occupant = net.createServer();
@@ -476,7 +492,7 @@ test('a server whose port is taken says so in one line and exits', async (t) => 
 
   const result = await runServerOnce(env);
   assert.equal(result.code, 1);
-  assert.match(result.stderr, /MetricTV cannot start: .*EADDRINUSE/);
+  assert.match(result.stderr, /Selloview cannot start: .*EADDRINUSE/);
   assert.equal(/^\s+at /m.test(result.stderr), false, 'no stack trace');
 });
 
@@ -515,10 +531,10 @@ test('the start-up lines say whether rate limits can tell visitors apart', async
     const port = await findFreePort();
     const env = {
       PATH: process.env.PATH,
-      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-      METRICTV_AUTH_SECRET: VALID_SECRET,
-      METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
-      METRICTV_PORT: String(port),
+      SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+      SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+      SELLOVIEW_ORIGIN: `http://127.0.0.1:${port}`,
+      SELLOVIEW_PORT: String(port),
       ...extraEnvironment,
     };
     assert.equal((await runCli(['init'], env)).code, 0);
@@ -528,10 +544,10 @@ test('the start-up lines say whether rate limits can tell visitors apart', async
   const withoutHeader = await startupLines({});
   assert.match(
     withoutHeader,
-    /Client address for rate limits: the connection \(behind a proxy, every visitor looks like the proxy: see METRICTV_TRUSTED_IP_HEADER\)/,
+    /Client address for rate limits: the connection \(behind a proxy, every visitor looks like the proxy: see SELLOVIEW_TRUSTED_IP_HEADER\)/,
   );
 
-  const withHeader = await startupLines({ METRICTV_TRUSTED_IP_HEADER: 'X-Real-IP' });
+  const withHeader = await startupLines({ SELLOVIEW_TRUSTED_IP_HEADER: 'X-Real-IP' });
   assert.match(withHeader, /Client address for rate limits: the x-real-ip header\n/);
   assert.equal(withHeader.includes('every visitor looks like the proxy'), false);
 });
@@ -542,9 +558,9 @@ test('the sample server ignores HOST and listens on loopback only', async (t) =>
     t,
     'server/demo.mjs',
     { HOST: '0.0.0.0', PORT: String(port) },
-    'MetricTV prototype',
+    'Selloview prototype',
   );
-  assert.match(output, new RegExp(`MetricTV prototype: http://127\\.0\\.0\\.1:${port}\\n`));
+  assert.match(output, new RegExp(`Selloview prototype: http://127\\.0\\.0\\.1:${port}\\n`));
   const externalAddresses = externalIPv4Addresses();
   if (externalAddresses.length === 0) {
     t.diagnostic('no non-loopback IPv4 address on this machine; all-interfaces probe skipped');
@@ -556,11 +572,11 @@ test('the sample server ignores HOST and listens on loopback only', async (t) =>
 
 test('server start without an initialized database fails and creates nothing', async (t) => {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
+  const databasePath = path.join(directory, 'private', 'selloview.sqlite');
   const result = await runServerOnce({
-    METRICTV_DB_PATH: databasePath,
-    METRICTV_AUTH_SECRET: VALID_SECRET,
-    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
+    SELLOVIEW_DB_PATH: databasePath,
+    SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+    SELLOVIEW_ORIGIN: 'http://127.0.0.1:43999',
   });
   assert.equal(result.code, 1);
   assert.match(result.stderr, /cannot start/);
@@ -569,18 +585,18 @@ test('server start without an initialized database fails and creates nothing', a
 
 test('the server and the admin CLI refuse a leftover BETA_ setting before touching anything', async (t) => {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
+  const databasePath = path.join(directory, 'private', 'selloview.sqlite');
   const env = {
-    METRICTV_DB_PATH: databasePath,
-    METRICTV_AUTH_SECRET: VALID_SECRET,
-    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
+    SELLOVIEW_DB_PATH: databasePath,
+    SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+    SELLOVIEW_ORIGIN: 'http://127.0.0.1:43999',
     BETA_PORT: '43999',
   };
   const server = await runServerOnce(env);
   const admin = await runCli(['init'], env);
   for (const result of [server, admin]) {
     assert.equal(result.code, 1);
-    assert.match(result.stderr, /BETA_PORT is now METRICTV_PORT/);
+    assert.match(result.stderr, /BETA_PORT is now SELLOVIEW_PORT/);
     assert.equal(result.stderr.includes(VALID_SECRET), false);
   }
   await assert.rejects(fs.stat(databasePath), { code: 'ENOENT' }, 'nothing was created');
@@ -589,9 +605,9 @@ test('the server and the admin CLI refuse a leftover BETA_ setting before touchi
 test('the admin CLI names the npm command to run when it gets an unknown command', async (t) => {
   const directory = await makeTemporaryDirectory(t);
   const result = await runCli(['frobnicate'], {
-    METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-    METRICTV_AUTH_SECRET: VALID_SECRET,
-    METRICTV_ORIGIN: 'http://127.0.0.1:43999',
+    SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+    SELLOVIEW_AUTH_SECRET: VALID_SECRET,
+    SELLOVIEW_ORIGIN: 'http://127.0.0.1:43999',
   });
   assert.equal(result.code, 2);
   assert.match(result.stderr, /npm run admin -- init \| migrate \| invite <email>/);

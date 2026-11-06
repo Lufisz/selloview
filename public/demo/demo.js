@@ -12,7 +12,7 @@ import {
   renderSettings,
 } from './demo-view.js';
 
-// Preserve preferences saved before the MetricTV rename.
+// Preserve preferences saved before the Selloview rename.
 const STORAGE_KEY = 'stillboard-prototype-v1';
 const MAX_GOAL_EUROS = 100000000;
 const demoData = { days: SAMPLE_DAYS, orders: SAMPLE_ORDERS, attention: ATTENTION_ITEMS };

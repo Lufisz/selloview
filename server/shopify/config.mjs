@@ -9,12 +9,12 @@ import { normalizeInviteEmail } from '../accounts/accounts.mjs';
 import { PROJECT_ROOT, isCleanAbsolutePath, isInside } from '../private-files.mjs';
 
 const SETTING_NAMES = Object.freeze([
-  'METRICTV_SHOPIFY_CLIENT_ID',
-  'METRICTV_SHOPIFY_CLIENT_SECRET',
-  'METRICTV_SHOPIFY_ENCRYPTION_KEY',
-  'METRICTV_SHOPIFY_TOKEN_DIR',
-  'METRICTV_SHOPIFY_ALLOWED_STORE',
-  'METRICTV_SHOPIFY_OWNER_EMAIL',
+  'SELLOVIEW_SHOPIFY_CLIENT_ID',
+  'SELLOVIEW_SHOPIFY_CLIENT_SECRET',
+  'SELLOVIEW_SHOPIFY_ENCRYPTION_KEY',
+  'SELLOVIEW_SHOPIFY_TOKEN_DIR',
+  'SELLOVIEW_SHOPIFY_ALLOWED_STORE',
+  'SELLOVIEW_SHOPIFY_OWNER_EMAIL',
 ]);
 
 const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
@@ -33,10 +33,10 @@ function isBlank(value) {
 }
 
 function parseEncryptionKey(text) {
-  if (typeof text !== 'string') throw invalidConfig('METRICTV_SHOPIFY_ENCRYPTION_KEY');
+  if (typeof text !== 'string') throw invalidConfig('SELLOVIEW_SHOPIFY_ENCRYPTION_KEY');
   const key = Buffer.from(text, 'base64');
   const isCanonical = key.length === 32 && key.toString('base64') === text;
-  if (!isCanonical) throw invalidConfig('METRICTV_SHOPIFY_ENCRYPTION_KEY');
+  if (!isCanonical) throw invalidConfig('SELLOVIEW_SHOPIFY_ENCRYPTION_KEY');
   return key;
 }
 
@@ -51,9 +51,9 @@ function hideSecrets(target, secrets) {
 function parseTokenDirectory(value, projectRoot) {
   const isUsableDirectory =
     isCleanAbsolutePath(value) && !value.endsWith(path.sep) && value !== path.parse(value).root;
-  if (!isUsableDirectory) throw invalidConfig('METRICTV_SHOPIFY_TOKEN_DIR');
+  if (!isUsableDirectory) throw invalidConfig('SELLOVIEW_SHOPIFY_TOKEN_DIR');
   // The project root contains public/, so this also keeps credentials out of anything served.
-  if (isInside(projectRoot, value)) throw invalidConfig('METRICTV_SHOPIFY_TOKEN_DIR');
+  if (isInside(projectRoot, value)) throw invalidConfig('SELLOVIEW_SHOPIFY_TOKEN_DIR');
   return value;
 }
 
@@ -61,7 +61,7 @@ function parseOwnerEmail(value) {
   try {
     return normalizeInviteEmail(value);
   } catch {
-    throw invalidConfig('METRICTV_SHOPIFY_OWNER_EMAIL');
+    throw invalidConfig('SELLOVIEW_SHOPIFY_OWNER_EMAIL');
   }
 }
 
@@ -69,7 +69,7 @@ function parseStore(value) {
   try {
     return validateStore(value);
   } catch {
-    throw invalidConfig('METRICTV_SHOPIFY_ALLOWED_STORE');
+    throw invalidConfig('SELLOVIEW_SHOPIFY_ALLOWED_STORE');
   }
 }
 
@@ -85,23 +85,23 @@ export function loadShopifyConfig(env, { projectRoot = PROJECT_ROOT } = {}) {
   }
   if (missingNames.length > 0) throw invalidConfig(...missingNames);
 
-  const clientId = env.METRICTV_SHOPIFY_CLIENT_ID;
-  const clientSecret = env.METRICTV_SHOPIFY_CLIENT_SECRET;
-  if (!CLIENT_ID_PATTERN.test(clientId)) throw invalidConfig('METRICTV_SHOPIFY_CLIENT_ID');
+  const clientId = env.SELLOVIEW_SHOPIFY_CLIENT_ID;
+  const clientSecret = env.SELLOVIEW_SHOPIFY_CLIENT_SECRET;
+  if (!CLIENT_ID_PATTERN.test(clientId)) throw invalidConfig('SELLOVIEW_SHOPIFY_CLIENT_ID');
   if (!CLIENT_SECRET_PATTERN.test(clientSecret)) {
-    throw invalidConfig('METRICTV_SHOPIFY_CLIENT_SECRET');
+    throw invalidConfig('SELLOVIEW_SHOPIFY_CLIENT_SECRET');
   }
   return hideSecrets(
     {
       status: 'ready',
-      store: parseStore(env.METRICTV_SHOPIFY_ALLOWED_STORE),
-      ownerEmail: parseOwnerEmail(env.METRICTV_SHOPIFY_OWNER_EMAIL),
+      store: parseStore(env.SELLOVIEW_SHOPIFY_ALLOWED_STORE),
+      ownerEmail: parseOwnerEmail(env.SELLOVIEW_SHOPIFY_OWNER_EMAIL),
     },
     {
       clientId,
       clientSecret,
-      encryptionKey: parseEncryptionKey(env.METRICTV_SHOPIFY_ENCRYPTION_KEY),
-      tokenDirectory: parseTokenDirectory(env.METRICTV_SHOPIFY_TOKEN_DIR, projectRoot),
+      encryptionKey: parseEncryptionKey(env.SELLOVIEW_SHOPIFY_ENCRYPTION_KEY),
+      tokenDirectory: parseTokenDirectory(env.SELLOVIEW_SHOPIFY_TOKEN_DIR, projectRoot),
     },
   );
 }

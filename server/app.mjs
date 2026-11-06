@@ -1,4 +1,4 @@
-// The MetricTV app: invite-only owner login (Better Auth), owner session view, logout,
+// The Selloview app: invite-only owner login (Better Auth), owner session view, logout,
 // per-workspace appearance settings, TV pairing with revocable display sessions, and the optional,
 // workspace-scoped Shopify store connection. It serves its own pages and the shared presentation
 // files, and it never shows demo data. Loopback only: a tunnel or proxy in front is the operator's

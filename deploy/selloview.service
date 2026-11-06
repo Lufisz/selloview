@@ -1,0 +1,32 @@
+# Example systemd unit for a self-hosted Selloview instance.
+#
+# Assumes: source in /opt/selloview, a dedicated `selloview` system user, state in /var/lib/selloview
+# and configuration in /etc/selloview/selloview.env (mode 600, owned by root or selloview).
+# Install: sudo cp deploy/selloview.service /etc/systemd/system/ && sudo systemctl enable --now selloview
+[Unit]
+Description=Selloview Shopify TV dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=selloview
+Group=selloview
+WorkingDirectory=/opt/selloview
+EnvironmentFile=/etc/selloview/selloview.env
+# Use the path printed by `command -v node` if Node.js is installed elsewhere.
+ExecStart=/usr/bin/node server/main.mjs
+Restart=on-failure
+RestartSec=5
+
+# The process only needs to read its source and write its own state directory.
+UMask=0077
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/selloview
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

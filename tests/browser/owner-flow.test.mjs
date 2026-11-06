@@ -15,7 +15,7 @@ import {
 } from '../helpers/owner-page.mjs';
 
 const CSRF_TOKEN = 'owner-csrf-token';
-const CALLBACK_URL = 'https://metrictv.example.test/auth/beta/shopify/callback';
+const CALLBACK_URL = 'https://selloview.example.test/auth/beta/shopify/callback';
 const SEND_CODE = '/api/auth/email-otp/send-verification-otp';
 const SIGN_IN = '/api/auth/sign-in/email-otp';
 
@@ -444,7 +444,7 @@ test('disconnecting asks first, and only the confirmation removes the access', (
       ['/api/shopify', null],
     ],
   );
-  assert.match(confirmed.html, /Disconnected from MetricTV/);
+  assert.match(confirmed.html, /Disconnected from Selloview/);
   assert.match(confirmed.html, /data-form="connect-shopify"/);
   assert.doesNotMatch(confirmed.html, /Flow Shop/);
 });

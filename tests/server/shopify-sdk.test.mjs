@@ -13,7 +13,7 @@ import { REQUIRED_SCOPES } from '../../server/shopify/token-store.mjs';
 
 const STORE = 'synthetic-test-store.myshopify.com';
 const CLIENT_ID = 'synthetic_client_id_0001';
-const CALLBACK_URL = 'https://metrictv.test.example/auth/callback';
+const CALLBACK_URL = 'https://selloview.test.example/auth/callback';
 const expected = { store: STORE, clientId: CLIENT_ID, callbackUrl: CALLBACK_URL };
 
 function authorizeUrl(changes = {}) {

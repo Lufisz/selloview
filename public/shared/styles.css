@@ -1,4 +1,4 @@
-/* MetricTV: one quiet palette, one spacing rhythm, no UI framework.
+/* Selloview: one quiet palette, one spacing rhythm, no UI framework.
    Shared by every page: tokens, base elements, buttons, forms, header and the dark theme.
    The board is in board.css; each page has its own stylesheet next to its HTML. */
 :root {

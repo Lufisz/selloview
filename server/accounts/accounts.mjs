@@ -32,7 +32,7 @@ export function normalizeInviteEmail(rawEmail) {
 async function applySchema(database, authOptions) {
   const { user_version: existingVersion } = database.prepare('PRAGMA user_version').get();
   if (existingVersion > SCHEMA_VERSION) {
-    throw new Error('Database was written by a newer MetricTV version');
+    throw new Error('Database was written by a newer Selloview version');
   }
   const migrations = await getMigrations(authOptions);
   await migrations.runMigrations();

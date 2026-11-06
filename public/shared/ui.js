@@ -2,8 +2,7 @@
 // Nothing here imports data, fetches anything or touches the DOM.
 import { escapeHtml, hasOwn, normaliseStore } from './format.js';
 
-export const BRAND_NAME = 'MetricTV';
-const BRAND_WORDMARK = 'Metric TV';
+export const BRAND_NAME = 'Selloview';
 
 const ICON_PATHS = {
   arrow: '<path d="M4 12h16m-6-6 6 6-6 6"/>',
@@ -40,7 +39,7 @@ export function icon(name, className = '') {
 
 /** Logo link. `href` and `label` are fixed in-app strings; both are escaped anyway. */
 export function brandLink({ href, label }) {
-  return `<a class="brand" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}"><img src="/mark.svg" width="32" height="32" alt=""><span>${BRAND_WORDMARK}<span class="brand-dot">.</span></span></a>`;
+  return `<a class="brand" href="${escapeHtml(href)}" aria-label="${escapeHtml(label)}"><img src="/mark.svg" width="32" height="32" alt=""><span>${BRAND_NAME}<span class="brand-dot">.</span></span></a>`;
 }
 
 /** Small coloured dot. Tone is one of '', 'amber', 'neutral'. */

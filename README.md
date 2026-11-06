@@ -1,10 +1,10 @@
-# MetricTV
+# Selloview
 
 A read-only Shopify dashboard for TVs. See sales, orders, trends and stock alerts without opening Shopify admin.
 
 **Early beta:** hosted access is invite-only. Self-hosting currently supports one configured store and one connecting owner per instance.
 
-![MetricTV sample dashboard with sales, trends, stock alerts and recent orders](docs/screenshots/dashboard.png)
+![Selloview sample dashboard with sales, trends, stock alerts and recent orders](docs/screenshots/dashboard.png)
 
 *Fictional Sunday Supply store. No real merchant data appears in these screenshots.*
 
@@ -22,7 +22,7 @@ Requires **Node.js 22.16+**. The demo uses fictional data and needs no Shopify a
 
 ```sh
 git clone https://github.com/Lufisz/metrictv.git
-cd metrictv
+cd selloview
 npm start
 ```
 

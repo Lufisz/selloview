@@ -1,6 +1,6 @@
 // Who a visitor is for the per-address rate limits. The server listens on loopback behind a reverse
 // proxy, so the socket address is the proxy's: the real visitor is known only from a header that the
-// operator names (METRICTV_TRUSTED_IP_HEADER) because the proxy always overwrites it.
+// operator names (SELLOVIEW_TRUSTED_IP_HEADER) because the proxy always overwrites it.
 import net from 'node:net';
 import { logEvent } from '../log.mjs';
 import { singleHeaderValue } from './static-files.mjs';

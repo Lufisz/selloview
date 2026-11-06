@@ -89,9 +89,9 @@ function removeFrom(scenario, email, removeGrant) {
 
 function cliEnvironment(environment) {
   return {
-    METRICTV_DB_PATH: environment.databasePath,
-    METRICTV_AUTH_SECRET: environment.secret,
-    METRICTV_ORIGIN: environment.origin,
+    SELLOVIEW_DB_PATH: environment.databasePath,
+    SELLOVIEW_AUTH_SECRET: environment.secret,
+    SELLOVIEW_ORIGIN: environment.origin,
   };
 }
 

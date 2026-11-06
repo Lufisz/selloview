@@ -18,7 +18,7 @@ export function ownerSession({ settings = { period: 'week', theme: 'light' }, re
   return answer(200, {
     owner: { email: 'owner@example.test' },
     sessionExpiresAt: '2099-01-01T00:00:00.000Z',
-    workspace: { name: 'My MetricTV', revision, settings },
+    workspace: { name: 'My Selloview', revision, settings },
     storeConnection: { state: 'setup_required', canConnect: false },
     csrfToken: 'owner-csrf-token',
   });
@@ -74,7 +74,7 @@ export function runOwnerPage({ routes = {}, search = '', pathname = '/app', acti
         search: ${JSON.stringify(search)},
         hash: '',
         pathname: ${JSON.stringify(pathname)},
-        origin: 'https://metrictv.example.test',
+        origin: 'https://selloview.example.test',
         assign: (url) => assigned.push(url),
       },
       history: { replaceState: (state, title, url) => replaced.push(url) },

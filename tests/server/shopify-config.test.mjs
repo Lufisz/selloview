@@ -20,12 +20,12 @@ const KEY = crypto.randomBytes(32).toString('base64');
 
 function validEnvironment(directory) {
   return {
-    METRICTV_SHOPIFY_CLIENT_ID: 'synthetic_client_id_0001',
-    METRICTV_SHOPIFY_CLIENT_SECRET: SYNTHETIC_CLIENT_SECRET,
-    METRICTV_SHOPIFY_ENCRYPTION_KEY: KEY,
-    METRICTV_SHOPIFY_TOKEN_DIR: directory,
-    METRICTV_SHOPIFY_ALLOWED_STORE: SYNTHETIC_STORE,
-    METRICTV_SHOPIFY_OWNER_EMAIL: 'Owner@Example.test',
+    SELLOVIEW_SHOPIFY_CLIENT_ID: 'synthetic_client_id_0001',
+    SELLOVIEW_SHOPIFY_CLIENT_SECRET: SYNTHETIC_CLIENT_SECRET,
+    SELLOVIEW_SHOPIFY_ENCRYPTION_KEY: KEY,
+    SELLOVIEW_SHOPIFY_TOKEN_DIR: directory,
+    SELLOVIEW_SHOPIFY_ALLOWED_STORE: SYNTHETIC_STORE,
+    SELLOVIEW_SHOPIFY_OWNER_EMAIL: 'Owner@Example.test',
   };
 }
 
@@ -34,13 +34,13 @@ function validEnvironment(directory) {
 test('no Shopify settings at all is a safe setup-required state', () => {
   assert.deepEqual({ ...loadShopifyConfig({}) }, { status: 'setup_required' });
   assert.deepEqual(
-    { ...loadShopifyConfig({ METRICTV_SHOPIFY_CLIENT_ID: '' }) },
+    { ...loadShopifyConfig({ SELLOVIEW_SHOPIFY_CLIENT_ID: '' }) },
     { status: 'setup_required' },
   );
 });
 
 test('complete settings load; partial or malformed settings fail closed, naming the setting and never a value', () => {
-  const directory = path.join(path.sep, 'var', 'lib', 'metrictv-test-grants');
+  const directory = path.join(path.sep, 'var', 'lib', 'selloview-test-grants');
   const config = loadShopifyConfig(validEnvironment(directory));
   assert.equal(config.status, 'ready');
   assert.equal(config.ownerEmail, 'owner@example.test', 'the owner address is normalized');
@@ -55,24 +55,24 @@ test('complete settings load; partial or malformed settings fail closed, naming 
   const bad = [];
   for (const name of Object.keys(good)) bad.push({ ...good, [name]: '' });
   bad.push(
-    { ...good, METRICTV_SHOPIFY_CLIENT_ID: 'short' },
-    { ...good, METRICTV_SHOPIFY_CLIENT_SECRET: 'has space in it, not allowed' },
-    { ...good, METRICTV_SHOPIFY_ENCRYPTION_KEY: crypto.randomBytes(16).toString('base64') },
-    { ...good, METRICTV_SHOPIFY_ENCRYPTION_KEY: ` ${KEY}` },
-    { ...good, METRICTV_SHOPIFY_ENCRYPTION_KEY: KEY.replace(/=$/, '') },
-    { ...good, METRICTV_SHOPIFY_ENCRYPTION_KEY: 12345 },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: 'relative/grants' },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: `${directory}/` },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: `${directory}/../x` },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, 'grants') },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, 'public') },
+    { ...good, SELLOVIEW_SHOPIFY_CLIENT_ID: 'short' },
+    { ...good, SELLOVIEW_SHOPIFY_CLIENT_SECRET: 'has space in it, not allowed' },
+    { ...good, SELLOVIEW_SHOPIFY_ENCRYPTION_KEY: crypto.randomBytes(16).toString('base64') },
+    { ...good, SELLOVIEW_SHOPIFY_ENCRYPTION_KEY: ` ${KEY}` },
+    { ...good, SELLOVIEW_SHOPIFY_ENCRYPTION_KEY: KEY.replace(/=$/, '') },
+    { ...good, SELLOVIEW_SHOPIFY_ENCRYPTION_KEY: 12345 },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: 'relative/grants' },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: `${directory}/` },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: `${directory}/../x` },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, 'grants') },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, 'public') },
     // A folder whose name merely starts with ".." is still inside the project, not above it.
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, '..tokens') },
-    { ...good, METRICTV_SHOPIFY_TOKEN_DIR: path.sep },
-    { ...good, METRICTV_SHOPIFY_ALLOWED_STORE: 'Store.myshopify.com' },
-    { ...good, METRICTV_SHOPIFY_ALLOWED_STORE: 'evil.example.com' },
-    { ...good, METRICTV_SHOPIFY_ALLOWED_STORE: `https://${SYNTHETIC_STORE}` },
-    { ...good, METRICTV_SHOPIFY_OWNER_EMAIL: 'not an email' },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: path.resolve(PROJECT_ROOT, '..tokens') },
+    { ...good, SELLOVIEW_SHOPIFY_TOKEN_DIR: path.sep },
+    { ...good, SELLOVIEW_SHOPIFY_ALLOWED_STORE: 'Store.myshopify.com' },
+    { ...good, SELLOVIEW_SHOPIFY_ALLOWED_STORE: 'evil.example.com' },
+    { ...good, SELLOVIEW_SHOPIFY_ALLOWED_STORE: `https://${SYNTHETIC_STORE}` },
+    { ...good, SELLOVIEW_SHOPIFY_OWNER_EMAIL: 'not an email' },
   );
   for (const env of bad) {
     const changedSetting = Object.keys(good).find((name) => env[name] !== good[name]);
@@ -91,24 +91,24 @@ test('complete settings load; partial or malformed settings fail closed, naming 
 });
 
 test('a partly filled group names every setting that is still missing', () => {
-  const good = validEnvironment(path.join(path.sep, 'var', 'lib', 'metrictv-test-grants'));
+  const good = validEnvironment(path.join(path.sep, 'var', 'lib', 'selloview-test-grants'));
   const partial = {
-    METRICTV_SHOPIFY_CLIENT_ID: good.METRICTV_SHOPIFY_CLIENT_ID,
-    METRICTV_SHOPIFY_CLIENT_SECRET: good.METRICTV_SHOPIFY_CLIENT_SECRET,
-    METRICTV_SHOPIFY_TOKEN_DIR: '',
+    SELLOVIEW_SHOPIFY_CLIENT_ID: good.SELLOVIEW_SHOPIFY_CLIENT_ID,
+    SELLOVIEW_SHOPIFY_CLIENT_SECRET: good.SELLOVIEW_SHOPIFY_CLIENT_SECRET,
+    SELLOVIEW_SHOPIFY_TOKEN_DIR: '',
   };
   assert.throws(
     () => loadShopifyConfig(partial),
     (error) => {
       const namesEverythingMissing = [
-        'METRICTV_SHOPIFY_ENCRYPTION_KEY',
-        'METRICTV_SHOPIFY_TOKEN_DIR',
-        'METRICTV_SHOPIFY_ALLOWED_STORE',
-        'METRICTV_SHOPIFY_OWNER_EMAIL',
+        'SELLOVIEW_SHOPIFY_ENCRYPTION_KEY',
+        'SELLOVIEW_SHOPIFY_TOKEN_DIR',
+        'SELLOVIEW_SHOPIFY_ALLOWED_STORE',
+        'SELLOVIEW_SHOPIFY_OWNER_EMAIL',
       ].every((name) => error.message.includes(name));
       const namesNothingPresent =
-        !error.message.includes('METRICTV_SHOPIFY_CLIENT_ID') &&
-        !error.message.includes('METRICTV_SHOPIFY_CLIENT_SECRET');
+        !error.message.includes('SELLOVIEW_SHOPIFY_CLIENT_ID') &&
+        !error.message.includes('SELLOVIEW_SHOPIFY_CLIENT_SECRET');
       return (
         error.code === 'invalid_connection_config' && namesEverythingMissing && namesNothingPresent
       );
@@ -153,10 +153,10 @@ test(
     const secret = 'proc-secret-'.padEnd(48, 'z');
     const base = {
       PATH: process.env.PATH,
-      METRICTV_DB_PATH: path.join(directory, 'private', 'metrictv.sqlite'),
-      METRICTV_AUTH_SECRET: secret,
-      METRICTV_ORIGIN: `http://127.0.0.1:${port}`,
-      METRICTV_PORT: String(port),
+      SELLOVIEW_DB_PATH: path.join(directory, 'private', 'selloview.sqlite'),
+      SELLOVIEW_AUTH_SECRET: secret,
+      SELLOVIEW_ORIGIN: `http://127.0.0.1:${port}`,
+      SELLOVIEW_PORT: String(port),
     };
     const init = await runNode([path.join(PROJECT_ROOT, 'scripts', 'admin.mjs'), 'init'], base);
     assert.equal(init.code, 0, init.output);
@@ -164,14 +164,14 @@ test(
 
     const partial = await runNode([server], {
       ...base,
-      METRICTV_SHOPIFY_CLIENT_ID: 'synthetic_client_id_0001',
-      METRICTV_SHOPIFY_CLIENT_SECRET: SYNTHETIC_CLIENT_SECRET,
+      SELLOVIEW_SHOPIFY_CLIENT_ID: 'synthetic_client_id_0001',
+      SELLOVIEW_SHOPIFY_CLIENT_SECRET: SYNTHETIC_CLIENT_SECRET,
     });
     assert.equal(partial.code, 1, 'incomplete settings stop the server');
     assert.match(partial.output, /invalid_connection_config/);
     assert.match(
       partial.output,
-      /METRICTV_SHOPIFY_ENCRYPTION_KEY/,
+      /SELLOVIEW_SHOPIFY_ENCRYPTION_KEY/,
       'the operator is told what is missing',
     );
     assert.equal(partial.output.includes(SYNTHETIC_CLIENT_SECRET), false);
@@ -181,7 +181,7 @@ test(
     const complete = {
       ...base,
       ...validEnvironment(grants),
-      METRICTV_SHOPIFY_OWNER_EMAIL: OWNER,
+      SELLOVIEW_SHOPIFY_OWNER_EMAIL: OWNER,
     };
     const running = await runNode([server], complete, { until: 'Shopify store connection' });
     t.after(() => running.child.kill('SIGKILL'));
@@ -190,12 +190,12 @@ test(
       assert.equal(running.output.includes(secretValue), false);
     }
     const anonymous = await httpRequest({
-      origin: base.METRICTV_ORIGIN,
+      origin: base.SELLOVIEW_ORIGIN,
       pathname: '/api/shopify',
     });
     assert.equal(anonymous.status, 401, 'owner session required');
     const callback = await httpRequest({
-      origin: base.METRICTV_ORIGIN,
+      origin: base.SELLOVIEW_ORIGIN,
       pathname: '/auth/beta/shopify/callback?state=x',
     });
     assert.equal(callback.status, 303);

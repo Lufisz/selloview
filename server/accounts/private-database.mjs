@@ -24,19 +24,19 @@ const BUSY_TIMEOUT_MS = 5000;
 /** Failure with a stable code; messages never contain file content. */
 export class PrivateDatabaseError extends CodedError {}
 
-/** Validates METRICTV_DB_PATH. Throws instead of falling back to a default location. */
+/** Validates SELLOVIEW_DB_PATH. Throws instead of falling back to a default location. */
 export function parseDatabasePath(configured, projectRoot = PROJECT_ROOT) {
   const isSafePath = isCleanAbsolutePath(configured) && configured.endsWith('.sqlite');
   if (!isSafePath) {
     throw new PrivateDatabaseError(
       'invalid_path',
-      'METRICTV_DB_PATH must be an absolute normalized path ending in .sqlite',
+      'SELLOVIEW_DB_PATH must be an absolute normalized path ending in .sqlite',
     );
   }
   if (isInside(projectRoot, configured)) {
     throw new PrivateDatabaseError(
       'inside_project',
-      'METRICTV_DB_PATH must be outside the project',
+      'SELLOVIEW_DB_PATH must be outside the project',
     );
   }
   return configured;

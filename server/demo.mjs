@@ -48,6 +48,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const host = '127.0.0.1';
   const port = Number(process.env.PORT ?? 4317);
   createDemoServer().listen(port, host, () =>
-    console.log(`MetricTV prototype: http://${host}:${port}`),
+    console.log(`Selloview prototype: http://${host}:${port}`),
   );
 }

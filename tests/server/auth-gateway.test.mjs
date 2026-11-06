@@ -6,7 +6,7 @@ import { Readable } from 'node:stream';
 import { MIN_ANSWER_MS, createAuthGateway } from '../../server/accounts/auth-gateway.mjs';
 import { SEND_CODE_PATH, SIGN_IN_PATH } from '../../server/accounts/auth.mjs';
 
-const ORIGIN = 'https://metrictv.example.test';
+const ORIGIN = 'https://selloview.example.test';
 // Node's timers can fire a millisecond early.
 const TIMER_SLACK_MS = 2;
 

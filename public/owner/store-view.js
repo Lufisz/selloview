@@ -7,7 +7,7 @@ import { normalizePeriod } from '../shared/periods.js';
 import { messageForError } from './owner-client.js';
 
 const RETURN_MESSAGES = Object.freeze({
-  connected: 'Shopify approved the connection. MetricTV is reading the first figures now.',
+  connected: 'Shopify approved the connection. Selloview is reading the first figures now.',
   failed: 'Shopify authorization did not finish. Nothing was changed. You can try again.',
 });
 
@@ -26,7 +26,7 @@ function syncSummary(connection, snapshot) {
     return 'Authorized. The first read from Shopify is running, so there are no figures yet. This page checks again by itself.';
   }
   if (!snapshot) {
-    return 'Shopify could not be read yet. No figures are shown. MetricTV tries again by itself.';
+    return 'Shopify could not be read yet. No figures are shown. Selloview tries again by itself.';
   }
   const updated = formatDateTime(snapshot.fetchedAt, snapshot.shop.timeZone);
   if (sync.state === 'ok') return `Figures updated ${updated} (${snapshot.shop.timeZone}).`;
@@ -55,7 +55,7 @@ function connectFormHtml({ connection, store, busy, error }) {
     <label for="owner-store">Shopify store address</label>
     <input id="owner-store" name="store" type="text" inputmode="url" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="your-store.myshopify.com" value="${escapeHtml(value)}" required>
     ${error ? messageHtml(error, 'error') : ''}
-    <p class="field-hint">You will sign in and approve read-only access in Shopify, then return here. MetricTV cannot change your orders, products or stock.</p>
+    <p class="field-hint">You will sign in and approve read-only access in Shopify, then return here. Selloview cannot change your orders, products or stock.</p>
     <button class="button ${isReconnect ? 'secondary' : 'primary'} small" type="submit"${isBusy ? ' disabled aria-busy="true"' : ''}>${isBusy ? 'Opening Shopify…' : escapeHtml(label)}</button>
   </form>`;
 }
@@ -70,7 +70,7 @@ function disconnectHtml({ confirming, busy }) {
   }
   const isBusy = busy === 'disconnecting';
   return `<div class="owner-confirm" role="group" aria-label="Confirm disconnect">
-    <p>Disconnecting deletes the saved Shopify access from this MetricTV server and clears the figures here and on your screens. It does not uninstall the app in Shopify.</p>
+    <p>Disconnecting deletes the saved Shopify access from this Selloview server and clears the figures here and on your screens. It does not uninstall the app in Shopify.</p>
     <div class="screen-actions">
       ${actionButton({ action: 'disconnect-shopify-confirm', label: isBusy ? 'Disconnecting…' : 'Disconnect', className: 'button primary small' })}
       ${actionButton({ action: 'disconnect-shopify-cancel', label: 'Keep it connected', className: 'button secondary small' })}

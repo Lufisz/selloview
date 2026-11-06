@@ -5,7 +5,7 @@
 // Everything that touches a store starts from a workspace the server derived from a verified owner
 // session or display session. A shop name in a request is never enough.
 //
-// The configuration (METRICTV_SHOPIFY_*) restricts which owner and which exact store may be linked;
+// The configuration (SELLOVIEW_SHOPIFY_*) restricts which owner and which exact store may be linked;
 // the data model stays workspace-bound so lifting that restriction later does not change any
 // isolation rule.
 import { createConnectFlow } from './connect-flow.mjs';

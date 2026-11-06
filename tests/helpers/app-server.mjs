@@ -51,7 +51,7 @@ export async function findFreePort() {
 
 export async function makeTemporaryDirectory(t) {
   const base = await fs.realpath(os.tmpdir());
-  const directory = await fs.mkdtemp(path.join(base, 'metrictv-test-'));
+  const directory = await fs.mkdtemp(path.join(base, 'selloview-test-'));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   return directory;
 }
@@ -59,7 +59,7 @@ export async function makeTemporaryDirectory(t) {
 /** Creates an initialized private database and returns the settings to open it again. */
 export async function createAppEnvironment(t, { invites = [] } = {}) {
   const directory = await makeTemporaryDirectory(t);
-  const databasePath = path.join(directory, 'private', 'metrictv.sqlite');
+  const databasePath = path.join(directory, 'private', 'selloview.sqlite');
   const secret = crypto.randomBytes(48).toString('base64url');
   const port = await findFreePort();
   const origin = `http://127.0.0.1:${port}`;

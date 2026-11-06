@@ -110,7 +110,7 @@ test(
 );
 
 test(
-  'a paired TV shows the store logo, served by MetricTV, and nobody else can fetch it',
+  'a paired TV shows the store logo, served by Selloview, and nobody else can fetch it',
   http,
   async (t) => {
     const { scenario, alice } = await connectedAlice(t);

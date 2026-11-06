@@ -1,4 +1,4 @@
-// Operator commands for a MetricTV server. Local only; sends no email and opens no port.
+// Operator commands for a Selloview server. Local only; sends no email and opens no port.
 //
 //   npm run admin -- init                      create the private database (fails if it exists)
 //   npm run admin -- migrate                   bring an existing database to the current schema
@@ -8,8 +8,8 @@
 //                                              stored Shopify credentials; stop the service first
 //   npm run admin -- owners                    list invited owners (emails and workspace ids)
 //
-// Configuration comes from the environment: METRICTV_DB_PATH, METRICTV_AUTH_SECRET, METRICTV_ORIGIN.
-// `remove` also needs the server's METRICTV_SHOPIFY_* settings when the owner linked a store.
+// Configuration comes from the environment: SELLOVIEW_DB_PATH, SELLOVIEW_AUTH_SECRET, SELLOVIEW_ORIGIN.
+// `remove` also needs the server's SELLOVIEW_SHOPIFY_* settings when the owner linked a store.
 import { loadServerConfig } from '../server/config.mjs';
 import {
   initializeDatabase,

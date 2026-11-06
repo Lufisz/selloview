@@ -1,6 +1,6 @@
-# MetricTV documentation
+# Selloview documentation
 
-The [README](../README.md) says what MetricTV is and how to run the sample. These pages explain how it is built and how to run it.
+The [README](../README.md) says what Selloview is and how to run the sample. These pages explain how it is built and how to run it.
 
 | Read | When you want to… |
 | --- | --- |

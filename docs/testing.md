@@ -60,5 +60,5 @@ python3 tests/qa/browser_qa.py             # in another
 | --- | --- |
 | `BASE_URL` | where the sample runs, default `http://127.0.0.1:4317` |
 | `CHROME` | path to a Chrome or Chromium executable; unset uses Playwright's own (`playwright install chromium`) |
-| `QA_OUTPUT` | where screenshots and `results.json` go, default `metrictv-qa` in the system temp directory. Keep it outside the repository |
+| `QA_OUTPUT` | where screenshots and `results.json` go, default `selloview-qa` in the system temp directory. Keep it outside the repository |
 | `HTTP_BRIDGE=1` | fetch pages with Python instead of the browser, for hosts whose firewall blocks Chrome's localhost sockets |

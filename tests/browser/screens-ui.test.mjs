@@ -28,7 +28,7 @@ function fakeFetchReturning(status, body) {
 
 const OWNER_SESSION = {
   owner: { email: 'owner@example.test' },
-  workspace: { name: 'My MetricTV', revision: 0, settings: { period: 'week', theme: 'light' } },
+  workspace: { name: 'My Selloview', revision: 0, settings: { period: 'week', theme: 'light' } },
   storeConnection: { state: 'setup_required', canConnect: false },
   csrfToken: 'owner-csrf-token',
 };
