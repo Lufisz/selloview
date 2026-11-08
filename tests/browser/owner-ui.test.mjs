@@ -53,6 +53,26 @@ const PAIRED_SCREEN = {
   expiresAt: '2026-11-07T10:00:00.000Z',
 };
 
+test('the owner workspace keeps all sections on one page without a redundant menu', () => {
+  const html = owner();
+  assert.doesNotMatch(html, /class="owner-nav"/);
+  for (const section of ['overview', 'connection', 'board-settings', 'screens']) {
+    const tag = html.match(new RegExp(`<section[^>]*id="${section}"[^>]*>`))[0];
+    assert.equal(tag.includes(' hidden'), false);
+  }
+});
+
+test('old generated workspace names show My dashboard without replacing custom names', () => {
+  for (const name of ['My MetricTV', 'My Metric TV', 'My Selloview']) {
+    const html = owner({
+      session: { ...OWNER_SESSION, workspace: { ...OWNER_SESSION.workspace, name } },
+    });
+    assert.match(html, /id="owner-title">My dashboard</);
+    assert.doesNotMatch(html, /id="owner-title">My Metric/);
+  }
+  assert.match(owner(), /id="owner-title">Sample</);
+});
+
 test('a healthy connection is one compact green strip with reconnect behind details', () => {
   const html = panel({ connection: connection('connected', { state: 'ok' }), snapshot: SNAPSHOT });
   assert.match(html, /owner-strip is-healthy/);

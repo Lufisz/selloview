@@ -279,18 +279,7 @@
   color: var(--muted);
   margin: 0;
 }
-.owner-nav {
-  display: flex;
-  gap: 18px;
-  flex-wrap: wrap;
-}
-.owner-nav a {
-  color: var(--muted);
-  font-size: 13px;
-}
-.owner-nav a:hover {
-  color: var(--ink);
-}
+
 /* Connection: one compact status strip. */
 .owner-strip {
   display: flex;
@@ -471,12 +460,11 @@
   line-height: 1.55;
   margin: 4px 0 8px;
 }
-/* Settings and screens: two compact panels side by side. */
+/* Equal-width management panels below the dashboard. */
 .owner-columns {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
-  align-items: start;
 }
 .owner-panel {
   background: var(--surface);
@@ -537,6 +525,7 @@
 .owner-body .owner-panel .text-button {
   font-size: 13px;
 }
+
 @media (max-width: 860px) {
   .owner-columns {
     grid-template-columns: minmax(0, 1fr);

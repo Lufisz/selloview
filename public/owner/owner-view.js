@@ -220,16 +220,8 @@ function setupChecklistHtml(state) {
   </nav>`;
 }
 
-function ownerNavHtml({ hasBoard, screenCount }) {
-  const links = [];
-  if (hasBoard) links.push({ href: '#overview', label: 'Overview' });
-  links.push({ href: '#connection', label: 'Connection' });
-  links.push({ href: '#board-settings', label: 'Board settings' });
-  links.push({ href: '#screens', label: screenCount > 0 ? `Screens (${screenCount})` : 'Screens' });
-  const items = links.map(
-    (link) => `<a href="${escapeHtml(link.href)}">${escapeHtml(link.label)}</a>`,
-  );
-  return `<nav class="owner-nav" aria-label="Workspace sections">${items.join('')}</nav>`;
+function workspaceTitle(name) {
+  return ['My MetricTV', 'My Metric TV', 'My Selloview'].includes(name) ? 'My dashboard' : name;
 }
 
 function ownerHeaderHtml(session) {
@@ -279,20 +271,18 @@ export function renderOwner(state) {
     now: storeState.now,
     userChoices: storeState.userChoices,
   });
-  const screenCount = state.screens.status === 'ready' ? state.screens.items.length : 0;
-  // The store's own board heading is the page's h1 whenever there is a board.
+  // The store's board heading is the h1 whenever there is a board.
   const titleTag = boardHtml ? 'p' : 'h1';
-  const overview = boardHtml
-    ? `<section class="owner-overview" id="overview" aria-label="Overview">${boardHtml}</section>`
-    : '';
+  const overview = `<section class="owner-overview" id="overview" aria-label="Overview">
+    ${setupChecklistHtml(storeState)}${boardHtml}
+    ${!boardHtml ? '<p class="field-hint">Your dashboard will appear here after your store syncs. <a href="#connection">Check connection</a></p>' : ''}
+  </section>`;
   return `${ownerHeaderHtml(session)}
     <main class="owner-page" id="main" tabindex="-1">
       <div class="owner-heading">
-        <${titleTag} class="owner-title" id="owner-title">${escapeHtml(session.workspace.name)}</${titleTag}>
-        ${ownerNavHtml({ hasBoard: Boolean(boardHtml), screenCount })}
+        <${titleTag} class="owner-title" id="owner-title">${escapeHtml(workspaceTitle(session.workspace.name))}</${titleTag}>
       </div>
       <section class="owner-connection" id="connection" aria-label="Store connection">${renderStorePanel(storeState)}</section>
-      ${setupChecklistHtml(storeState)}
       ${overview}
       <div class="owner-columns">
         <section class="owner-panel" id="board-settings" aria-label="Board settings">
