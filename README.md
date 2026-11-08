@@ -59,3 +59,5 @@ Start with [Architecture](docs/architecture.md), then [Contributing](CONTRIBUTIN
 ## Licence
 
 [AGPL-3.0-only](LICENSE). The bundled Archivo font uses the [SIL Open Font License](public/fonts/OFL.txt).
+
+The licence covers the code, not the brand. The Selloview name and logo are not part of it: if you run your own version, please give it a different name and logo.
