@@ -70,8 +70,49 @@ html.tv-fit,
 .tv-fit .tv-topbar .brand {
   font-size: 2.2vh;
 }
+/* Pairing and connecting cards: centred in the space under the top bar and sized by the screen,
+   so the whole card fits whatever resolution or zoom the TV browser reports. */
 .tv-fit .tv-card {
-  margin-top: 4vh;
+  align-self: center;
+  box-sizing: border-box;
+  flex: 0 1 auto;
+  margin: auto 0;
+  max-height: 100%;
+  max-width: 72vw;
+  overflow: hidden;
+  padding: 5vh 4vw;
+  text-align: center;
+  width: 72vw;
+}
+.tv-fit .tv-card .eyebrow {
+  font-size: 2vh;
+  justify-content: center;
+  margin: 0;
+}
+.tv-fit .tv-card h1 {
+  font-size: 6vh;
+  letter-spacing: -0.1vh;
+  margin: 2vh 0;
+}
+.tv-fit .tv-steps {
+  font-size: 2.6vh;
+  margin: 0 auto;
+  max-width: 52vw;
+  text-wrap: balance;
+}
+.tv-fit .tv-code {
+  font-size: 11vh;
+  letter-spacing: 1vw;
+  line-height: 1.1;
+  margin: 3.5vh 0;
+}
+.tv-fit .tv-card .field-hint,
+.tv-fit .tv-card .field-error {
+  font-size: 2.2vh;
+  line-height: 1.5;
+  margin: 0 auto;
+  max-width: 56vw;
+  text-wrap: balance;
 }
 .tv-fit .board-tv {
   box-sizing: border-box;
