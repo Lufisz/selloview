@@ -24,3 +24,6 @@ __pycache__/
 # Optional development dependencies
 node_modules/
 .venv/
+
+# Built static sample site
+dist/

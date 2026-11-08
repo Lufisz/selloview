@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="title desc">
+  <title id="title">Pairing a TV in three steps</title>
+  <desc id="desc">The TV shows a short code. The signed-in owner enters it. The TV receives its own revocable display session and starts showing the board.</desc>
+  <style>
+    .card { fill: #fff; stroke: #e2e6df; stroke-width: 1.5; }
+    .step { fill: #285548; }
+    .number { font: 600 16px Helvetica, Arial, sans-serif; fill: #fff; }
+    .title { font: 600 18px Helvetica, Arial, sans-serif; fill: #202c28; }
+    .text { font: 14px Helvetica, Arial, sans-serif; fill: #68716b; }
+    .code { font: 600 20px Menlo, Consolas, monospace; fill: #285548; letter-spacing: 3px; }
+    .arrow { stroke: #285548; stroke-width: 2; fill: none; marker-end: url(#head); }
+  </style>
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#285548" />
+    </marker>
+  </defs>
+  <rect width="960" height="220" rx="16" fill="#f6f7f4" />
+
+  <rect class="card" x="32" y="32" width="264" height="156" rx="12" />
+  <circle class="step" cx="64" cy="66" r="16" />
+  <text class="number" x="59" y="72">1</text>
+  <text class="title" x="92" y="72">TV shows a code</text>
+  <text class="code" x="64" y="122">K7Q2-M9XD</text>
+  <text class="text" x="64" y="158">Open /tv on the TV browser</text>
+
+  <path class="arrow" d="M302 110 H342" />
+
+  <rect class="card" x="348" y="32" width="264" height="156" rx="12" />
+  <circle class="step" cx="380" cy="66" r="16" />
+  <text class="number" x="375" y="72">2</text>
+  <text class="title" x="408" y="72">Owner approves it</text>
+  <text class="text" x="380" y="118">Signed in on a phone,</text>
+  <text class="text" x="380" y="140">enter the code and name the TV</text>
+
+  <path class="arrow" d="M618 110 H658" />
+
+  <rect class="card" x="664" y="32" width="264" height="156" rx="12" />
+  <circle class="step" cx="696" cy="66" r="16" />
+  <text class="number" x="691" y="72">3</text>
+  <text class="title" x="724" y="72">The board appears</text>
+  <text class="text" x="696" y="118">The TV gets its own session.</text>
+  <text class="text" x="696" y="140">No owner login, no Shopify key.</text>
+  <text class="text" x="696" y="162">Remove it any time.</text>
+</svg>
