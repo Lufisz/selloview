@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 300" role="img" aria-labelledby="title desc">
+  <title id="title">How Selloview works</title>
+  <desc id="desc">Shopify sends read-only store data to the Selloview server. The owner manages the board from a phone or laptop. Paired TVs receive a display-only view.</desc>
+  <style>
+    .box { fill: #fff; stroke: #e2e6df; stroke-width: 1.5; }
+    .core { fill: #eaf1e9; stroke: #285548; stroke-width: 1.5; }
+    .title { font: 600 18px Helvetica, Arial, sans-serif; fill: #202c28; }
+    .text { font: 14px Helvetica, Arial, sans-serif; fill: #68716b; }
+    .label { font: 13px Helvetica, Arial, sans-serif; fill: #285548; }
+    .arrow { stroke: #285548; stroke-width: 2; fill: none; marker-end: url(#head); }
+  </style>
+  <defs>
+    <marker id="head" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#285548" />
+    </marker>
+  </defs>
+  <rect width="960" height="300" rx="16" fill="#f6f7f4" />
+
+  <rect class="box" x="32" y="100" width="210" height="100" rx="12" />
+  <text class="title" x="56" y="140">Shopify store</text>
+  <text class="text" x="56" y="166">Orders, products, stock</text>
+
+  <path class="arrow" d="M246 150 H336" />
+  <text class="label" x="258" y="138">read-only</text>
+
+  <rect class="core" x="340" y="80" width="260" height="140" rx="12" />
+  <text class="title" x="364" y="120">Selloview server</text>
+  <text class="text" x="364" y="148">Calculates the figures</text>
+  <text class="text" x="364" y="170">Keeps the Shopify key encrypted</text>
+  <text class="text" x="364" y="192">Decides who may see what</text>
+
+  <path class="arrow" d="M604 120 L700 76" />
+  <path class="arrow" d="M604 180 L700 224" />
+
+  <rect class="box" x="704" y="28" width="224" height="96" rx="12" />
+  <text class="title" x="728" y="62">Owner</text>
+  <text class="text" x="728" y="86">Phone or laptop</text>
+  <text class="text" x="728" y="106">Board, settings, TVs</text>
+
+  <rect class="box" x="704" y="176" width="224" height="96" rx="12" />
+  <text class="title" x="728" y="214">TV in the shop</text>
+  <text class="text" x="728" y="240">Display-only view</text>
+</svg>

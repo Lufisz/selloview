@@ -1,24 +1,34 @@
 # Selloview
 
-A read-only Shopify dashboard for TVs. See sales, orders, trends and stock alerts without opening Shopify admin.
+A calm Shopify dashboard for the TV in your shop or office. Sales, orders, trends and what needs attention, on one screen, without opening Shopify admin.
 
-**Early beta:** hosted access is invite-only. Self-hosting currently supports one configured store and one connecting owner per instance.
+![A short tour of the sample dashboard: home page, board and TV mode](docs/screenshots/tour.gif)
 
-![Selloview sample dashboard with sales, trends, stock alerts and recent orders](docs/screenshots/dashboard.png)
+*The sample store "Sunday Supply" is fictional. No real merchant data appears anywhere in this repository.*
 
-*Fictional Sunday Supply store. No real merchant data appears in these screenshots.*
+## How it works
 
-## What works
+![Shopify sends read-only data to the Selloview server, which serves the owner's phone or laptop and a display-only TV view](docs/images/how-it-works.svg)
 
-- Email-code sign-in and read-only Shopify authorization.
-- Sales and order metrics with previous-period comparisons.
-- TV pairing using a short code. The TV gets a separate, revocable display session, not the owner's login or Shopify credentials.
-- Saved period and theme settings, with automatic refresh while the board is open.
-- A visible warning when the latest sync fails.
+- **Read-only.** Selloview asks Shopify for four read scopes and never writes to the store.
+- **The server does the work.** It calculates the figures and keeps the Shopify key encrypted. Browsers never see it.
+- **The TV only gets what it shows.** No customer data, no store address, no admin links, no credentials.
 
-## Run the demo
+## Pairing a TV
 
-Requires **Node.js 22.16+**. The demo uses fictional data and needs no Shopify account or dependencies.
+![The TV shows a code, the owner approves it on a phone, and the TV starts showing the board](docs/images/pairing.svg)
+
+No typing passwords on a TV remote. Each TV gets its own session that the owner can remove at any time.
+
+## What you see
+
+| On a laptop | On the TV |
+| --- | --- |
+| ![Owner board with sales, trend chart, attention items and latest orders](docs/screenshots/dashboard.png) | ![TV mode of the same board](docs/screenshots/tv.png) |
+
+## Try it
+
+Requires **Node.js 22.16+**. The sample uses fictional data and needs no Shopify account.
 
 ```sh
 git clone https://github.com/Lufisz/selloview.git
@@ -26,34 +36,17 @@ cd selloview
 npm start
 ```
 
-Open **http://127.0.0.1:4317**.
-
-The demo's connection setup is simulated. Its preferences are stored in your browser, not connected to a real store.
-
-<details>
-<summary>Screenshot: demo settings</summary>
-
-![Demo settings for the fictional Sunday Supply store](docs/screenshots/demo-settings.png)
-
-These are prototype controls. Connected workspaces currently save period and theme; the demo's section toggles and weekly goal are not available there yet.
-
-</details>
+Open **http://127.0.0.1:4317**. `npm run build:demo` builds the same sample as plain static files for any static host.
 
 ## Connect your own store
 
-Follow the **[self-hosting guide](docs/self-hosting.md)**. You need:
+Follow the **[self-hosting guide](docs/self-hosting.md)**. You need a server with Node.js behind HTTPS, a Shopify app for your store, and a [Resend](https://resend.com) account for sign-in codes.
 
-- A server running Node.js, with an HTTPS reverse proxy.
-- A Shopify app configured for your store.
-- A Resend account and verified sending domain for login codes.
+**Status: early beta.** One instance serves one store and one owner. Public onboarding, uninstall and privacy webhooks, and self-service account deletion are not built yet.
 
-The guide covers configuration, owner invitations, Shopify authorization, TV pairing and backups. Example configuration is in [`.env.example`](.env.example); deployment examples are in [`deploy/`](deploy/).
+## Built with
 
-**Current limits:** public merchant onboarding, self-service account deletion, uninstall/privacy webhooks and custom layouts are not ready. Operators can remove accounts through the admin command. A clean-server installation and restore still need verification before a supported release.
-
-## Development
-
-Plain JavaScript, HTML and CSS, with Node.js and SQLite. No frontend framework or build step.
+Plain JavaScript, HTML and CSS on Node.js and SQLite. No frontend framework, no build step, two runtime dependencies. 470+ tests run on every change.
 
 ```sh
 npm ci --ignore-scripts
@@ -61,9 +54,7 @@ npm run check
 npm test
 ```
 
-See [Architecture](docs/architecture.md) for the code structure, [Testing](docs/testing.md) for test guidance, and [Contributing](CONTRIBUTING.md) before opening a pull request.
-
-Report vulnerabilities privately as described in [Security](SECURITY.md). Never include real store data or credentials in issues or screenshots.
+Start with [Architecture](docs/architecture.md), then [Contributing](CONTRIBUTING.md). Report security issues privately as described in [Security](SECURITY.md).
 
 ## Licence
 

@@ -8,6 +8,7 @@
   "scripts": {
     "start": "node server/demo.mjs",
     "start:server": "node server/main.mjs",
+    "build:demo": "node scripts/build-demo-site.mjs",
     "admin": "node scripts/admin.mjs",
     "check": "node scripts/check.mjs && npm run format:check",
     "format": "prettier --write \"{public,server,tests,scripts}/**/*.{js,mjs,css,html}\" package.json .prettierrc.json",
