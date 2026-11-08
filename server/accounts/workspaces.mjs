@@ -3,7 +3,7 @@
 import crypto from 'node:crypto';
 import { inTransaction } from './private-database.mjs';
 
-const DEFAULT_WORKSPACE_NAME = 'My Selloview';
+const DEFAULT_WORKSPACE_NAME = 'My dashboard';
 const MAX_REVISION = 1_000_000_000;
 const PERIOD_VALUES = Object.freeze(['today', 'week', 'month', 'days60']);
 const THEME_VALUES = Object.freeze(['light', 'dark']);
