@@ -9,7 +9,7 @@ One Node process and one SQLite file. No other service is needed.
 | `npm start` (`server/demo.mjs`) | The sample board: fictional data, no API, no database, no accounts. |
 | `npm run start:server` (`server/main.mjs`) | The app: landing page, sample, owner page (`/app`, `/register`), TV page (`/tv`), the JSON API and `/healthz`. It listens on `127.0.0.1` only; an HTTPS reverse proxy sits in front ([`deploy/Caddyfile`](../deploy/Caddyfile)). |
 | `npm run admin` (`scripts/admin.mjs`) | Operator commands on the same database. Never reachable over HTTP. |
-| `npm run build:demo` (`scripts/build-demo-site.mjs`) | Copies the sample's public files into `dist/demo-site` for a static host. The `Sample site` workflow publishes it to GitHub Pages when started by hand. |
+| `npm run build:demo` (`scripts/build-demo-site.mjs`) | Copies the sample's public files into `dist/demo-site` for a static host. With `SAMPLE_SITE_ORIGIN` set (a plain `https://` origin) it also adds the canonical and share tags, `social-card.png`, `sitemap.xml` and `robots.txt`. The `Sample site` workflow publishes it to GitHub Pages when started by hand and sets the origin from the Pages settings. |
 
 The owner workspace (`/app`) is one page: connection status, the board, then equal-width Board settings and Screens panels that stack on phones. Workspaces still carrying an older generated name are shown as "My dashboard"; stored and custom names are not rewritten.
 
