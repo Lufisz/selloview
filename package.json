@@ -22,7 +22,7 @@
     "prettier": "3.9.10"
   },
   "dependencies": {
-    "@shopify/shopify-api": "15.0.1",
+    "@shopify/shopify-api": "15.1.1",
     "better-auth": "1.7.17"
   }
 }
