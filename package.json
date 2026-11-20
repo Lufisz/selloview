@@ -19,7 +19,7 @@
     "node": ">=22.16"
   },
   "devDependencies": {
-    "prettier": "3.9.10"
+    "prettier": "3.10.1"
   },
   "dependencies": {
     "@shopify/shopify-api": "15.0.1",
